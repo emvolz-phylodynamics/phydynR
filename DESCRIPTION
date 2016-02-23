@@ -1,0 +1,16 @@
+Package: phydynR
+Type: Package
+Title: Phylogenetic dating and phylodynamic inference by sequential Monte Carlo
+Version: 0.1
+Date: 2016-02-20
+Author: Erik Volz
+Maintainer: Erik Volz <erik@erikvolz.info>
+Description: Coalescent simulation and likelihood for phylodynamic inference
+License: GPL
+Imports: Rcpp (>= 0.12.0)
+LinkingTo: 
+  Rcpp,
+  RcppArmadillo,
+  RcppParallel
+Depends: ape, deSolve, expm, phytools, phangorn, ggplot2, BH, inline
+Suggests: testthat
