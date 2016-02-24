@@ -64,7 +64,7 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 	NumericMatrix edge(n+Nnode-ntrees, 2); 
 	NumericVector edge_length(n+Nnode-ntrees, -1.0);
 	NumericVector heights(n+Nnode, -1.0);
-cout << n+Nnode-ntrees << endl; 
+//~ cout << n+Nnode-ntrees << endl; 
 	
 	mat lstates = zeros(n+Nnode, m);
 	mat mstates = zeros(n+Nnode, m);
@@ -249,7 +249,7 @@ cout << n+Nnode-ntrees << endl;
 				// do the co
 				if (!foundu || !foundv){
 					// just pick two lines at random; 
-					cout << sum(extant) << endl; 
+					//~ cout << sum(extant) << endl; 
 					IntegerVector uv =  Rcpp::RcppArmadillo::sample( extantRange , 2, false, as<NumericVector>(extant)) ;
 					u = uv[0];
 					v = uv[1];

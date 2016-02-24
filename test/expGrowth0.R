@@ -40,14 +40,14 @@ tre <- sim.co.tree(   list( beta = 1.5, gamma = 1 )
 
 
 
-objfun <- function( of_theta)
+objfun <- function( of_theta, .tre)
 {
 	lnbeta <- of_theta['lnbeta']
 	lnI0 <- of_theta['lnI0']
 	b <- exp(lnbeta)
 	I0 <- exp(lnI0)
 	print( c( b, I0))
-	-colik(tre
+	-colik(.tre
 	  , list( beta = unname(b), gamma = 1)
 	  , dm.det
 	  , x0 = c( I = unname(I0) )
@@ -60,10 +60,28 @@ objfun <- function( of_theta)
 
 
 
-fit <- optim( par = c( lnbeta = log(2), lnI0 = log(1))
- , fn = objfun
- , control = list( trace = 6 )
-)
+#~ fit <- optim( par = c( lnbeta = log(2), lnI0 = log(1))
+#~  , fn = objfun
+#~  , control = list( trace = 6 )
+#~ )
+
+nfits <- 10
+fits <- lapply( 1:nfits, function(ifit){
+	.tre <- sim.co.tree(   list( beta = 1.5, gamma = 1 )
+	  , dm.det
+	  , x0  = c(I = 1 )
+	  , t0 = 0
+	  , sampleTimes = seq(5, 15, length.out=100)
+	  , res = 100 
+	) #TODO warnings
+	
+	optim( par = c( lnbeta = log(2), lnI0 = log(1))
+	  , fn = objfun
+	  , control = list( trace = 6 )
+	  , .tre = .tre
+	)
+})
+betas <- unname( sapply(fits, function(fit) exp(fit$par['lnbeta']) ) )
 
 if (F){
 source('../R/colik.R')

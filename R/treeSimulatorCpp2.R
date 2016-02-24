@@ -487,12 +487,14 @@ deaths.attr("names") = rcnames;
 					if (mm > 0){
 						.ndd <- dNonDeme( x, t, parms)
 						r_ndd <- rnorm(mm, mean = .ndd*Dt, sd = sqrt(abs(.ndd*Dt)) ) 
+						stepx_nondemes <- r_ndd
+						stepx_nondemes[is.na(stepx_nondemes)] <- 0
 					} else{
 						.ndd <- c()
 						r_ndd <- c()
+						stepx_nondemes <- r_ndd
 					}
-					stepx_nondemes <- r_ndd
-					stepx_nondemes[is.na(stepx_nondemes)] <- 0
+					
 					x <- setNames( pmax(0, x + c(stepx_demes, stepx_nondemes) )
 					  , c(demeNames, nonDemeNames) )
 					ox[it, ] <- c( t, x )
