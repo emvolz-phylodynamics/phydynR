@@ -12,6 +12,50 @@ First, load the package and define the rates:
 require(phydynR)
 ```
 
+```
+## Loading required package: phydynR
+## Loading required package: ape
+## Loading required package: deSolve
+## 
+## Attaching package: 'deSolve'
+## 
+## The following object is masked from 'package:graphics':
+## 
+##     matplot
+## 
+## Loading required package: expm
+## Loading required package: Matrix
+## 
+## Attaching package: 'expm'
+## 
+## The following object is masked from 'package:Matrix':
+## 
+##     expm
+## 
+## The following object is masked from 'package:ape':
+## 
+##     balance
+## 
+## Loading required package: phytools
+## Loading required package: maps
+## 
+## Attaching package: 'phytools'
+## 
+## The following object is masked from 'package:expm':
+## 
+##     expm
+## 
+## The following object is masked from 'package:Matrix':
+## 
+##     expm
+## 
+## Loading required package: phangorn
+## Loading required package: ggplot2
+## Use suppressPackageStartupMessages to eliminate package startup messages.
+## Loading required package: BH
+## Loading required package: inline
+```
+
 ```r
 births <- c(I = 'parms$beta * I' )
 deaths <- c(I = 'parms$gamma * I' )
@@ -68,8 +112,8 @@ dm.det <- build.demographic.process(births = c(I = 'beta * I')
 ```
 
 ```
-## [1] "Wed Feb 24 18:07:02 2016 Compiling model..."
-## [1] "Wed Feb 24 18:07:09 2016 Model complete"
+## [1] "Thu Feb 25 13:24:18 2016 Compiling model..."
+## [1] "Thu Feb 25 13:24:25 2016 Model complete"
 ```
 Note that when we use C code, the `parms` keyword is not used. 
 
@@ -96,7 +140,80 @@ plot( ladderize( tre ))
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
 
+Finally, we will see how to compute a likelihood of parameters describing the demographic process given the tree as data. 
+The `colik` function can be used to compute this likelihood, and model fitting can be done in a variety of ways; a Bayesian analysis could be done using the `mcmc` package, or maximum likelihood can be done using the `bbmle` package. 
+Note that this returns the log likelihood. 
+Here is an example invocation of the likelihood function using the simulated tree as data: 
 
+```r
+colik(tre
+  , list( beta = 1.5, gamma = 1)
+  , dm.det
+  , x0 = c( I = 1 )
+  , t0 = -1
+  , res = 1e3
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = TRUE
+)
+```
+
+```
+## [1] -219.7076
+```
+Note the following options:
+
+* `tre` is the `DatedTree` object that we fit to
+* `x0` is the initial conditions for the demographic process
+* `t0` is the time of origin of the process; you should choose a value that occurs before the root of the tree
+* `res` is the number of time steps used in the demographic process
+* `timeOfOriginBoundaryCondition` (default `FALSE`) : if `TRUE`, the function returns `-Inf` if the time of origin occurs before the root of the tree
+* `AgtYboundaryCondition` (default `TRUE`) : if `TRUE`, the function returns `-Inf` if the number of extant lineages in the tree is less than the simulated population size; this should usually be left as `TRUE`
+
+The `phydynR` package also includes a convenient wrapper of R's native `optim` routines which enables easy maximum likelihood inference. Here is an example:
+
+```r
+optim.colik(tre
+  , dm.det
+  , start = c( beta = 2, gamma = 1, I = 1, t0 = -1)
+  , est_pars = c( 'beta', 'I')
+  , ic_pars = c('I')
+  , t0 = -1
+  , parm_lowerBounds = c( I = 0, beta = 0)
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = TRUE
+  , control = list()
+) -> fit 
+```
+The return value is the same as returned by `optim`, so `fit$par` contains the parameter estimate:
+
+```r
+fit
+```
+```
+## $par
+##      beta         I 
+## 1.5193956 0.4499639 
+## 
+## $value
+## [1] 199.8921
+## 
+## $counts
+## function gradient 
+##      137       NA 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL
+```
+Note the following options:
+
+* `start` contains the default parameter values *including* the initial conditions; this may optionally include `t0` which will specify the time of origin
+* `est_pars` is a vector of parameter names that will be fitted; all remaining parameter values will be fixed at the values in `start`
+* You can also fix the time of origin with the `t0` argument. 
+* Some parameter values must fit within some pre-defined bounds; for example, the initial population size can not be less than zero, so the `parm_lowerBounds` is a named vector supplying the lower limits of these boundary conditions; `parm_upperBounds` provides the upper limits. 
+* `control` is a list of options for `optim`; see `?optim` for more information.
 
 
 ## SIR example TODO 

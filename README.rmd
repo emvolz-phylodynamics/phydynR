@@ -80,7 +80,55 @@ The returned tree is a `DatedTree` object which subclasses `ape::phylo`. So, mos
 plot( ladderize( tre ))
 ```
 
+Finally, we will see how to compute a likelihood of parameters describing the demographic process given the tree as data. 
+The `colik` function can be used to compute this likelihood, and model fitting can be done in a variety of ways; a Bayesian analysis could be done using the `mcmc` package, or maximum likelihood can be done using the `bbmle` package. 
+Note that this returns the log likelihood. 
+Here is an example invocation of the likelihood function using the simulated tree as data: 
+```{r}
+colik(tre
+  , list( beta = 1.5, gamma = 1)
+  , dm.det
+  , x0 = c( I = 1 )
+  , t0 = -1
+  , res = 1e3
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = TRUE
+)
+```
+Note the following options:
 
+* `tre` is the `DatedTree` object that we fit to
+* `x0` is the initial conditions for the demographic process
+* `t0` is the time of origin of the process; you should choose a value that occurs before the root of the tree
+* `res` is the number of time steps used in the demographic process
+* `timeOfOriginBoundaryCondition` (default `FALSE`) : if `TRUE`, the function returns `-Inf` if the time of origin occurs before the root of the tree
+* `AgtYboundaryCondition` (default `TRUE`) : if `TRUE`, the function returns `-Inf` if the number of extant lineages in the tree is less than the simulated population size; this should usually be left as `TRUE`
+
+The `phydynR` package also includes a convenient wrapper of R's native `optim` routines which enables easy maximum likelihood inference. Here is an example:
+```{r result='hide'}
+optim.colik(tre
+  , dm.det
+  , start = c( beta = 2, gamma = 1, I = 1, t0 = -1)
+  , est_pars = c( 'beta', 'I')
+  , ic_pars = c('I')
+  , t0 = -1
+  , parm_lowerBounds = c( I = 0, beta = 0)
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = TRUE
+  , control = list()
+) -> fit 
+```
+The return value is the same as returned by `optim`, so `fit$par` contains the parameter estimate:
+```{r}
+fit
+```
+Note the following options:
+
+* `start` contains the default parameter values *including* the initial conditions; this may optionally include `t0` which will specify the time of origin
+* `est_pars` is a vector of parameter names that will be fitted; all remaining parameter values will be fixed at the values in `start`
+* You can also fix the time of origin with the `t0` argument. 
+* Some parameter values must fit within some pre-defined bounds; for example, the initial population size can not be less than zero, so the `parm_lowerBounds` is a named vector supplying the lower limits of these boundary conditions; `parm_upperBounds` provides the upper limits. 
+* `control` is a list of options for `optim`; see `?optim` for more information.
 
 
 ## SIR example TODO 
