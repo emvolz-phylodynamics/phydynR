@@ -12,50 +12,6 @@ First, load the package and define the rates:
 require(phydynR)
 ```
 
-```
-## Loading required package: phydynR
-## Loading required package: ape
-## Loading required package: deSolve
-## 
-## Attaching package: 'deSolve'
-## 
-## The following object is masked from 'package:graphics':
-## 
-##     matplot
-## 
-## Loading required package: expm
-## Loading required package: Matrix
-## 
-## Attaching package: 'expm'
-## 
-## The following object is masked from 'package:Matrix':
-## 
-##     expm
-## 
-## The following object is masked from 'package:ape':
-## 
-##     balance
-## 
-## Loading required package: phytools
-## Loading required package: maps
-## 
-## Attaching package: 'phytools'
-## 
-## The following object is masked from 'package:expm':
-## 
-##     expm
-## 
-## The following object is masked from 'package:Matrix':
-## 
-##     expm
-## 
-## Loading required package: phangorn
-## Loading required package: ggplot2
-## Use suppressPackageStartupMessages to eliminate package startup messages.
-## Loading required package: BH
-## Loading required package: inline
-```
-
 ```r
 births <- c(I = 'parms$beta * I' )
 deaths <- c(I = 'parms$gamma * I' )
