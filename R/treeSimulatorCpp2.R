@@ -743,6 +743,11 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 	tfgy <- demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod=integrationMethod)
 	o <- tfgy[[5]] 
 	t <- o[,1]
-	matplot( t, o[, 2:ncol(o)], type = 'l' , xlab = 'Time', ylab = '', ...)
-	legend("bottomright", inset=.05, legend=colnames(o)[2:ncol(o)], pch=1, col=c(2,4), horiz=TRUE)
+	if ( ((ncol(o)-1)==2) & tail(colnames(o),1)=='V2'){
+		# test if this is a single deme model 
+		plot( t, o[, 2], type = 'l', xlab = 'Time' , ylab = colnames(o)[2], ...)
+	} else{
+		matplot( t, o[, 2:ncol(o)], type = 'l' , xlab = 'Time', ylab = '', ...)
+		legend("bottomright", inset=.05, legend=colnames(o)[2:ncol(o)], pch=1, col=c(2,4), horiz=TRUE)
+	}
 }
