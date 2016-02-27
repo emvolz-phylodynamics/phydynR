@@ -519,7 +519,7 @@ deaths.attr("names") = rcnames;
 
 
 ##################################################################################
-DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6){
+DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6, minEdgeLength = 0){
 	if (is.null(names(sampleTimes))) stop('sampleTimes vector must have names of tip labels')
 	if (is.null(sampleStates) & !is.null(sampleStatesAnnotations) ) sampleStates <- .infer.sample.states.from.annotation(phylo, sampleStatesAnnotations)
 	if (is.null(sampleStates) & is.null(sampleStatesAnnotations)) { sampleStates <- t(t( rep(1, length(phylo$tip.label)))) ; rownames( sampleStates) <- phylo$tip.label }
@@ -540,26 +540,34 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	heights <- rep(NA, (phylo$Nnode + length(phylo$tip.label)) )
 	heights[1:length(phylo$sampleTimes)] <- phylo$maxSampleTime - phylo$sampleTimes
 	curgen <- 1:length(phylo$sampleTimes)
-	while( length(curgen) > 0) { 
-		nextgen <- c()
-		icurgenedges <- which(  phylo$edge[,2] %in% curgen  )
-		for (i in icurgenedges){
-			u<- phylo$edge[i,1]
-			v<- phylo$edge[i,2]
-			if (!is.na(heights[u])){ # ensure branch lengths consistent
-				if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > tol )
-				{ #browser()
-				  stop( 'Tree is poorly formed. Branch lengths incompatible with sample times.')
-				  }
-				phylo$edge.length[i] <- heights[u] - heights[v]
-			} else{
-				heights[u] <- phylo$edge.length[i] + heights[v]
+	edgeLengthChange <- TRUE 
+	while (edgeLengthChange)
+	{
+		edgeLengthChange <- FALSE
+		while( length(curgen) > 0) { 
+			nextgen <- c()
+			icurgenedges <- which(  phylo$edge[,2] %in% curgen  )
+			for (i in icurgenedges){
+				u<- phylo$edge[i,1]
+				v<- phylo$edge[i,2]
+				if (!is.na(heights[u])){ # ensure branch lengths consistent
+					if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > tol )
+					{ #browser()
+					  stop( 'Tree is poorly formed. Branch lengths incompatible with sample times.')
+					} else if ( 0!=(heights[u] - (phylo$edge.length[i] + heights[v]) ) ){
+						edgeLengthChange <- TRUE 
+					}
+					phylo$edge.length[i] <- max(minEdgeLength, heights[u] - heights[v] ) 
+					heights[u] <- heights[v]  + phylo$edge.length[i]
+				} else{
+					heights[u] <- phylo$edge.length[i] + heights[v]
+				}
+				
+				
+				nextgen <- c(nextgen, u)
 			}
-			
-			
-			nextgen <- c(nextgen, u)
+			curgen <- unique(nextgen)
 		}
-		curgen <- unique(nextgen)
 	}
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)

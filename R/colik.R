@@ -23,6 +23,12 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 	
 	m <- nrow(Fs[[1]])
 	if (m < 2)  stop('Currently only models with at least two demes are supported')
+	DEMES <- colnames(Fs[[1]] )
+	# for unstructured models
+	if (m == 2 & DEMES[2]=='V2' & ncol(bdt$sampleStates) == 1){
+		bdt$sampleStates <- cbind( bdt$sampleStates, rep(0, bdt$n))
+		bdt$sortedSampleStates <- cbind( bdt$sortedSampleStates, rep(0, bdt$n))
+	}
 	
 	#demographic model should be in order of decreasing time:
 	fgyi <- 1:length(Fs)
@@ -86,10 +92,6 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 	eventIndicatorNode <- eventIndicatorNode[!excl]
 	eventHeights <- eventHeights[!excl]
 	
-	
-	
-#~ browser()
-	#ll <- colik1cpp(
 	ll <- colik2cpp(
 	  heights,  Fs[fgyi],  Gs[fgyi], Ys[fgyi]
 	  , events
@@ -173,6 +175,8 @@ optim.colik <- function(tre
   , parm_upperBounds = c()
   , timeOfOriginBoundaryCondition = FALSE
   , AgtYboundaryCondition = TRUE
+  , res = 1e3
+  , integrationMethod = 'adams' 
   , control = list()
   ,  ... )
 {
@@ -189,9 +193,13 @@ optim.colik <- function(tre
 		}
 		x0 <- start[ic_pars]
 		x0[ est_ic_pars] <- unname( of_theta[ est_ic_pars ]  )
-		t0 <- ifelse(is.null(t0), 0, 
-		    ifelse( is.na( of_theta['t0'] ), 0, of_theta['t0'] )
-		  )
+		if (is.null(t0)){
+			if (is.na(of_theta['t0'])){
+				t0 <- 0
+			} else{
+				t0 <- of_theta['t0']
+			}
+		}
 		print( of_theta )
 		.theta <- theta
 		.theta[ names(of_theta)] <- unname( of_theta )
@@ -200,7 +208,8 @@ optim.colik <- function(tre
 		  , dm
 		  , x0 = x0
 		  , t0 = t0
-		  , res = 1e3
+		  , res = res
+		  , integrationMethod = integrationMethod
 		  , timeOfOriginBoundaryCondition = timeOfOriginBoundaryCondition
 		  , AgtYboundaryCondition = AgtYboundaryCondition # important/necessary
 		)
