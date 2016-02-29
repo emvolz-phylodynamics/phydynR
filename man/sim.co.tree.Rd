@@ -1,8 +1,8 @@
 \name{sim.co.tree}
+\alias{sim.co.tree}
 \title{Simulate a coalescent genealogy based on a demographic process. }
 \description{A tree is simulated based on a demographic process and user-supplied parameters and initial conditions. The times and types of samples must also be supplied. }
 \usage{
-sim.co.tree(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates = NULL, res = 1000, integrationMethod = "adams")
 \method{sim.co.tree}{default}(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates = NULL, res = 1000, integrationMethod = "adams")
 }
 \arguments{

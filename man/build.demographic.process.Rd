@@ -1,8 +1,8 @@
 \name{build.demographic.process}
+\alias{build.demographic.process}
 \title{Build a demographic process model (ODE or SDE)}
 \description{A model is constructed by supplying birth rates, migration rates, and death rates. The model can be used to simulate demographic histories or as an input to coalescent simulation or likelihood calculation. }
 \usage{
-build.demographic.process(births, nonDemeDynamics = NA, migrations = NA, deaths = NA,  parameterNames = c(), rcpp = TRUE, sde = FALSE) 
 \method{build.demographic.process}{default}(births, nonDemeDynamics = NA, migrations = NA, deaths = NA, parameterNames = c(), rcpp = TRUE, sde = FALSE) 
 }
 \arguments{
