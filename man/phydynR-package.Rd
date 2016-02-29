@@ -6,15 +6,14 @@
 \packageTitle{phydynR}
 }
 \description{
-\packageDescription{phydynR}
+\packageDescription{phydynR: Phylodynamic inference and simulation in R.}
 }
 \details{
 
 The DESCRIPTION file:
 \packageDESCRIPTION{phydynR}
 \packageIndices{phydynR}
-~~ An overview of how to use the package, including the most important ~~
-~~ functions ~~
+This package provides an interface to building demographic process models (ODEs or SDEs) and simulating genealogies based on these models. Low level functions can be used to construct more complex models. A structured coalescent likelihood allows for inference of model parameters provided a time-scaled genealogy. 
 }
 \author{
 \packageAuthor{phydynR}
@@ -22,15 +21,13 @@ The DESCRIPTION file:
 Maintainer: \packageMaintainer{phydynR}
 }
 \references{
-~~ Literature or other references for background information ~~
+1. Volz, Erik M. Complex population dynamics and the coalescent under neutrality. Genetics 190.1 (2012): 187-201.
+2. Volz, Erik M., Katia Koelle, and Trevor Bedford. Viral phylodynamics. PLoS Comput Biol 9.3 (2013): e1002947.
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in ~~
-~~ the R documentation directory ~~
+
 \keyword{ package }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
 }
 \examples{
-~~ simple examples of the most important functions ~~
+See the README for common usage and examples.
 }
