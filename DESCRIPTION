@@ -11,6 +11,7 @@ Imports: Rcpp (>= 0.12.0)
 LinkingTo: 
   Rcpp,
   RcppArmadillo,
-  RcppParallel
+  RcppParallel,
+  BH
 Depends: ape, deSolve, expm, phytools, phangorn, ggplot2, BH, inline
 Suggests: testthat

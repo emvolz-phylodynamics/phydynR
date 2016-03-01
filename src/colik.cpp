@@ -1,13 +1,14 @@
-#include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppArmadillo, BH)]]
 
-
-
-//odeint
-// [[Rcpp::depends(BH)]]
 #include <iostream>
 #include <vector>
 #include <boost/numeric/odeint.hpp>
+
+#include <RcppArmadillo.h>
+
+
+
+
 
 using namespace arma;
 using namespace Rcpp; 
