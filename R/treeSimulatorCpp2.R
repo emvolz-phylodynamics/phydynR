@@ -259,7 +259,7 @@ deaths.attr("names") = rcnames;
 				 , parms = as.list(theta)
 				 , method = integrationMethod)
 				# note does not include first value, which is t0; 2nd value corresponds to root of tree
-				Ys <- lapply( nrow(ox):1, function(i) setNames(pmax(0,ox[i, demeNames], demeNames) ) )
+				Ys <- lapply( nrow(ox):1, function(i) setNames(pmax(0,ox[i, demeNames]), demeNames) ) 
 				Fs <- lapply( nrow(ox):1, function(i) {
 					Fcpp( ox[i,2:ncol(ox)], ox[i,1], m, unlist(theta), demeNames)$F
 				}) 
@@ -376,6 +376,7 @@ deaths.attr("names") = rcnames;
 				 , nrow=m, ncol=m
 			))) -> GG
 			colnames(GG) = rownames(GG) <- demeNames
+			GG
 		}
 		tBirths <- function(x, t, parms)
 		{
@@ -557,7 +558,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 				v<- phylo$edge[i,2]
 				if (!is.na(heights[u])){ # ensure branch lengths consistent
 					if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > tol )
-					{ #browser()
+					{ #
 					  stop( 'Tree is poorly formed. Branch lengths incompatible with sample times.')
 					} else if ( 0!=(heights[u] - (phylo$edge.length[i] + heights[v]) ) ){
 						edgeLengthChange <- TRUE 
