@@ -259,7 +259,7 @@ deaths.attr("names") = rcnames;
 				 , parms = as.list(theta)
 				 , method = integrationMethod)
 				# note does not include first value, which is t0; 2nd value corresponds to root of tree
-				Ys <- lapply( nrow(ox):1, function(i) pmax(0,ox[i, demeNames]) )
+				Ys <- lapply( nrow(ox):1, function(i) setNames(pmax(0,ox[i, demeNames], demeNames) ) )
 				Fs <- lapply( nrow(ox):1, function(i) {
 					Fcpp( ox[i,2:ncol(ox)], ox[i,1], m, unlist(theta), demeNames)$F
 				}) 
@@ -297,7 +297,7 @@ deaths.attr("names") = rcnames;
 				ox <- matrix(NA, nrow = res, ncol = 1 + m + mm )
 				colnames(ox) <- c("time", demeNames, nonDemeNames)
 				for (it in 1:res){
-					Ys[[it]] <- pmax(0., x[demeNames] )
+					Ys[[it]] <- setNames( pmax(0., x[demeNames] ), demeNames )
 					t <- times[it]
 					FF <- Fcpp( x, t, m, theta, demeNames)$F
 					rF <- matrix( nrow=m, ncol = m, pmax(0, rnorm(m*m, mean = as.vector(FF)*Dt, sd = sqrt( as.vector(FF)*Dt)  ) ) )
@@ -360,7 +360,9 @@ deaths.attr("names") = rcnames;
 					epb
 				})
 			  , nrow=m, ncol=m
-			)))
+			))) -> FF
+			colnames(FF) = rownames(FF) <- demeNames
+			FF
 		}
 		.migration.matrix <- function( x, t, parms) 
 		{
@@ -372,7 +374,8 @@ deaths.attr("names") = rcnames;
 					epb
 				  })
 				 , nrow=m, ncol=m
-			)))
+			))) -> GG
+			colnames(GG) = rownames(GG) <- demeNames
 		}
 		tBirths <- function(x, t, parms)
 		{
@@ -474,7 +477,7 @@ deaths.attr("names") = rcnames;
 				ox <- matrix(NA, nrow = res, ncol = 1 + m + mm )
 				colnames(ox) <- c("time", demeNames, nonDemeNames)
 				for (it in 1:res){
-					Ys[[it]] <- pmax(0., x[demeNames] )
+					Ys[[it]] <- setNames( pmax(0., x[demeNames] ), demeNames )
 					t <- times[it]
 					FF <- .birth.matrix(x, t, parms )
 					rF <- matrix( nrow=m, ncol = m, pmax(0, rnorm(m*m, mean = as.vector(FF)*Dt, sd = sqrt( as.vector(FF)*Dt)  ) ) )
