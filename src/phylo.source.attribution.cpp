@@ -1,12 +1,7 @@
 /* lineages through time and hazard of co
  */
-#include <RcppArmadillo.h>
 
-#include <iostream>
-#include <vector>
-#include <boost/numeric/odeint.hpp>
-
-#include <colik.cpp> //TODO need header
+#include "colik.hpp" 
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppArmadillo, BH)]]
@@ -16,10 +11,8 @@ using namespace std;
 using namespace Rcpp; 
 using namespace arma;
 
-static const int SAMPLE  = 0; 
-static const int CO = 1; 
-
-typedef std::vector<double> state_type; 
+//~ static const int SAMPLE  = 0; 
+//~ static const int CO = 1; 
 
 
 
@@ -116,7 +109,7 @@ public:
 					// TODO possibly should have (Y_l - A_l)/Y_l terms as in paper 
 					//~ dxdt[psi_ind(k,z)] -= F(i,l,k) * psi(x, k, z) / std::max(psi(x, k, z), Y(k)); 
 					// NOTE Q is filling the role of rho_{ik} in the paper 
-					dxdt[psi_ind(k,z)] -= F(i,l,k) * psi(x, z) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
+					dxdt[psi_ind(z)] -= F(i,l,k) * psi(x, z) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
 				}
 			}
 		}
@@ -131,41 +124,74 @@ private:
 	double Q( const state_type &x, int k, int l) {
 		return x[l*m+k]; 
 	}
-	//~ double psi( const state_type &x, int k, int l) {
-		//~ return x[(int)pow(m,2)+ l*m + k]; 
-	//~ }
-	//~ double A( const state_type &x, int k) {
-		//~ return x[(int)pow(m,2) + (int)pow(m,2) + k]; 
-	//~ }
 	double psi( const state_type &x, int k) {
 		return x[(int)pow(m,2) +  k]; 
 	}
 	double A( const state_type &x, int k) {
 		return x[(int)pow(m,2) + m + k]; 
 	}
-	
 	int Qind( int k, int l ){
 		return l*m + k ; 
 	}
-	//~ int psi_ind( int k, int l ){
-		//~ return (int)pow(m,2) + l*m + k; 
-	//~ }
 	int psi_ind( int k ){
 		return (int)pow(m,2) + k; 
 	}
-	//~ int Aind( int k ){
-		//~ return (int)pow(m,2) + (int)pow(m,2) + k; 
-	//~ }
 	int Aind( int k ){
 		return (int)pow(m,2) + m + k; 
 	}
-}; 
+};
 
 
 
+state_type generate_initial_conditions_dqpsia(vec A){
+	int m = A.size() ;
+	state_type x( (int)pow(m,2) + m + m, 0. ); 
+	int k = 0; 
+	for (int i =0; i < m; i++){
+		for (int j =0 ; j < m; j++){
+			if (i == j){
+				x[k] =1.; // Q or 'rho'
+			} 
+			k++; 
+		}
+	}
+	for (int i = 0; i  < m ; i++){
+		x[k] = 1.; //psi
+		k++; 
+	}
+	for (int i = 0; i < m; i++){
+		x[k] = A.at(i) ; //A
+		k++;
+	}
+	return x; 
+}
+
+
+void Qrho_from_state( mat &Qrho, state_type xfin ){
+	int m = Q.n_rows; 
+	int k =0 ;
+	for (int i = 0; i < m; i++){
+		for (int j = 0; j < m; j++){
+			Qrho.at(i,j) = xfin[k]; 
+			k++; 
+		}
+	}
+	for (int i = 0; i < m; i++){
+		Q.row(i) = Q.row(i) / sum(Q.row(i)); 
+	}
+}
+
+void psi_from_state( vec &psi, state_type xfin ){
+	int m = psi.size(); 
+	int k = 0; 
+	for ( int i = (int)pow(m,2); i < ((int)pow(m,2)+m); i++){
+		psi.at(k) = xfin[i]; 
+		k++; 
+	}
+}
 
 //[[Rcpp::export()]]
-double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const List Gs, const List Ys
+mat sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const List Gs, const List Ys
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights
@@ -180,13 +206,16 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 {
 	double loglik = 0.;
 	mat P(m, n + Nnode, fill::zeros); 
-	mat rho(m, n + Nnode, fill::zeros); 
+	mat rho(m, n , fill::zeros); 
 	int nextant = 0; 
-	int u,v,w,z,a; 
+	int u,v,w,z,a, k, l; 
 	int samplesAdded = 0;
 	mat Q  = zeros(m, m );
 	mat Qrho  = zeros(m, m );
-	vec psi = zeros(n + Nnode); 
+	//~ vec Psi = zeros(n, n + Nnode); //records probability i'th sample is host at j'th node 
+	vec psi = zeros(m) ; // corresponding to each state over each interval
+	vec psi_time = zeros(n); // for each tip, varies over time 
+	mat W = zeros(n,n); 
 	vec A_Y;
 	vec Y ;
 	vec A = zeros(m);
@@ -195,6 +224,10 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 	vec puY, pvY, pa;
 	vec m_rs_R; 
 	std::vector<bool> extant(n + Nnode, false); 
+	umat tipsDescendedFrom(n+Nnode, n, fill::zeros);
+	for (u = 0; u < n; u++){
+		tipsDescendedFrom.at(u,u) = 1; 
+	} 
 	
 	// instantiate solver 
 	double hres =  heights.size() ;
@@ -238,30 +271,52 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 //~ cout << steps << endl;
 //~ throw 1; 
 			// 
+			
+			//  same for sa ... 
+			x0sa = generate_initial_conditions_dqpsia( A) ; 
+			size_t steps = boost::numeric::odeint::integrate( dqpsia ,  x0sa , h , nextEventHeight 
+			  , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
+			
 			Q_from_state(Q, x0); 
 			A_from_state(A, x0); 
 			L = L_from_state(x0); 
 			A = normalise(A) * ((double)nextant);
 			
-			P  = abs(Q.t() * P);
-//~ cout << P.n_rows << " " << P.n_cols << endl; 
-//~ cout << P.t() ; 
+			Qrho_from_state( Qrho, x0sa ); 
+			psi_from_state( psi, x0sa );
 			
-			// TODO same for sa ... 
+			//update psi_time 
+			// note need to run this before rho updated
+			//~ double psi_factor; 
+			//~ for (u = 0; u < n ; u++){
+				//~ psi_factor = 0.; 
+				//~ for (k = 0; k < m; k++){
+					//~ psi_factor += rho.at(k,u) * psi.at(k); 
+				//~ }
+				//~ //psi_factor /= (double)m; 
+				//~ psi_time.at(u) *= psi_factor;
+			//~ }
+			//vec psi_factor =  rho.t() * psi  ;
+			psi_time = psi_time % (rho.t() * psi ); 
+			
+			P  = abs(Q.t() * P);
+			rho = abs( Qrho.t() * rho ); 
+			
+			
 		} else{
 			L = 0.; 
 		}
-		
-		loglik -= std::max(0.,L);
-		
+				
 		if (eventIndicator(ievent)==SAMPLE)
 		{
 			u = eventIndicatorNode(ievent); 
 			nextant++; 
 			P.col(u-1) = normalise(sortedSampleStates.col(samplesAdded));
+			rho.col(u-1) = P.col(u-1); 
+			psi_time.at(u-1) = 1.; 
 			extant.at(u-1) = true; 
 			samplesAdded++; 
-		} else{
+		} else {
 			// coalescent
 			ih = (int)std::min( hres * nextEventHeight / treeT, (double)(heights.size()-1)); 
 			F = as<mat>(Fs[ih]);
@@ -272,7 +327,6 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 	//~ cout << nextEventHeight << " " << ih << endl; 
 	//~ cout << " sum A > sum Y  " << endl ;
 //~ }
-			if ( AgtYboundaryCondition && (sum(A) > sum(Y)) ) return -INFINITY;
 			
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
@@ -280,37 +334,11 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 			puY = normalise(  arma::min(Y,P.col(u- 1 )) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 			pvY = normalise(  arma::min(Y,P.col(v- 1 )) ) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
-//~ double llterm = log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
-//~ if (llterm==-INFINITY)
-//~ {
-	//~ cout << " F " << endl; 
-	//~ cout << F; 
-	//~ cout << " G " << endl; 
-	//~ cout << G;
-	//~ cout << " Y " << endl; 
-	//~ cout << Y;
-	//~ cout << " puy " << endl; 
-	//~ cout << puY; 
-	//~ cout << " pvy " << endl; 
-	//~ cout << pvY;  
-	//~ cout << nextEventHeight << " " << ih << endl; 
-	//~ cout << heights.size() << endl; 
-	//~ cout << hres  << endl; 	
-	//~ cout << treeT  << endl; 	
-//~ }
-//~ cout << " co event " << endl; 
-//~ cout << puY; 
-//~ cout << pvY; 
-//~ cout << F;
-			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
+			
 			// state of ancestor 
 			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY) ; 
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
-//~ cout << loglik << endl; 
-//~ cout << pa; 
-//~ cout << endl << endl ; 
-//~ if (any(is_nan(as<NumericVector>(wrap(pa))))) throw 1; 
 			P = finite_size_correction2(pa, A, extant, P);
 			
 			//bookkeeping
@@ -319,20 +347,28 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 			extant.at(v-1) = false;
 			extant.at(a-1) = true;
 			P.col(u-1) = zeros<colvec>(P.n_rows); 
-			P.col(v-1) = zeros<colvec>(P.n_rows); 
+			P.col(v-1) = zeros<colvec>(P.n_rows);
+			
+			// sa stuff ; upate psi , rho 
+			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
+			for (int iw = 0; iw < n; iw++){// w & z tips
+				if (tipsDescendedFrom.at(a-1, iw)==1){
+					w= iw + 1 ; 
+					//update psi(iw)
+					
+					//update rho(iw)
+				}
+			}
+			for (int iw = 0; iw < n; iw++){
+				if (tipsDescendedFrom.at(a-1, iw)==1){
+					for (int iz = iw+1; iz < n; iz++){
+						if (tipsDescendedFrom.at(a-1, iz)==1){
+							// update W(iw, iz)
+						}
+					}
+				}
+			}
 		}
-//~ cout << endl;
-//~ cout << endl;
-//~ cout << endl;
-//~ cout << h << endl;
-//~ cout << nextEventHeight << endl;
-//~ cout << L << endl;
-//~ cout << loglik << endl;
-//~ cout << A << endl;
-//~ cout << Q << endl;
-
-//~ if (h > 1) throw 1; 
-		// prep next iter
 		h = nextEventHeight; 
 		ievent++;
 		if (ievent<eventHeights.size()){
@@ -342,7 +378,7 @@ double sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, cons
 		}
 	}
 	
-	return loglik; 
+	return W; 
 }
 
 
