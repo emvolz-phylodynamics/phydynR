@@ -23,7 +23,7 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 	
 	m <- nrow(Fs[[1]])
 	if (m < 2)  stop('Currently only models with at least two demes are supported')
-	DEMES <- colnames(Fs[[1]] )
+	DEMES <- names(Ys[[1]] )
 	# for unstructured models
 	if (m == 2 & DEMES[2]=='V2' & ncol(bdt$sampleStates) == 1){
 		bdt$sampleStates <- cbind( bdt$sampleStates, rep(0, bdt$n))

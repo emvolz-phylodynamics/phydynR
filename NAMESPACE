@@ -1,4 +1,3 @@
 useDynLib(phydynR)
 importFrom(Rcpp, evalCpp)
-importFrom(RcppParallel, RcppParallelLibs)
 exportPattern("^[[:alpha:]]+")

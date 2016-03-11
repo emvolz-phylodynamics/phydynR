@@ -1,7 +1,7 @@
 #phydynR: Coalescent simulation and likelihood for phylodynamic inference
 
 
-## Exponential growth example TODO 
+## Exponential growth example 
 Let's model a population which is growing exponentially with fixed per-capita birth rate `beta` and death rate `gamma`. 
 Once we've defined the model, we can simulate trajectories and then simulate genealogies if sampling lineages at specific times. 
 Finally, we'll see how to infer birth and/or death rates if the tree is observed (e.g. reconstructed from genetic sequence data). 

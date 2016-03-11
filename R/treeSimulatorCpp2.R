@@ -259,7 +259,7 @@ deaths.attr("names") = rcnames;
 				 , parms = as.list(theta)
 				 , method = integrationMethod)
 				# note does not include first value, which is t0; 2nd value corresponds to root of tree
-				Ys <- lapply( nrow(ox):1, function(i) pmax(0,ox[i, demeNames]) )
+				Ys <- lapply( nrow(ox):1, function(i) setNames(pmax(0,ox[i, demeNames]), demeNames) ) 
 				Fs <- lapply( nrow(ox):1, function(i) {
 					Fcpp( ox[i,2:ncol(ox)], ox[i,1], m, unlist(theta), demeNames)$F
 				}) 
@@ -297,7 +297,7 @@ deaths.attr("names") = rcnames;
 				ox <- matrix(NA, nrow = res, ncol = 1 + m + mm )
 				colnames(ox) <- c("time", demeNames, nonDemeNames)
 				for (it in 1:res){
-					Ys[[it]] <- pmax(0., x[demeNames] )
+					Ys[[it]] <- setNames( pmax(0., x[demeNames] ), demeNames )
 					t <- times[it]
 					FF <- Fcpp( x, t, m, theta, demeNames)$F
 					rF <- matrix( nrow=m, ncol = m, pmax(0, rnorm(m*m, mean = as.vector(FF)*Dt, sd = sqrt( as.vector(FF)*Dt)  ) ) )
@@ -360,7 +360,9 @@ deaths.attr("names") = rcnames;
 					epb
 				})
 			  , nrow=m, ncol=m
-			)))
+			))) -> FF
+			colnames(FF) = rownames(FF) <- demeNames
+			FF
 		}
 		.migration.matrix <- function( x, t, parms) 
 		{
@@ -372,7 +374,9 @@ deaths.attr("names") = rcnames;
 					epb
 				  })
 				 , nrow=m, ncol=m
-			)))
+			))) -> GG
+			colnames(GG) = rownames(GG) <- demeNames
+			GG
 		}
 		tBirths <- function(x, t, parms)
 		{
@@ -409,16 +413,18 @@ deaths.attr("names") = rcnames;
 			)
 		}
 		if (!sde){
-			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod=NA)
+			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod='adams')
 			{ # value : list(times, births, migrations, sizes )
 				#reorder x0 if necessary
-				if (m == 2 & length(x0) == 1 & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
+				## NOTE x0 should be passed here in case there are estimated parameters related to initial conditions
+				if (m == 2 & length(x0) == (1+mm) & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
+				#reorder x0 if necessary
 				if (length(x0)!=m + mm) stop(paste('initial conditons incorrect dimension', x0, m, mm) )
-				if ( sum( !(c(demeNames, nonDemeNames) %in% names(x0)) )  > 0)  stop('initial conditions vector incorrect names', names(x0), demeNames, nonDemeNames)
+				if ( sum( !(c(demeNames, nonDemeNames) %in% names(x0)) )  > 0)  stop(paste('initial conditions vector incorrect names', names(x0), demeNames, nonDemeNames))
 				y0 <- x0[c(demeNames, nonDemeNames)]
-				
+								
 				#reorder theta if necessary
-				if ( length( setdiff( names(theta), parameterNames) ) > 0) stop('Incorrect parameters included: ', setdiff( names(theta), parameterNames) )
+				#if ( length( setdiff( names(theta), parameterNames) ) > 0) stop('Incorrect parameters included: ', setdiff( names(theta), parameterNames) )
 				if ( length( setdiff(  parameterNames, names(theta)) ) > 0) stop('Missing parameters: ', setdiff(  parameterNames, names(theta)) )
 				theta <- theta[parameterNames]
 				parms <- as.list( theta  )
@@ -472,7 +478,7 @@ deaths.attr("names") = rcnames;
 				ox <- matrix(NA, nrow = res, ncol = 1 + m + mm )
 				colnames(ox) <- c("time", demeNames, nonDemeNames)
 				for (it in 1:res){
-					Ys[[it]] <- pmax(0., x[demeNames] )
+					Ys[[it]] <- setNames( pmax(0., x[demeNames] ), demeNames )
 					t <- times[it]
 					FF <- .birth.matrix(x, t, parms )
 					rF <- matrix( nrow=m, ncol = m, pmax(0, rnorm(m*m, mean = as.vector(FF)*Dt, sd = sqrt( as.vector(FF)*Dt)  ) ) )
@@ -552,7 +558,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 				v<- phylo$edge[i,2]
 				if (!is.na(heights[u])){ # ensure branch lengths consistent
 					if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > tol )
-					{ #browser()
+					{ #
 					  stop( 'Tree is poorly formed. Branch lengths incompatible with sample times.')
 					} else if ( 0!=(heights[u] - (phylo$edge.length[i] + heights[v]) ) ){
 						edgeLengthChange <- TRUE 
