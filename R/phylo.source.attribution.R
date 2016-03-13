@@ -98,3 +98,108 @@ phylo.source.attribution <- function( trees, sampleTimes, f.t, Y.t, maxTMRCA = N
 	missingInfector <- setNames( 1 - colSums( W), colnames(W))
 	list( W = W, missingInfector = missingInfector )
 }
+
+
+
+
+phylo.source.attribution.multiDeme.model <- function( tree
+  , sampleTimes
+  , sampleStates
+  , maxHeight
+  , theta, demographic.process.model, x0, t0
+  , res = 1e3
+  , treeErrorTol = 1e-3
+  , integrationMethod='adams'
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = FALSE
+) 
+{
+	bdt <- DatedTree( tree, sampleTimes , sampleStates = sampleStates, tol = treeErrorTol)
+
+	bdt <- reorder.phylo( bdt, 'postorder' )
+	bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  6 ) #TODO move to DatedTree
+
+	tfgy <- demographic.process.model( theta, x0, t0, bdt$maxSampleTime, res = res, integrationMethod=integrationMethod) 
+	times <- tfgy[[1]]
+	Fs <- tfgy[[2]]
+	Gs <- tfgy[[3]]
+	Ys <- tfgy[[4]]
+	
+	m <- nrow(Fs[[1]])
+	if (m < 2)  stop('Currently only models with at least two demes are supported')
+	DEMES <- names(Ys[[1]] )
+	# for unstructured models
+	if (m == 2 & DEMES[2]=='V2' & ncol(bdt$sampleStates) == 1){
+		stop('multiDeme version of source attribution should use sampleStates, but none provided.')
+	}
+	
+	#demographic model should be in order of decreasing time:
+	fgyi <- 1:length(Fs)
+	if (times[2] > times[1])
+		fgyi <- length(Fs):1
+	#
+	heights <- times[fgyi[1]] - times
+	
+	## note bdt postorder
+	ndesc <- rep(0, bdt$n + bdt$Nnode )
+	for (iedge in 1:nrow(bdt$edge)){
+		a <- bdt$edge[iedge,1]
+		u <- bdt$edge[iedge,2]
+		ndesc[a] <- ndesc[a] + ndesc[u] + 1
+	}
+	
+	## definition is complicated since multiple nodes can exist at a given height
+	uniqhgts <- sort( unique(bdt$heights) )
+	eventHeights <- rep(NA, (bdt$n+bdt$Nnode) )
+	eventIndicatorNode <- rep(NA, bdt$n + bdt$Nnode )
+	events <- rep(NA, bdt$n + bdt$Nnode )
+	hgts2node <- lapply( uniqhgts, function(h) which( bdt$heights==h) )
+	k <- 1
+	l <- 1
+	for (h in uniqhgts){
+		us  <- hgts2node[[k]]
+		if (k < length(hgts2node) | length(us) == 1)
+		{ # do not count events for polytomous root (multiple instances of maxheight)
+			if (length(us) > 1){
+				i_us <- sort( index.return=TRUE, decreasing=FALSE , ndesc[us] )$ix
+				for (u in us[i_us] ){
+					eventHeights[l] <- h
+					events[l] <- ifelse( u <= bdt$n, 0, 1 )
+					eventIndicatorNode[l] <- u
+					l <- l + 1
+				}
+			} else {
+				eventHeights[l] <- h
+				events[l] <- ifelse( us <= bdt$n, 0, 1 )
+				eventIndicatorNode[l] <- us 
+				l <- l + 1
+			}
+		}
+		k <- k + 1
+	}
+	excl <- is.na(eventHeights) | is.na(events) | is.na( eventIndicatorNode )
+	events <- events[!excl]
+	eventIndicatorNode <- eventIndicatorNode[!excl]
+	eventHeights <- eventHeights[!excl]
+	
+	W <- sourceAttribMultiDemeCpp(
+	  heights
+	  , Fs[fgyi]
+	  , Gs[fgyi]
+	  , Ys[fgyi]
+	  , events
+	  , eventIndicatorNode
+	  , eventHeights
+	  , t( bdt$sortedSampleStates  ) # m X n 
+	  , bdt$daughters
+	  , bdt$n
+	  , bdt$Nnode
+	  , m
+	  , AgtYboundaryCondition
+	  , maxHeight
+	)
+
+browser()
+	W
+}
+

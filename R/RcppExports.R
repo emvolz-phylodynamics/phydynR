@@ -53,3 +53,11 @@ updateWCpp <- function( W
 }
 
 
+
+
+sourceAttribMultiDemeCpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight) {
+	.Call(  'sourceCpp_0_sourceAttribMultiDemeCpp', PACKAGE='phydynR'
+	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight
+	)
+}
+

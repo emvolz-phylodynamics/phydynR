@@ -331,8 +331,8 @@ mat sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const L
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
 			v = daughters( a - 1, 1 ); 
-			puY = normalise(  arma::min(Y,P.col(u- 1 )) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
-			pvY = normalise(  arma::min(Y,P.col(v- 1 )) ) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
 			
 			// state of ancestor 
@@ -350,24 +350,52 @@ mat sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const L
 			P.col(v-1) = zeros<colvec>(P.n_rows);
 			
 			// sa stuff ; upate psi , rho 
+			vec rho_w__Y = zeros(m); 
+			vec rho_z__Y = zeros(m); 
 			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
-			for (int iw = 0; iw < n; iw++){// w & z tips
-				if (tipsDescendedFrom.at(a-1, iw)==1){
-					w= iw + 1 ; 
-					//update psi(iw)
-					
-					//update rho(iw)
-				}
-			}
+			// update W(iw, iz)
 			for (int iw = 0; iw < n; iw++){
 				if (tipsDescendedFrom.at(a-1, iw)==1){
+					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 					for (int iz = iw+1; iz < n; iz++){
 						if (tipsDescendedFrom.at(a-1, iz)==1){
-							// update W(iw, iz)
+							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+							double pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
+							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
+							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
+							double pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
+							W.at( iw, iz) = pwz; 
+							W.at(iz, iw) = pzw; 
 						}
 					}
 				}
 			}
+			//update rho and psi
+			for (int iw = 0; iw < n; iw++){// w & z tips
+				if (tipsDescendedFrom.at(u-1, iw)==1){
+					//tip descended from a and u
+					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					//update psi(iw)
+					double puv = sum( rho_w__Y % (F * pvY) );
+					double pvu = sum( pvY % (F * rho_w__Y ));
+					puv = puv / (puv + pvu ) ;
+					psi_time.at(iw) *= puv ;
+					//update rho(iw)
+					rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) );
+				}
+				if (tipsDescendedFrom.at(v-1, iw)==1){
+					//tip descended from a and v
+					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					//update psi(iw)
+					double pvu = sum( rho_w__Y % (F * puY) );
+					double puv = sum( puY % (F * rho_w__Y ));
+					pvu = pvu / (puv + pvu ) ;
+					psi_time.at(iw) *= pvu ;
+					//update rho(iw)
+					rho.col(iw) = arma::normalise( rho_w__Y % (F * puY) );
+				}
+			}
+			
 		}
 		h = nextEventHeight; 
 		ievent++;
@@ -375,6 +403,9 @@ mat sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const L
 			nextEventHeight = eventHeights(ievent);
 		} else{
 			nextEventHeight = INFINITY; 
+		}
+		if ( h > maxHeight ) {
+			break; 
 		}
 	}
 	
