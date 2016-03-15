@@ -473,7 +473,7 @@ public:
 					// TODO possibly should have (Y_l - A_l)/Y_l terms as in paper 
 					//~ dxdt[psi_ind(k,z)] -= F(i,l,k) * psi(x, k, z) / std::max(psi(x, k, z), Y(k)); 
 					// NOTE Q is filling the role of rho_{ik} in the paper 
-					dxdt[psi_ind(z)] -= F(l,k) * psi(x, z) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
+					dxdt[psi_ind(z)] -= F(l,k) * std::max(0., psi(x, z)) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
 				}
 			}
 		}
@@ -536,7 +536,7 @@ void Qrho_from_state( mat &Qrho, state_type xfin ){
 	int k =0 ;
 	for (int i = 0; i < m; i++){
 		for (int j = 0; j < m; j++){
-			Qrho.at(i,j) = xfin[k]; 
+			Qrho.at(i,j) = std::min(1.,std::max(0., xfin[k]));  
 			k++; 
 		}
 	}
@@ -545,11 +545,12 @@ void Qrho_from_state( mat &Qrho, state_type xfin ){
 	}
 }
 
+
 void psi_from_state( vec &psi, state_type xfin ){
 	int m = psi.size(); 
 	int k = 0; 
 	for ( int i = (int)pow(m,2); i < ((int)pow(m,2)+m); i++){
-		psi.at(k) = xfin[i]; 
+		psi.at(k) = std::min(1.,std::max(0., xfin[i])); 
 		k++; 
 	}
 }
@@ -678,8 +679,15 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			
 			P  = abs(Q.t() * P);
 			rho = abs( Qrho.t() * rho ); 
-			
-			
+std::cout << h <<std::endl;
+//~ std::cout << P ;
+//~ std::cout << rho ;
+std::cout << psi; 
+std::cout << Qrho; 
+std::cout << psi_time ;
+std::cout << std::endl ;
+std::cout << std::endl ;
+std::cout << std::endl ;
 		} else{
 			L = 0.; 
 		}
@@ -699,6 +707,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			F = as<mat>(Fs[ih]);
 			G = as<mat>(Gs[ih]);
 			Y = as<vec>(Ys[ih]);
+			Y = arma::clamp(Y, 1e-6, INFINITY );
 //~ if (sum(A) > sum(Y)) {
 	//~ cout << Y ; 
 	//~ cout << nextEventHeight << " " << ih << endl; 
@@ -716,7 +725,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY) ; 
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
-			P = finite_size_correction2(pa, A, extant, P);
+			//P = finite_size_correction2(pa, A, extant, P);
 			
 			//bookkeeping
 			nextant--; 
@@ -755,30 +764,31 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 					}
 				}
 			}
+			//TODO normalise uses p-norm with p=2 by default.. 
 			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
 			//update rho and psi
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
 					//tip descended from a and u
-					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / arma::clamp(Y, 1e-6, INFINITY ), 1e-6, 1. ) ) ; 
 					//update psi(iw)
 					double puv = sum( rho_w__Y % (F * pvY) );
 					double pvu = sum( pvY % (F * rho_w__Y ));
 					puv = puv / (puv + pvu ) ;
 					psi_time.at(iw) *= puv ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) );
+					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-6, 1.) );
 				}
 				if (tipsDescendedFrom.at(v-1, iw)==1){
 					//tip descended from a and v
-					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / arma::clamp(Y, 1e-6, INFINITY ), 1e-6, 1. )) ; 
 					//update psi(iw)
 					double pvu = sum( rho_w__Y % (F * puY) );
 					double puv = sum( puY % (F * rho_w__Y ));
 					pvu = pvu / (puv + pvu ) ;
 					psi_time.at(iw) *= pvu ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( rho_w__Y % (F * puY) );
+					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-6, 1.) );
 				}
 			}
 			
