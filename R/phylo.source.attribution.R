@@ -115,11 +115,32 @@ phylo.source.attribution.multiDeme.model <- function( tree
 ) 
 {
 	bdt <- DatedTree( tree, sampleTimes , sampleStates = sampleStates, tol = treeErrorTol)
+	
+	tfgy <- demographic.process.model( theta, x0, t0, bdt$maxSampleTime, res = res, integrationMethod=integrationMethod) 
+	
+	phylo.source.attribution.multiDeme.fgy( bdt
+	  , maxHeight
+	  , tfgy
+	  , treeErrorTol = 1e-3
+	  , timeOfOriginBoundaryCondition = FALSE
+	  , AgtYboundaryCondition = FALSE
+	) 
+}
 
+
+
+phylo.source.attribution.multiDeme.fgy <- function( dated_tree
+  , maxHeight
+  , tfgy
+  , treeErrorTol = 1e-3
+  , timeOfOriginBoundaryCondition = FALSE
+  , AgtYboundaryCondition = FALSE
+) 
+{
+	bdt <- dated_tree
 	bdt <- reorder.phylo( bdt, 'postorder' )
 	bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  6 ) #TODO move to DatedTree
-
-	tfgy <- demographic.process.model( theta, x0, t0, bdt$maxSampleTime, res = res, integrationMethod=integrationMethod) 
+	
 	times <- tfgy[[1]]
 	Fs <- tfgy[[2]]
 	Gs <- tfgy[[3]]
@@ -181,7 +202,9 @@ phylo.source.attribution.multiDeme.model <- function( tree
 	events <- events[!excl]
 	eventIndicatorNode <- eventIndicatorNode[!excl]
 	eventHeights <- eventHeights[!excl]
-	
+#~ browser()
+print('start source attrib') 
+print(date())
 	W <- sourceAttribMultiDemeCpp(
 	  heights
 	  , Fs[fgyi]

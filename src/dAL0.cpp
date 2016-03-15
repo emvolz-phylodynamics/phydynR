@@ -19,7 +19,9 @@ List dAL(double t, NumericVector y,  List parms){
 	// t : h
 	// time index.. note times decreasing
 	//~ int it = (int)parms["times.size"] - 1 - (int)floor( t / (double)parms["deltah"] );
-	int it = (int)floor( t / (double)parms["deltah"] );
+	NumericVector times  = as<NumericVector>(parms["times"]);  //TODO this is slow; figure out how to get rid of this
+	int tfgylen = times.size();
+	int it = std::min(tfgylen-1 , std::max(0, (int)floor( t / (double)parms["deltah"] )));
 	int m = (int)parms["m"];
 	NumericMatrix F = as<NumericMatrix>(as<List>(parms["Fs"])[it]);
 	NumericMatrix G = as<NumericMatrix>(as<List>(parms["Gs"])[it]);

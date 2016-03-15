@@ -1,9 +1,8 @@
 # compute co heights at R level, use rcpp to construct tree and compute line states
 require(Rcpp)
 require(inline)
-#~ sourceCpp('treeSimulatorCpp2.cpp')
-#~ sourceCpp( 'dAL0.cpp') 
 
+#TODO co sim method for sampling co heights not ensure A>2 for each coheight
 
 
 
@@ -533,6 +532,8 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	if (any(is.na(rownames(sampleStates)))) stop('sampleStates matrix must have row names of tip labels')
 	if (!any(is.na(sampleStates))) if (!is.matrix( sampleStates)) stop('sampleStates must be a matrix (not a data.frame)')
 	
+	# resolve any multifurcations 
+	phylo <- multi2di( phylo )
 	
 	phylo$sampleTimes <- sampleTimes[phylo$tip.label]
 	phylo$sampleStates <- sampleStates[phylo$tip.label, ]
@@ -577,11 +578,14 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	}
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)
+	#phylo$heights <- signif( phylo$heights, digits = floor( 1 / phylo$maxHeight /10 )  +  6 ) #
 	phylo$parentheights <- sapply( 1:(n+Nnode), function(u){
 		i <- which( phylo$edge[,2]== u)
 		if (length(i)!=1) return( NA )
 		phylo$heights[ phylo$edge[i,1] ]
 	})
+	
+	phylo$root <- which.max( phylo$heights)
 	
 	ix <- sort( sampleTimes, decreasing = TRUE, index.return=TRUE)$ix
 	phylo$sortedSampleHeights <- phylo$maxSampleTime - sampleTimes[ix]
@@ -598,6 +602,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo$daughters <- t(sapply( 1:(phylo$n+phylo$Nnode), function(a){
 		uv <- phylo$edge[which(phylo$edge[,1]== a),2]
 		if (length(uv)==0) uv <- c(NA, NA)
+		#if (length( uv)!=2) print( uv )
 		uv
 	}))
 	
@@ -610,11 +615,11 @@ sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, s
 	maxSampleTime <- max(sampleTimes)
 	sim.co.tree.fgy ( 
 	  demographic.process.model( theta, x0, t0, maxSampleTime, res = res, integrationMethod=integrationMethod) 
-	  , sampleTimes, sampleStates, res = res 
+	  , sampleTimes, sampleStates
 	)
 }
-sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_size_multiplier= NA)
-{
+sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA)
+{# res = 1e3, 
 	# note sampleStates must be in same order as sampleTimes
 	# note may return multiple trees
 	if (is.na(step_size_multiplier)) step_size_multiplier <- 1
@@ -646,7 +651,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 	sortedSampleHeights <- maxSampleTime - sampleTimes[ix]
 	sortedSampleStates <- sampleStates[ix,] 
 	sortedSampleTimes <- sampleTimes[ix]
-	tlabs <- names(sortedSampleTimes)
+	tlabs <- names(sampleTimes)[ix] 
 	if (length(tlabs)==0){
 		tlabs <- 1:n
 		names(sortedSampleTimes) = names(sortedSampleHeights)  <- tlabs
@@ -663,9 +668,11 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 	heights <- c()
 	L <- c()
 	coheights <- c()
+	cumCos <- c(0)
 	while (ih < length( sortedSampleHeights )){
 		AL <- AL + c(sortedSampleStates[ih, ], 0)
 		if (sortedSampleHeights[ih] > h){
+			A0 <- sum(AL[-length(AL)] )
 			h1 <- sortedSampleHeights[ih+1]
 			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
 			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
@@ -673,13 +680,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 			AL <- o[nrow(o), 2:ncol(o)]
 			heights <- c( heights , datimes )
 			
-			dL <- o[nrow(o), ncol(o)] - o[1, ncol(o)]
-			nco <- min( rpois(1,  dL ), n - 1 - length(coheights ) )
-			if (nco > 0 ){
-				l <- o[, ncol(o)] - o[1,ncol(o)]
-				l <- l / l[length(l)]
-				coheights <- c( coheights, approx( l, datimes ,xout=runif(nco, 0, 1))$y )
-			}
+			cumCos <- c( cumCos, tail(cumCos,1) + A0 - rowSums( o[ ,2:(ncol(o)-1)] ) )
 			
 			L <- c( L, o[, ncol(o)] )
 			h  <- sortedSampleHeights[ih + 1]
@@ -689,23 +690,15 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 	# last interval 
 	AL <- AL + c(sortedSampleStates[ih, ], 0)
 	ntlA <- sum(AL[1:(length(AL)-1)]) # total A at beginning of last interval
+	A0 <- sum(AL[-length(AL)] )
 	h1 <- maxHeight 
 	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
 	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
 	tAL <- rbind( tAL, o )
-	AL <- o[nrow(o), 2:ncol(o)]
 	heights <- c( heights , datimes )
-	lastA <- sum(AL[1:(length(AL)-1)]) # A at end of last interval
-	if (lastA > 2){
-		nco <- rbinom(1, size = n - 1 - length(coheights), prob = (ntlA - lastA)/(ntlA - 1) )
-	} else{
-		nco <- n - 1 - length(coheights )
-	}
-	if (nco > 0 ){
-		l <- o[, ncol(o)] - o[1,ncol(o)]
-		l <- l / l[length(l)]
-		coheights <- c( coheights, approx( l , datimes , xout= runif(nco, 0, 1) )$y )
-	}
+	
+	cumCos <- c( cumCos, tail(cumCos,1) + A0 - rowSums( o[ ,2:(ncol(o)-1)] ) )
+	cumCos <- cumCos[-1]
 	# /CO HEIGHTS
 	
 	Amat <- sapply( 1:m, function(k ){
@@ -714,8 +707,14 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 	As <- lapply( 1:nrow(Amat), function(i){
 		Amat[i, ]
 	})
+
+	if (T)
+	{ #TODO this method does not ensure A>2 for each coheight
+		ncos <- min( n -1 , floor(tail(cumCos,1)) ) #TODO ncos is a deterministic function of population trajectory
+		coheights <- approx( cumCos / ncos, heights,  xout = runif(ncos, 0, 1))$y
+	}
 	
-	finalA <- sum(  As[[length(As)]] )
+	finalA <- n-1 - ncos #sum(  As[[length(As)]] )
 	if (finalA > 2){
 		warning(paste(sep='', 'Estimated number of extant lineages at earliest time on time axis is ', finalA, ', and sampled lineages are not likely to have a single common ancestor. Root of returned tree will have daughter clades corresponding to simulated trees. '))
 	}
@@ -747,7 +746,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, res = 1e3, step_si
 	}
 #~ 	tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
-		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates) )
+		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
 #~ 	}, error = function(e) browser())
 }
 
