@@ -84,7 +84,7 @@ END_RCPP
 }
 
 // sourceAttribMultiDemeCpp
-mat sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const List Gs, const List Ys
+List sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const List Gs, const List Ys
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights

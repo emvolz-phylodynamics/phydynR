@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/numeric/odeint.hpp>
+#include <boost/numeric/odeint/stepper/euler.hpp>
 
 #include <RcppArmadillo.h>
 
@@ -554,7 +555,7 @@ void psi_from_state( vec &psi, state_type xfin ){
 }
 
 //[[Rcpp::export()]]
-mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const List Gs, const List Ys
+List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const List Gs, const List Ys
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights
@@ -577,7 +578,7 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 	//~ vec Psi = zeros(n, n + Nnode); //records probability i'th sample is host at j'th node 
 	vec psi = zeros(m) ; // corresponding to each state over each interval
 	vec psi_time = zeros(n); // for each tip, varies over time 
-	mat W = zeros(n,n); 
+	
 	vec A_Y;
 	vec Y ;
 	vec A = zeros(m);
@@ -590,6 +591,15 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 	for (u = 0; u < n; u++){
 		tipsDescendedFrom.at(u,u) = 1; 
 	} 
+	
+	// container for output 
+	//~ mat W = zeros(n,n); 
+	std::vector<int> donorW; 
+	donorW.reserve( (int)(n * std::sqrt((double)n) ) ); 
+	std::vector<int> recipW; 
+	recipW.reserve( (int)(n * std::sqrt((double)n) ) ); 
+	std::vector<double> W; 
+	W.reserve( (int)(n * std::sqrt((double)n) ) ); 
 	
 	// instantiate solver 
 	double hres =  heights.size() ;
@@ -610,10 +620,14 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 	double default_step_size = std::abs(heights[1] - heights[0]); 
 	double L = 0.; 	
 	
+	//
+	//~ boost::numeric::odeint::euler< state_type > eu_stepper;
+	
 	h = 0.; 
-	while( nextEventHeight != INFINITY ){
-		
-		if (nextEventHeight > h ){
+	while( nextEventHeight != INFINITY && nextEventHeight < maxHeight ){
+//~ std::cout << h << " " << nextEventHeight << " " << maxHeight << " "  << std::endl; 
+		if (nextEventHeight > h )
+		{
 			A = sum(P, 1);
 			A = normalise(A)  * ((double)nextant);
 			x0 = generate_initial_conditions(A) ; 
@@ -622,13 +636,10 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 //~ cout << nextEventHeight << endl;
 //~ cout << A << endl;
 //~ Rf_PrintValue( wrap(x0)); 
-			//~ size_t steps = boost::numeric::odeint::integrate( dqal ,  x0 , h , nextEventHeight , default_step_size, simple_observer(x)  );  
 			size_t steps = boost::numeric::odeint::integrate( dqal ,  x0 , h , nextEventHeight 
 			  , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-			//~ size_t steps = boost::numeric::odeint::integrate( dqal ,  x0 , h , nextEventHeight , default_step_size
-			  //~ , push_back_state_and_time( x_vec, x_vec_times)  );  
-			//~ size_t steps = boost::numeric::odeint::integrate( dqal ,  x0 , h , nextEventHeight , (nextEventHeight-h)/10.
-			  //~ , push_back_state_and_time( x_vec, x_vec_times)  );  
+			//~ size_t steps = boost::numeric::odeint::integrate_const(eu_stepper, dqal ,  x0 , h , nextEventHeight 
+			  //~ , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
 //~ Rf_PrintValue( wrap(x0)); 
 //~ cout << steps << endl;
 //~ throw 1; 
@@ -636,9 +647,13 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 			
 			//  same for sa ... 
 			x0sa = generate_initial_conditions_dqpsia( A) ; 
+//~ Rf_PrintValue( wrap(x0sa) );
 			steps = boost::numeric::odeint::integrate( dqpsia ,  x0sa , h , nextEventHeight 
 			  , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-			
+			//~ steps = boost::numeric::odeint::integrate_const(eu_stepper, dqpsia ,  x0sa , h , nextEventHeight 
+			  //~ , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
+//~ Rf_PrintValue( wrap( x0sa)); 
+//~ throw 1; 
 			Q_from_state(Q, x0); 
 			A_from_state(A, x0); 
 			L = L_from_state(x0); 
@@ -714,24 +729,33 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 			// sa stuff ; upate psi , rho 
 			vec rho_w__Y = zeros(m); 
 			vec rho_z__Y = zeros(m); 
-			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
 			// update W(iw, iz)
 			for (int iw = 0; iw < n; iw++){
-				if (tipsDescendedFrom.at(a-1, iw)==1){
+				if (tipsDescendedFrom.at(u-1, iw)==1){
 					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 					for (int iz = iw+1; iz < n; iz++){
-						if (tipsDescendedFrom.at(a-1, iz)==1){
+						if (tipsDescendedFrom.at(v-1, iz)==1){
 							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 							double pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
 							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
 							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
 							double pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
-							W.at( iw, iz) = pwz; 
-							W.at(iz, iw) = pzw; 
+							
+							donorW.push_back( iw + 1);
+							recipW.push_back( iz+1 );
+							W.push_back( pwz) ;
+							
+							donorW.push_back( iz + 1 );
+							recipW.push_back( iw+ 1);
+							W.push_back( pzw );
+							
+							//~ W.at( iw, iz) = pwz; 
+							//~ W.at(iz, iw) = pzw; 
 						}
 					}
 				}
 			}
+			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
 			//update rho and psi
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
@@ -770,7 +794,10 @@ mat sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const 
 			break; 
 		}
 	}
-	
-	return W; 
+	List wlist; 
+	wlist["donor"] = wrap(donorW);
+	wlist["recip"] = wrap(recipW);
+	wlist["infectorProbability"] = wrap(W);
+	return wlist; 
 }
 

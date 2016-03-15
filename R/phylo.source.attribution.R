@@ -221,8 +221,10 @@ print(date())
 	  , AgtYboundaryCondition
 	  , maxHeight
 	)
-
-browser()
+	W$donor <- bdt$tip.label[ W$donor ]
+	W$recip <- bdt$tip.label[ W$recip ]
+print('source attrib complete')
+print(date())
 	W
 }
 
