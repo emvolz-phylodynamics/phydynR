@@ -237,6 +237,7 @@ print(date())
 	#~ k = 2 : 350<=CD4<500. 
 	#~ k = 3: 200<=CD4<350
 	#~ k = 4 : CD4<200
+	if (is.na(cd4) ) return (NA) 
 	if (cd4  >= 500) return (2)
 	if (cd4 >= 350) return(3)
 	if (cd4 >= 200 ) return(4)
@@ -276,7 +277,10 @@ print("NOTE : sample times must be in units of years")
 	colnames(sampleStates) <- DEMENAMES
 	for ( tl in names(sampleTimes)){
 		stage <- .cd42stage( cd4s[tl] )
-		if (stage > 2){
+		if (is.na( stage) ){
+			sampleStates[tl, ] <- pstage 
+		}
+		else if (stage > 2){
 			sampleStates[tl, stage] <- 1
 		} else{
 			sampleStates[tl, 1] <- pstage[1] / (pstage[1] + pstage[2] )
@@ -312,12 +316,12 @@ print("NOTE : sample times must be in units of years")
 	tfgy <- list( times, Fs, Gs, Ys )
 	
 	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol )
-browser()
 	phylo.source.attribution.multiDeme.fgy( bdt
 	  , maxHeight
 	  , tfgy
 	  , treeErrorTol = 1e-3
 	  , timeOfOriginBoundaryCondition = FALSE
 	  , AgtYboundaryCondition = FALSE
-	) 
+	)
+	 
 }
