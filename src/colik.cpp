@@ -473,7 +473,7 @@ public:
 					// TODO possibly should have (Y_l - A_l)/Y_l terms as in paper 
 					//~ dxdt[psi_ind(k,z)] -= F(i,l,k) * psi(x, k, z) / std::max(psi(x, k, z), Y(k)); 
 					// NOTE Q is filling the role of rho_{ik} in the paper 
-					dxdt[psi_ind(z)] -= F(l,k) * std::max(0., psi(x, z)) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
+					dxdt[psi_ind(z)] -= std::max(0., (1 - a[l])) * F(l,k) * std::max(0., psi(x, z)) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
 				}
 			}
 		}
@@ -678,7 +678,9 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			psi_time = psi_time % (rho.t() * psi ); 
 			
 			P  = abs(Q.t() * P);
+			P = arma::normalise( P, 1, 0 );
 			rho = abs( Qrho.t() * rho ); 
+			rho = arma::normalise( rho, 1, 0); // p=1, dim=0
 //~ std::cout << h <<std::endl;
 //~ std::cout << P ;
 //~ std::cout << rho ;
@@ -717,7 +719,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
 			v = daughters( a - 1, 1 ); 
-			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
 			
@@ -764,7 +766,6 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 					}
 				}
 			}
-			//TODO normalise uses p-norm with p=2 by default.. 
 			tipsDescendedFrom.row(a-1) = tipsDescendedFrom.row(u-1) + tipsDescendedFrom.row(v-1); 
 			//update rho and psi
 			for (int iw = 0; iw < n; iw++){// w & z tips
@@ -778,8 +779,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 					psi_time.at(iw) *= puv ;
 					//update rho(iw)
 					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-6, 1.) ,1);
-				}
-				if (tipsDescendedFrom.at(v-1, iw)==1){
+				} else if (tipsDescendedFrom.at(v-1, iw)==1){
 					//tip descended from a and v
 					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1) ; 
 					//update psi(iw)
