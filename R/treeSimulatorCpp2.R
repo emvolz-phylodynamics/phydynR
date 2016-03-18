@@ -533,7 +533,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	if (!any(is.na(sampleStates))) if (!is.matrix( sampleStates)) stop('sampleStates must be a matrix (not a data.frame)')
 	
 	# resolve any multifurcations 
-	phylo <- multi2di( phylo )
+	phylo <- tryCatch( { multi2di( phylo ) }, error = function(e) phylo )
 	
 	phylo$sampleTimes <- sampleTimes[phylo$tip.label]
 	phylo$sampleStates <- sampleStates[phylo$tip.label, ]

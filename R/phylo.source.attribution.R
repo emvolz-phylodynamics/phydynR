@@ -269,8 +269,12 @@ print("NOTE : sample times must be in units of years")
 	DEMENAMES <- paste(sep='', 'stage', 0:4)
 	
 	# prior probability of each stage 
-	# TODO this is approx, since does not account for stage 0 going to stages > 1
-	pstage <- (1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')] ) / sum(1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')])
+	# NOTE this would only be approx, since does not account for stage 0 going to stages > 1: 
+	#pstage <- (1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')] ) / sum(1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')])
+	prEverReach <- cumsum(  pstartstage )
+	meanDurNRStages <- (1/progparms[c( 'gamma1', 'gamma2', 'gamma3', 'gamma4')] )
+	pstage1 <- c( 1/progparms['gamma0'], prEverReach * meanDurNRStages)
+	pstage <- pstage1 / sum(pstage1)
 	
 	sampleStates <- matrix( 0, nrow = length(tree$tip.label), ncol = 5 )
 	rownames(sampleStates) <- names(sampleTimes)
