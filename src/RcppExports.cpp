@@ -7,8 +7,8 @@ using namespace Rcpp;
 using namespace arma; 
 
 // simulateTreeCpp2
-List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, const List Ys, const List As, NumericVector sortedCoHeights, const NumericVector sortedSampleHeights, const NumericMatrix sortedSampleStates, double maxSampleTime, const int m, bool finiteSizeCorrection);
-RcppExport SEXP sourceCpp_2_simulateTreeCpp2(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP AsSEXP, SEXP sortedCoHeightsSEXP, SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP maxSampleTimeSEXP, SEXP mSEXP, SEXP finiteSizeCorrectionSEXP) {
+List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, const List Ys, const List As, NumericVector sortedCoHeights, const NumericVector sortedSampleHeights, const NumericMatrix sortedSampleStates, double maxSampleTime, const int m, bool finiteSizeCorrection,  std::vector< std::string > DEMES);
+RcppExport SEXP sourceCpp_2_simulateTreeCpp2(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP AsSEXP, SEXP sortedCoHeightsSEXP, SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP maxSampleTimeSEXP, SEXP mSEXP, SEXP finiteSizeCorrectionSEXP, SEXP DEMESSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -23,7 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type maxSampleTime(maxSampleTimeSEXP);
     Rcpp::traits::input_parameter< const int >::type m(mSEXP);
     Rcpp::traits::input_parameter< bool >::type finiteSizeCorrection(finiteSizeCorrectionSEXP);
-    __result = Rcpp::wrap(simulateTreeCpp2(times, Fs, Gs, Ys, As, sortedCoHeights, sortedSampleHeights, sortedSampleStates, maxSampleTime, m, finiteSizeCorrection));
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type DEMES(DEMESSEXP);
+    __result = Rcpp::wrap(simulateTreeCpp2(times, Fs, Gs, Ys, As, sortedCoHeights, sortedSampleHeights, sortedSampleStates, maxSampleTime, m, finiteSizeCorrection, DEMES));
     return __result;
 END_RCPP
 }

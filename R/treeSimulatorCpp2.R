@@ -541,7 +541,28 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	
 	phylo$n = n <- length(sampleTimes)
 	Nnode <- phylo$Nnode
-	
+if (F)
+{ # check tip edgelengths
+print('DatedTree')
+browser()
+o <- phylo
+tel <- sapply( 1:o$n, function(u) {
+	ie <- which(o$edge[,2] == u )
+	o$edge.length[ie] 
+}) / 365
+tip2demes <- sapply( 1:o$n, function(u){
+	colnames(o$sampleStates)[ which.max( o$sampleStates[u, ] ) ]
+})
+s1tips <- grepl( 'stage0', tip2demes )
+s2tips <- !grepl( 'stage0', tip2demes )
+#~ s1tips <- grepl( 'stage1', tip2demes )
+#~ s2tips <- !grepl( 'stage1', tip2demes )
+s1tel <- tel[ s1tips]
+s1tel <- s1tel [ s1tel < 10 ]
+s2tel <- tel[ s2tips]
+s2tel <- s2tel [ s2tel < 10 ]
+boxplot( s1tel, s2tel )
+}
 	# compute heights, ensure consistency of sample times and branch lengths
 	phylo$maxSampleTime   <- max(phylo$sampleTimes)
 	heights <- rep(NA, (phylo$Nnode + length(phylo$tip.label)) )
@@ -628,13 +649,20 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	Gs <- tfgy[[3]]
 	Ys <- tfgy[[4]]
 	
+	m <- nrow(Fs[[1]])
+	if (m < 2)  stop('Error: currently only models with at least two demes are supported')
+	
+	DEMES <- rownames( tfgy[[2]][[1]] ) 
+	if (length(DEMES)!=m){
+		DEMES <- as.character( 1:m )
+	}
+	
 	if (step_size_multiplier < 0 | step_size_multiplier > 1) {
 		step_size_multiplier <- 1
 		warning('step_size_multiplier should be in (0, 1). This parameter has been set to 1.')
 	}
 	delta_times <- abs(times[2]-times[1]) 
-	m <- nrow(Fs[[1]])
-	if (m < 2)  stop('Error: currently only models with at least two demes are supported')
+	
 	n <- length(sampleTimes)
 	if (is.null( sampleStates ) ) {
 		sampleStates <- matrix( 0, nrow = length(sampleTimes), ncol = m )
@@ -646,6 +674,10 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	if (times[2] > times[1])
 		fgyi <- length(Fs):1
 	
+	if (length(names(sampleTimes))==0){
+		names(sampleTimes) <- paste(sep='_', 't', 1:length(sampleTimes))
+	}
+	names(sampleTimes) <- paste(sep='', 'sim', names(sampleTimes))
 	maxSampleTime <- max(sampleTimes)
 	ix <- sort( sampleTimes, decreasing = TRUE, index.return=TRUE)$ix
 	sortedSampleHeights <- maxSampleTime - sampleTimes[ix]
@@ -720,14 +752,23 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	}
 	
 	#print(date())
+	coheights <- sort(coheights )
+if (F)
+{
+coheights <- coheights[1:2e3] 
+sortedSampleHeights2 <- sortedSampleHeights[ sortedSampleHeights < max(coheights) ]
+sortedSampleStates2 <- sortedSampleStates[1:length(sortedSampleHeights2),]
+tlabs <- tlabs[1:length(sortedSampleHeights2)]
+}
 	o <- simulateTreeCpp2( times[fgyi],  Fs[fgyi],  Gs[fgyi],  Ys[fgyi]
 		 , As
-		 , sort(coheights )
-		 , sortedSampleHeights 
-		 , sortedSampleStates
+		 , coheights
+		 , sortedSampleHeights #2
+		 , sortedSampleStates #2
 		 , maxSampleTime
 		 , m
-		 , FALSE)
+		 , FALSE
+		 , DEMES )
 	o$tip.label <- tlabs
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
@@ -744,9 +785,77 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 		class(o) <- 'phylo'
 		o$Nnode <- o$Nnode + 1
 	}
-#~ 	tryCatch({
+if(F){
+n2 <- length(sortedSampleHeights2)
+sampleDemes <- setNames( sapply( 1:n2, function(u) DEMES[which.max( sortedSampleStates2[u,])] ), o$tip.label )
+sum( grepl( 'riskLevel2', sampleDemes ))
+sortedSampleTimes2 <- sortedSampleTimes[ names( sortedSampleHeights2 ) ]
+R <- o$R
+.Q <- o$Q
+rownames(R) = colnames(R) = rownames(.Q) = colnames(.Q) <- DEMES
+rl2 <- grepl( 'riskLevel2', DEMES)
+rl1 <- grepl( 'riskLevel1', DEMES )
+cbind( DEMES[order( .Q['stage2.age1.care1.riskLevel1', ]  ) ],  sort( .Q['stage2.age1.care1.riskLevel1', ] ) )
+cbind( DEMES[order( .Q['stage1.age1.care1.riskLevel1', ]  ) ],  sort( .Q['stage1.age1.care1.riskLevel1', ] ) )
+cbind( DEMES[order( .Q['stage1.age1.care1.riskLevel2', ]  ) ],  sort( .Q['stage1.age1.care1.riskLevel2', ] ) )
+sum( .Q[ 'stage1.age1.care1.riskLevel1', rl2 ] )
+colnames(o$mstates) <- DEMES
+colnames(o$lstates) <- DEMES
+ms <- o$mstates
+#~ browser()
+#~ scatter.smooth( sort(o$heights),  rowSums( o$lstates[order(o$heights),rl2] )  )
+#~ scatter.smooth( sort(o$heights),  rowSums( o$mstates[order(o$heights),rl2] )  )
+
+
+rl2_donor_recip <- t( sapply( 1:2e3, function(ia){
+	a <- o$n + ia
+	u <- o$donor[a] + 1
+	v <- o$recip[a] + 1
+	c( sum( o$mstates[u,rl2]), sum(o$mstates[v,rl2] ) )
+})) 
+#~ matplot( o$heights[ (o$n+1):(o$n+2e3) ], rl2_donor_recip )
+#~ plot( rl2_donor_recip[,1], rl2_donor_recip[,2] , xlab='Pr RL2 of donor', ylab = 'Pr RL2 of recip')
+#~ hist( rl2_donor_recip[,1], main = 'Pr RL2 donor')
+#~ hist( rl2_donor_recip[,2], main = 'Pr RL2 recip')
+#~ scatter.smooth(  o$heights[ (o$n+1):(o$n+2e3) ], rl2_donor_recip[,2], main = 'Trend Pr RL2 recip' )
+}
+
+if (F)
+{ # check tip edgelengths
+tel <- sapply( 1:o$n, function(u) {
+	ie <- which(o$edge[,2] == u )
+	o$edge.length[ie] 
+}) / 365
+tip2demes <- sapply( 1:o$n, function(u){
+	DEMES[ which.max( sortedSampleStates2[u, ] ) ]
+})
+s1tips <- grepl( 'stage1', tip2demes )
+s2tips <- !grepl( 'stage1', tip2demes )
+s1tel <- tel[ s1tips]
+s1tel <- s1tel [ s1tel < 10 ]
+s2tel <- tel[ s2tips]
+s2tel <- s2tel [ s2tel < 10 ]
+boxplot( s1tel, s2tel )
+
+s1tips <- grepl( 'riskLevel1', tip2demes )
+s2tips <- grepl( 'riskLevel2', tip2demes )
+s1tel <- tel[ s1tips]
+s1tel <- s1tel [ s1tel < 10 ]
+s2tel <- tel[ s2tips]
+s2tel <- s2tel [ s2tel < 10 ]
+boxplot( s1tel, s2tel )
+wilcox.test( s1tel, s2tel )
+}
+
+#~ browser()
+
+	tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
 		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
+	}, error = function(e) browser())
+#~ 	tryCatch({
+#~ 		rownames(sortedSampleStates2) <- names(sortedSampleTimes2 ) ##!
+#~ 		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes2, sortedSampleStates2, tol = Inf) )
 #~ 	}, error = function(e) browser())
 }
 

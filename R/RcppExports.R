@@ -13,7 +13,8 @@ simulateTreeCpp2 <- function(times
 		 , sortedSampleStates
 		 , maxSampleTime
 		 , m
-		 , finiteSizeCorrection) {
+		 , finiteSizeCorrection
+		 , DEMES) {
 	.Call('sourceCpp_2_simulateTreeCpp2',  PACKAGE='phydynR', times
 		 ,  Fs
 		 ,  Gs
@@ -24,7 +25,8 @@ simulateTreeCpp2 <- function(times
 		 , sortedSampleStates
 		 , maxSampleTime
 		 , m
-		 , finiteSizeCorrection)
+		 , finiteSizeCorrection
+		 , DEMES)
 }
 
 colik2cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition) {

@@ -275,6 +275,8 @@ print("NOTE : sample times must be in units of years")
 	meanDurNRStages <- (1/progparms[c( 'gamma1', 'gamma2', 'gamma3', 'gamma4')] )
 	pstage1 <- c( 1/progparms['gamma0'], prEverReach * meanDurNRStages)
 	pstage <- pstage1 / sum(pstage1)
+	pstage[1] <- (numberNewInfectionsPerYear/2) / (numberPeopleLivingWithHIV)
+	pstage <- pstage / sum(pstage) 
 	
 	sampleStates <- matrix( 0, nrow = length(tree$tip.label), ncol = 5 )
 	rownames(sampleStates) <- names(sampleTimes)

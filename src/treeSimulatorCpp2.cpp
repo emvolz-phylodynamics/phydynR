@@ -43,6 +43,7 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
   , double maxSampleTime 
   , const int m
   , bool finiteSizeCorrection
+  , std::vector< std::string > DEMES
 )
 {
 	RNGScope scope;
@@ -64,10 +65,12 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 	NumericMatrix edge(n+Nnode-ntrees, 2); 
 	NumericVector edge_length(n+Nnode-ntrees, -1.0);
 	NumericVector heights(n+Nnode, -1.0);
-//~ cout << n+Nnode-ntrees << endl; 
 	
 	mat lstates = zeros(n+Nnode, m);
 	mat mstates = zeros(n+Nnode, m);
+	mat ustates = -1. * ones(n+Nnode, m);
+	IntegerVector donor( n + Nnode, -1 ); // which daughter node is donor at each internal node
+	IntegerVector recip( n + Nnode , -1); 
 	
 	double t, t0, t1;
 	int internalNodeIndex = n; // counter for internal branches
@@ -129,34 +132,44 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 		R = trans( F + G ) ;
 		for ( k = 0; k < Y.size(); k++)
 		{
-			R.col(k) = R.col(k) / (Y);
+			//~ if (Y.at(k) > 0){
+				R.col(k) = R.col(k) / clamp(Y, 1., Y.max());
+			//~ } else{
+				//~ R.col(k).fill(0.);
+				//~ R.col(k) = zeros<colvec>(Y.size());
+			//~ }
 		}
 		R.diag(0) =   zeros<colvec>(Y.size());
 		m_rs_R = -sum( R, 1 );
 		// diagonal correction for coalescent events
-		A_Y = clamp( A / Y, 0., 1. ); 
+		A_Y = clamp( A / clamp(Y, 1., Y.max()), 0., 1. ); 
 		vec diag_xn = zeros<colvec>(m); 
-		for (k = 0; k < m; k++){
-			diag_xn[k] = ((double)dot(F.row(k) , A_Y))/ Y[k]; 
-		}
-		R.diag(0) = m_rs_R - diag_xn;
+		//~ for (k = 0; k < m; k++){
+			//~ diag_xn[k] = ((double)dot(F.row(k) , A_Y))/ std::max(Y.at(k), 1.) ;//Y[k]; 
+		//~ }
+		R.diag(0) = m_rs_R; //- diag_xn; //TODO 
 		// transition prob from row to col
 		Q = expmat( (h1 - h) * R); 
 		// renormalise
 		for (k = 0; k < m; k++){
-			Q.row(k) = Q.row(k) / sum(Q.row(k));
+			double rsq = sum(Q.row(k));
+			if (rsq > 0){
+				Q.row(k) = Q.row(k) / rsq;
+			}else{
+				Q(k,k) = 1. ;
+			}
 		}
 		// </transition probs>
-		
 		
 		//update line states
 		for ( i = 0; i < (n + internalNodesAdded); i++)
 		{
 			if (0!=extant[i]){
-				for ( k = 0; k < m; k++)
-				{
-					mstates(i,k) = std::max(0.0, (double)(dot(Q.col(k), mstates.row(i))) );
-				}
+				mstates.row(i) = mstates.row(i) * Q; 
+				//~ for ( k = 0; k < m; k++)
+				//~ {
+					//~ mstates(i,k) = std::max(0.0, (double)(dot(Q.col(k), mstates.row(i))) );
+				//~ }
 				//renormalise
 				rsmsi  = sum(mstates.row(i));
 				for ( k =0; k < m; k++){
@@ -208,7 +221,6 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 						break;
 					}
 				}
-
 				// sample u & v in proportion to mstates k & l
 				foundu = false;
 				foundv = false;
@@ -250,11 +262,14 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 				if (!foundu || !foundv){
 					// just pick two lines at random; 
 					//~ cout << sum(extant) << endl; 
+					std::cout << "Warning: could not find compatible pair of lines for coalescent" << std::endl; 
 					IntegerVector uv =  Rcpp::RcppArmadillo::sample( extantRange , 2, false, as<NumericVector>(extant)) ;
 					u = uv[0];
 					v = uv[1];
 				}
-				
+//~ std::cout << donordeme << " " << recipdeme << std::endl; 
+//~ std::cout << DEMES.at(donordeme) << " "<< DEMES.at(recipdeme) << std::endl; 
+//~ std::cout << internalNodesAdded << " " << samplesAdded << std::endl; 
 				a = n + internalNodesAdded;
 				internalNodesAdded++;
 				heights[a] = sortedCoHeights[ico]; 
@@ -277,8 +292,16 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 				lstates(a,donordeme) = 1.0;
 				mstates(a,donordeme) = 1.0;
 				
+				// set ustates for u and v
+				ustates.row(u) = mstates.row(u); 
+				ustates.row(v) = mstates.row(v); 
+				donor(a) = u; 
+				recip(a) = v; 
+				
 				//update mstates of lines not in co 
 				if (finiteSizeCorrection){
+					std::cout << "finiteSizeCorrection not implemented" << std::endl; 
+					throw 1; 
 					for (int s = 0; s < internalNodesAdded-1; s++){
 						if (extant[s]!=0){
 							for (int w = 0; w <m; w++){
@@ -301,6 +324,9 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 				}
 			}
 		}
+		
+		// terminate early if all nodes added 
+		if ( internalNodesAdded >= sortedCoHeights.size() ) break; 
 		
 		// find sample times in (t, t1)
 		//~ incorporateSamples(   h,  samplesAdded,  lstates,  mstates,  sortedSampleHeights,  sortedSampleStates,  extant,   heights, m);
@@ -329,7 +355,16 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 	ret["Nnode"] = internalNodesAdded;//Nnode
 	ret["lstates"] = lstates;
 	ret["mstates"] = mstates;
+	ret["ustates"] = ustates;
+	ret["donor"] = donor;
+	ret["recip"] = recip;
 	ret["heights"] = heights;
 	ret["samplesAdded"] = samplesAdded; 
+	
+	// debug output
+	ret["R"]  = R; 
+	ret["Q"] = Q; 
+	//~ ret["mstates"] = mstates; 
+	
 	return(ret);
 }
