@@ -13,7 +13,7 @@
 \item{res}{ Integer number of time steps to use when simulating model.  }
 \item{integrationMethod}{If simulating an ODE model, this provides the integration routine corresponding to options in deSolve. }
 \item{timeOfOriginBoundaryCondition }{ If TRUE, will return -Inf if the root of the tree precedes the time of origin. }
-\item{AgtYboundaryCondition}{If TRUE, will return -Inf if the number of extant lineages exceeds the simulation population size. }
+\item{AgtYboundaryCondition}{If TRUE or numeric > 0, will penalise likelihood if the number of extant lineages exceeds the simulation population size. If AgtYboundaryCondition=Inf, will return -Inf in this event.  }
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric). 

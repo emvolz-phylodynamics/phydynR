@@ -111,7 +111,6 @@ phylo.source.attribution.multiDeme.model <- function( tree
   , treeErrorTol = 1e-2
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = FALSE
-  , AgtYboundaryCondition = FALSE
 ) 
 {
 	bdt <- DatedTree( tree, sampleTimes , sampleStates = sampleStates, tol = treeErrorTol)
@@ -123,7 +122,6 @@ phylo.source.attribution.multiDeme.model <- function( tree
 	  , tfgy
 	  , treeErrorTol = 1e-3
 	  , timeOfOriginBoundaryCondition = FALSE
-	  , AgtYboundaryCondition = FALSE
 	) 
 }
 
@@ -134,7 +132,6 @@ phylo.source.attribution.multiDeme.fgy <- function( dated_tree
   , tfgy
   , treeErrorTol = 1e-2
   , timeOfOriginBoundaryCondition = FALSE
-  , AgtYboundaryCondition = FALSE
 ) 
 {
 	bdt <- dated_tree
@@ -218,7 +215,7 @@ print(date())
 	  , bdt$n
 	  , bdt$Nnode
 	  , m
-	  , AgtYboundaryCondition
+	  , TRUE
 	  , maxHeight
 	)
 	W$donor <- bdt$tip.label[ W$donor ]
@@ -327,7 +324,6 @@ print("NOTE : sample times must be in units of years")
 	  , tfgy
 	  , treeErrorTol = 1e-3
 	  , timeOfOriginBoundaryCondition = FALSE
-	  , AgtYboundaryCondition = FALSE
 	)
 	 
 }

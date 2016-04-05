@@ -5,7 +5,7 @@ require(Rcpp)
 colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
-  ,  AgtYboundaryCondition = TRUE
+  ,  AgtYboundaryCondition = TRUE # can also be numeric > 0
 ) 
 {
 	if ( timeOfOriginBoundaryCondition ){
@@ -174,7 +174,7 @@ optim.colik <- function(tre
   , parm_lowerBounds = c()
   , parm_upperBounds = c()
   , timeOfOriginBoundaryCondition = FALSE
-  , AgtYboundaryCondition = TRUE
+  , AgtYboundaryCondition = TRUE # can also be numeric
   , res = 1e3
   , integrationMethod = 'lsoda' 
   , control = list()

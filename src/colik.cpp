@@ -232,7 +232,7 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
   , const int n
   , const int Nnode
   , const int m
-  , bool AgtYboundaryCondition )
+  , double AgtYboundaryCondition )
 {
 	double loglik = 0.;
 	mat P(m, n + Nnode, fill::zeros); 
@@ -322,7 +322,10 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 	//~ cout << nextEventHeight << " " << ih << endl; 
 	//~ cout << " sum A > sum Y  " << endl ;
 //~ }
-			if ( AgtYboundaryCondition && (sum(A) > sum(Y)) ) return -INFINITY;
+			//~ if ( AgtYboundaryCondition && (sum(A) > sum(Y)) ) return -INFINITY;
+			if (nextant > sum(Y)){
+				loglik -= L * (AgtYboundaryCondition * (nextant-sum(Y)));
+			}
 			
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
@@ -565,7 +568,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
   , const int n
   , const int Nnode
   , const int m
-  , bool AgtYboundaryCondition
+  , double AgtYboundaryCondition
   , const double maxHeight // terminate computation at this height
 ){
 	double loglik = 0.;

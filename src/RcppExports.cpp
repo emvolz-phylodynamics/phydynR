@@ -30,7 +30,7 @@ END_RCPP
 }
 
 // colik2cpp
-double colik2cpp(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const mat sortedSampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, bool AgtYboundaryCondition);
+double colik2cpp(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const mat sortedSampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition);
 RcppExport SEXP sourceCpp_0_colik2cpp(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
@@ -47,7 +47,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
     Rcpp::traits::input_parameter< const int >::type Nnode(NnodeSEXP);
     Rcpp::traits::input_parameter< const int >::type m(mSEXP);
-    Rcpp::traits::input_parameter< bool >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
+    Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
     __result = Rcpp::wrap(colik2cpp(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition));
     return __result;
 END_RCPP
@@ -94,7 +94,7 @@ List sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const 
   , const int n
   , const int Nnode
   , const int m
-  , bool AgtYboundaryCondition
+  , double AgtYboundaryCondition
   , const double maxHeight // terminate computation at this height
 );
 RcppExport SEXP sourceCpp_0_sourceAttribMultiDemeCpp( SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP, SEXP maxHeightSEXP) {
@@ -113,7 +113,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
     Rcpp::traits::input_parameter< const int >::type Nnode(NnodeSEXP);
     Rcpp::traits::input_parameter< const int >::type m(mSEXP);
-    Rcpp::traits::input_parameter< bool >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
+    Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
     Rcpp::traits::input_parameter< const double >::type maxHeight(maxHeightSEXP);
     
     __result = Rcpp::wrap(sourceAttribMultiDemeCpp( heights, Fs,  Gs,  Ys
