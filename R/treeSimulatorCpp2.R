@@ -237,7 +237,7 @@ deaths.attr("names") = rcnames;
 				list( c(dxdeme, dxnondeme) )
 			}
 			
-			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod='adams')
+			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda')
 			{ # value : list(times, births, migrations, sizes )
 				# NOTE x0 should be passed here in case there are estimated parameters related to initial conditions
 				if (m == 2 & length(x0) == (1+mm) & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
@@ -412,7 +412,7 @@ deaths.attr("names") = rcnames;
 			)
 		}
 		if (!sde){
-			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod='adams')
+			solve.demographic.process <- function( theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda')
 			{ # value : list(times, births, migrations, sizes )
 				#reorder x0 if necessary
 				## NOTE x0 should be passed here in case there are estimated parameters related to initial conditions
@@ -631,7 +631,7 @@ boxplot( s1tel, s2tel )
 }
 
 
-sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates=NULL, res = 1e3, integrationMethod='adams'){
+sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates=NULL, res = 1e3, integrationMethod='lsoda'){
 	maxSampleTime <- max(sampleTimes)
 	sim.co.tree.fgy ( 
 	  demographic.process.model( theta, x0, t0, maxSampleTime, res = res, integrationMethod=integrationMethod) 
@@ -706,7 +706,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 			A0 <- sum(AL[-length(AL)] )
 			h1 <- sortedSampleHeights[ih+1]
 			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
-			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
+			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 			tAL <- rbind( tAL, o )
 			AL <- o[nrow(o), 2:ncol(o)]
 			heights <- c( heights , datimes )
@@ -724,7 +724,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	A0 <- sum(AL[-length(AL)] )
 	h1 <- maxHeight 
 	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
-	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
+	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 	tAL <- rbind( tAL, o )
 	heights <- c( heights , datimes )
 	
@@ -859,7 +859,7 @@ wilcox.test( s1tel, s2tel )
 }
 
 
-show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, integrationMethod='adams', ...)
+show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda', ...)
 {
 	tfgy <- demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod=integrationMethod)
 	o <- tfgy[[5]] 

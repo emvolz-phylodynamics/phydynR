@@ -3,7 +3,7 @@ require(Rcpp)
 #~ sourceCpp('colik.cpp') 
 
 colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
-  , integrationMethod='adams'
+  , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   ,  AgtYboundaryCondition = TRUE
 ) 
@@ -128,7 +128,7 @@ det.solve.As <- function(times, Fs, Gs, Ys, bdt, sortedSampleHeights )
 		if (sortedSampleHeights[ih] > h){
 			h1 <- sortedSampleHeights[ih+1]
 			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/( delta_times) ))  )
-			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
+			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 			tAL <- rbind( tAL, o )
 			AL <- o[nrow(o), 2:ncol(o)]
 			heights <- c( heights , datimes )
@@ -145,7 +145,7 @@ det.solve.As <- function(times, Fs, Gs, Ys, bdt, sortedSampleHeights )
 	ntlA <- sum(AL[1:(length(AL)-1)]) # total A at beginning of last interval
 	h1 <- maxHeight 
 	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
-	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'adams')
+	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 	tAL <- rbind( tAL, o )
 	AL <- o[nrow(o), 2:ncol(o)]
 	heights <- c( heights , datimes )
@@ -176,7 +176,7 @@ optim.colik <- function(tre
   , timeOfOriginBoundaryCondition = FALSE
   , AgtYboundaryCondition = TRUE
   , res = 1e3
-  , integrationMethod = 'adams' 
+  , integrationMethod = 'lsoda' 
   , control = list()
   ,  ... )
 {

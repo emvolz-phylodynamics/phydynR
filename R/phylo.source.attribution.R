@@ -44,7 +44,7 @@ phylo.source.attribution <- function( trees, sampleTimes, f.t, Y.t, maxTMRCA = N
 	{
 		bdt <- DatedTree( tree, sampleTimes , tol = treeErrorTol)
 		heights <- seq(0, min( bdt$maxHeight, maxTMRCA), length.out = res )
-		Lambda <- ode( c(Lambda = 0 ), times = heights , func = d.Lambda, parms = list( bdt = bdt ),method = 'adams' )[,2]
+		Lambda <- ode( c(Lambda = 0 ), times = heights , func = d.Lambda, parms = list( bdt = bdt ),method = 'lsoda' )[,2]
 		dh <- heights[2] - heights[1]
 		Lambda.h <- function(h) Lambda[min(length(Lambda), 1 + floor( h / dh ))] # fast interpolator
 		
@@ -109,7 +109,7 @@ phylo.source.attribution.multiDeme.model <- function( tree
   , theta, demographic.process.model, x0, t0
   , res = 1e3
   , treeErrorTol = 1e-2
-  , integrationMethod='adams'
+  , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = FALSE
   , AgtYboundaryCondition = FALSE
 ) 
