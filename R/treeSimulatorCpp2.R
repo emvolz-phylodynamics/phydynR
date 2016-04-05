@@ -94,7 +94,7 @@ NumericMatrix F(M,M);
 CharacterVector rcnames(demenames);
 rownames(F) = rcnames;
 colnames(F) = rcnames;"
-		Fbody <- paste( sep='\n', macros , Fheader
+		Fbody <- paste( sep='\n', Fheader , macros 
 			, paste( paste(collapse=';\n', Fexprs)
 				, ';\n NumericVector rsums(M); for(int k = 0; k <M; k++) rsums(k) = sum(F(k,_));\n'
 				, 'NumericVector csums(M); for(int k = 0; k <M; k++) csums(k) = sum(F(_,k));\n'
@@ -133,7 +133,7 @@ NumericMatrix G(M,M);
 CharacterVector rcnames(demenames);
 rownames(G) = rcnames;
 colnames(G) = rcnames;"
-		Gbody <- paste( sep='\n', macros , Gheader
+		Gbody <- paste( sep='\n' , Gheader, macros
 				, paste( paste(collapse=';\n', Gexprs)
 				, ';\n NumericVector rsums(M); for(int k = 0; k <M; k++) rsums(k) = sum(G(k,_));\n'
 				, 'NumericVector csums(M); for(int k = 0; k <M; k++) csums(k) = sum(G(_,k));\n'
@@ -165,7 +165,7 @@ deaths.attr("names") = rcnames;
 		death_exprs <- sapply( 1:length(deaths), function(i) {
 			paste( sep='', 'deaths(', i-1, ') = std::max(0., ', deaths[i], ')' )
 		})
-		death_body <-paste(sep='\n', macros, death_header
+		death_body <-paste(sep='\n', death_header, macros
 		  ,  paste(collapse=';\n', death_exprs)
 		  , ';\n return deaths;'
 		)
@@ -195,7 +195,7 @@ deaths.attr("names") = rcnames;
 			ndd_exprs <- sapply(1:length(nonDemeDynamics), function(i){
 				paste(sep='', 'ndd(', i-1, ') = ', nonDemeDynamics[i] )
 			})
-			ndd_body <- paste(sep='\n', macros, ndd_header
+			ndd_body <- paste(sep='\n', ndd_header, macros
 			  , paste(collapse=';\n', ndd_exprs)
 			  , ';\n return ndd; '
 			)
@@ -513,7 +513,6 @@ deaths.attr("names") = rcnames;
 			}
 		}
 	}
-	
 
 	# return value is func
 	class(solve.demographic.process) <- c('demographic.process', 'function')
