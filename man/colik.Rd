@@ -8,12 +8,14 @@
 \arguments{
 \item{bdt}{A DatedTree object. }
 \item{theta}{ A named numeric vector or named list of parameter values used by the demographic model.  }
+\item{demographic.process.model}{ See ?build.demographic.process  }
 \item{x0}{ A named vector of initial conditions required by the model. This includes demes and any other dynamic variables. }
 \item{t0}{ The time of origin of the process }
 \item{res}{ Integer number of time steps to use when simulating model.  }
 \item{integrationMethod}{If simulating an ODE model, this provides the integration routine corresponding to options in deSolve. }
 \item{timeOfOriginBoundaryCondition }{ If TRUE, will return -Inf if the root of the tree precedes the time of origin. }
 \item{AgtYboundaryCondition}{If TRUE or numeric > 0, will penalise likelihood if the number of extant lineages exceeds the simulation population size. If AgtYboundaryCondition=Inf, will return -Inf in this event.  }
+\item{maxHeight}{ Will only count internode intervals in the likelihood that occur after maxHeight years before present. Useful for large trees and when you don't want to model the entire demographic history.   }
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric). 

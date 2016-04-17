@@ -6,6 +6,7 @@ colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   ,  AgtYboundaryCondition = TRUE # can also be numeric > 0
+  , maxHeight = Inf 
 ) 
 {
 	if ( timeOfOriginBoundaryCondition ){
@@ -87,7 +88,7 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 		}
 		k <- k + 1
 	}
-	excl <- is.na(eventHeights) | is.na(events) | is.na( eventIndicatorNode )
+	excl <- is.na(eventHeights) | is.na(events) | is.na( eventIndicatorNode ) | (eventHeights > maxHeight)
 	events <- events[!excl]
 	eventIndicatorNode <- eventIndicatorNode[!excl]
 	eventHeights <- eventHeights[!excl]
