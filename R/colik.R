@@ -7,6 +7,7 @@ colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , timeOfOriginBoundaryCondition = TRUE
   ,  AgtYboundaryCondition = TRUE # can also be numeric > 0
   , maxHeight = Inf 
+  , expmat = FALSE
 ) 
 {
 	if ( timeOfOriginBoundaryCondition ){
@@ -36,7 +37,7 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 	if (times[2] > times[1])
 		fgyi <- length(Fs):1
 	#
-	heights <- times[fgyi[1]] - times
+	heights <- times[fgyi[1]] - times[fgyi]
 	
 #~ 	events <- c( rep(0, bdt$n), rep(1, bdt$Nnode) )
 #~ 	eventHeights <- bdt$heights #c( bdt$sampleHeights, bdt$heights[(bdt$n+1):(bdt$n+bdt$Nnode)] )
@@ -44,7 +45,7 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 #~ 	events <- events[ix]
 #~ 	eventHeights <- eventHeights[ix] 
 	
-		# move following to DatedTree; only need to compute once per tree
+	# move following to DatedTree; only need to compute once per tree
 	# ndesc : number descending nodes (incl tips)
 	# events : sample or co
 	# eventHeights ..
@@ -92,24 +93,40 @@ bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  
 	events <- events[!excl]
 	eventIndicatorNode <- eventIndicatorNode[!excl]
 	eventHeights <- eventHeights[!excl]
-	
-	ll <- colik2cpp(
-	  heights,  Fs[fgyi],  Gs[fgyi], Ys[fgyi]
-	  , events
-	  , eventIndicatorNode 
-	  , eventHeights
-	  , t( bdt$sortedSampleStates  ) # m X n 
-	  , bdt$daughters 
-	  , bdt$n
-	  , bdt$Nnode
-	  , m 
-	  ,  AgtYboundaryCondition)
+	if (!expmat){
+		ll <- colik2cpp(
+		  heights,  Fs[fgyi],  Gs[fgyi], Ys[fgyi]
+		  , events
+		  , eventIndicatorNode 
+		  , eventHeights
+		  , t( bdt$sortedSampleStates  ) # m X n 
+		  , bdt$daughters 
+		  , bdt$n
+		  , bdt$Nnode
+		  , m 
+		  , AgtYboundaryCondition
+		)
+	} else {
+		ll <- colik3cpp(
+		  heights,  Fs[fgyi],  Gs[fgyi], Ys[fgyi]
+		  , events
+		  , eventIndicatorNode 
+		  , eventHeights
+		  , t( bdt$sortedSampleStates  ) # m X n 
+		  , bdt$daughters 
+		  , bdt$n
+		  , bdt$Nnode
+		  , m 
+		  , AgtYboundaryCondition
+		)
+	}
 	ll
 }
 
 
-det.solve.As <- function(times, Fs, Gs, Ys, bdt, sortedSampleHeights )
+det.solve.As <- function(times, Fs, Gs, Ys, bdt )
 {
+	step_size_multiplier <- 1
 	m <- nrow(Fs[[1]] )
 	deltah <- abs( times[2] - times[1] )
 	
@@ -124,11 +141,11 @@ det.solve.As <- function(times, Fs, Gs, Ys, bdt, sortedSampleHeights )
 	heights <- c()
 	L <- c()
 	coheights <- c()
-	while (ih < length( sortedSampleHeights )){
-		AL <- AL + c(sortedSampleStates[ih, ], 0)
-		if (sortedSampleHeights[ih] > h){
-			h1 <- sortedSampleHeights[ih+1]
-			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/( delta_times) ))  )
+	while (ih < length( bdt$sortedSampleHeights )){
+		AL <- AL + c(bdt$sortedSampleStates[ih, ], 0)
+		if (bdt$sortedSampleHeights[ih] > h){
+			h1 <- bdt$sortedSampleHeights[ih+1]
+			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/( deltah) ))  )
 			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 			tAL <- rbind( tAL, o )
 			AL <- o[nrow(o), 2:ncol(o)]
@@ -137,15 +154,15 @@ det.solve.As <- function(times, Fs, Gs, Ys, bdt, sortedSampleHeights )
 			dL <- o[nrow(o), ncol(o)] - o[1, ncol(o)]
 			
 			L <- c( L, o[, ncol(o)] )
-			h  <- sortedSampleHeights[ih + 1]
+			h  <- bdt$sortedSampleHeights[ih + 1]
 		} 
 		ih <- ih + 1
 	}
 	# last interval 
-	AL <- AL + c(sortedSampleStates[ih, ], 0)
+	AL <- AL + c(bdt$sortedSampleStates[ih, ], 0)
 	ntlA <- sum(AL[1:(length(AL)-1)]) # total A at beginning of last interval
 	h1 <- maxHeight 
-	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
+	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * deltah) ))  )
 	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
 	tAL <- rbind( tAL, o )
 	AL <- o[nrow(o), 2:ncol(o)]

@@ -16,6 +16,7 @@
 \item{timeOfOriginBoundaryCondition }{ If TRUE, will return -Inf if the root of the tree precedes the time of origin. }
 \item{AgtYboundaryCondition}{If TRUE or numeric > 0, will penalise likelihood if the number of extant lineages exceeds the simulation population size. If AgtYboundaryCondition=Inf, will return -Inf in this event.  }
 \item{maxHeight}{ Will only count internode intervals in the likelihood that occur after maxHeight years before present. Useful for large trees and when you don't want to model the entire demographic history.   }
+\item{expmat}{ if TRUE, the likelihood will be computed using matrix exponentiation rather than ODE solvers. This will improve speed but decrease accuracy.   }
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric). 

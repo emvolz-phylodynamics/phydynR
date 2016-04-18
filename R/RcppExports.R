@@ -35,6 +35,11 @@ colik2cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, e
 	)
 }
 
+colik3cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition) {
+	.Call(  'sourceCpp_0_colik3cpp', PACKAGE='phydynR'
+	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition
+	)
+}
 
 
 updateWCpp <- function( W

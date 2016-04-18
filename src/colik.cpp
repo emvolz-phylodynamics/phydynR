@@ -398,6 +398,197 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 	return loglik; 
 }
 
+// this version uses matrix exp
+//[[Rcpp::export()]]
+double colik3cpp(const NumericVector heights
+  , const List Fs, const List Gs, const List Ys
+  , const IntegerVector eventIndicator // sample or co
+  , const IntegerVector eventIndicatorNode // node involved at each event
+  , const NumericVector eventHeights
+  , const mat sortedSampleStates
+  , const IntegerMatrix daughters // daughters of each node
+  , const int n
+  , const int Nnode
+  , const int m
+  , double AgtYboundaryCondition )
+{
+	double loglik = 0.;
+	mat P(m, n + Nnode, fill::zeros); 
+	int nextant = 0; 
+	int u,v,w,z,a; 
+	int samplesAdded = 0;
+	mat Q  = zeros(m, m );
+	mat R  = zeros(m, m );
+	vec A_Y;
+	vec Y ;
+	vec A = zeros(m);
+	mat F = zeros(m,m);
+	mat G = zeros(m,m);
+	vec puY, pvY, pa;
+	vec m_rs_R; 
+	std::vector<bool> extant(n + Nnode, false); 
+	
+	// instantiate solver 
+	double hres =  heights.size() ;
+	double treeT = heights[heights.size()-1]; // note increasing order 
+	if (heights[1] < heights[0]) throw 99;   
+	
+	// iterate events 
+	double nextEventHeight = eventHeights(0); 
+	int ievent = 0; 
+	
+	double sterm0, sterm1; 
+	double h, h0, h1, hstar, dh; 
+	int ih; // index of nextEventHeight
+	double default_step_size = std::abs(heights[1] - heights[0]); 
+	double L = 0.; 	
+	
+	h = nextEventHeight; 
+	double lastEventHeight = h; 
+	ih = (int)std::min( hres * h / treeT, (double)(heights.size()-1)); 
+	F = as<mat>(Fs[ih]);
+	G = as<mat>(Gs[ih]);
+	Y = as<vec>(Ys[ih]);
+if (false){
+	std::cout << h << std::endl ;
+	std::cout << ih << std::endl ;
+	std::cout << m << std::endl ;
+	std::cout << F.row(0) << std::endl ;
+	std::cout << G.row(0) << std::endl ;
+	std::cout << Y << std::endl ;
+	std::cout << eventIndicatorNode << std::endl;
+	std::cout << sortedSampleStates.col(0) << std::endl;
+}
+	while( nextEventHeight != INFINITY ){
+		L = 0.; // cumulative co hazard in interval
+		if (nextEventHeight > h ){
+			//~ while(heights(ih+1) < nextEventHeight) {
+			while(h < nextEventHeight) {
+				// dh  
+				h0 = std::max( heights(ih), lastEventHeight ); 
+				h1 = std::min( heights(  std::min((int)heights.size(),ih+1)  ), nextEventHeight ); 
+				dh = h1 - h0 ; 
+				
+				if (dh > 0 ){
+					F = as<mat>(Fs[ih]);
+					G = as<mat>(Gs[ih]);
+					Y = clamp(as<vec>(Ys[ih]), 1e-6, INFINITY ); // datum::inf
+					A_Y = clamp(A / Y, 0., 1.); 
+					
+					// make R & Q 
+					Q.eye();
+					//~ (F(k,l) + G(k,l)) *  Q(x, l,z)/  std::max(Q(x,l,z), Y(l));
+					R = (F+G).t();
+					//~ R  = R.each_col() / Y; 
+					R.each_col() /= Y; 
+					R.diag().zeros();
+					// penalise demes with high co: 
+					//~ dxdt[ Qind(k, z ) ] -= F(k,l) * a[l] * Q(x, k,z)/  std::max(Q(x, k,z), Y(k));
+					R.diag() = -sum(R,1) - ((F *  A_Y) / Y) ;
+					Q = normalise( expmat( R * dh ), 1., 1); // normalise row(3rd arg=1) to 1  
+					
+					// update P & A 
+					P  = normalise(clamp(Q.t() * P,0.,1.), 1., 0); // norm cols to 1 
+					A = sum(P,1); // row sum
+					A = normalise(A,1) * ((double)nextant)  ;
+					
+					//update L
+					//~ L += dh * (A_Y.t() * (F * A_Y) );
+					//~ L += dh * sum(A_Y % dot(F , A_Y) );
+					L += dh * sum(A_Y % (F * A_Y) );
+if (false)
+{
+	std::cout << L << std::endl;
+	std::cout << ih << std::endl;
+	std::cout << h0 << std::endl;
+	std::cout << h1 << std::endl;
+	std::cout << nextant << std::endl;
+	std::cout << A << std::endl;
+	std::cout << R << std::endl;
+	std::cout << Q << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+}
+if (false)
+{
+	std::cout << L << std::endl;
+	std::cout << ih << std::endl;
+	std::cout << h0 << std::endl;
+	std::cout << h1 << std::endl;
+	std::cout << nextant << std::endl;
+	std::cout << A << std::endl;
+	std::cout << R.row(0) << std::endl;
+	std::cout << Q.row(0) << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+}
+					//advance time
+					h = h1; 
+					if ( heights( std::min((int)heights.size(),ih+1)) < nextEventHeight ){
+						ih++;
+					}
+				}
+			}
+		} 
+		
+		loglik -= std::max(0.,L);
+		
+		if (eventIndicator(ievent)==SAMPLE)
+		{
+			u = eventIndicatorNode(ievent); 
+			nextant++; 
+			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded));
+			extant.at(u-1) = true; 
+			samplesAdded++; 
+		} else{
+			// coalescent
+//~ if (sum(A) > sum(Y)) {
+	//~ cout << Y ; 
+	//~ cout << nextEventHeight << " " << ih << endl; 
+	//~ cout << " sum A > sum Y  " << endl ;
+//~ }
+			//~ if ( AgtYboundaryCondition && (sum(A) > sum(Y)) ) return -INFINITY;
+			if (nextant > sum(Y)){
+				loglik -= L * (AgtYboundaryCondition * (nextant-sum(Y)));
+			}
+			
+			a = eventIndicatorNode(ievent);
+			u = daughters(a -1 , 0); 
+			v = daughters( a - 1, 1 ); 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			
+			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
+			// state of ancestor 
+			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1) ; 
+			//~ pa = pa / sum(pa ) ; 
+			P.col(a - 1 ) = pa; 
+			
+			// TODO 
+			//~ P = finite_size_correction2(pa, A, extant, P);
+			
+			//bookkeeping
+			nextant--; 
+			extant.at(u-1) = false;
+			extant.at(v-1) = false;
+			extant.at(a-1) = true;
+			P.col(u-1) = zeros<colvec>(P.n_rows); 
+			P.col(v-1) = zeros<colvec>(P.n_rows); 
+		}
+		// prep next iter
+		lastEventHeight = nextEventHeight; 
+		h = nextEventHeight; 
+		ievent++;
+		if (ievent<eventHeights.size()){
+			nextEventHeight = eventHeights(ievent);
+		} else{
+			nextEventHeight = INFINITY; 
+		}
+	}
+	
+	return loglik; 
+}
+
 
 
 

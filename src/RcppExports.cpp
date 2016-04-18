@@ -53,6 +53,31 @@ BEGIN_RCPP
 END_RCPP
 }
 
+//colik3cpp
+double colik3cpp(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const mat sortedSampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition);
+RcppExport SEXP sourceCpp_0_colik3cpp(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericVector >::type heights(heightsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicator(eventIndicatorSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicatorNode(eventIndicatorNodeSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type eventHeights(eventHeightsSEXP);
+    Rcpp::traits::input_parameter< const mat >::type sortedSampleStates(sortedSampleStatesSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix >::type daughters(daughtersSEXP);
+    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int >::type Nnode(NnodeSEXP);
+    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
+    __result = Rcpp::wrap(colik3cpp(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition));
+    return __result;
+END_RCPP
+}
+
+
 // dAL
 List dAL(double t, NumericVector y, List parms);
 RcppExport SEXP sourceCpp_0_dAL(SEXP tSEXP, SEXP ySEXP, SEXP parmsSEXP) {
