@@ -133,7 +133,7 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 		for ( k = 0; k < Y.size(); k++)
 		{
 			//~ if (Y.at(k) > 0){
-				R.col(k) = R.col(k) / clamp(Y, 1., Y.max());
+				R.col(k) = R.col(k) / clamp(Y, 1e-6, std::max(1e-6, Y.max()));
 			//~ } else{
 				//~ R.col(k).fill(0.);
 				//~ R.col(k) = zeros<colvec>(Y.size());
@@ -142,7 +142,7 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 		R.diag(0) =   zeros<colvec>(Y.size());
 		m_rs_R = -sum( R, 1 );
 		// diagonal correction for coalescent events
-		A_Y = clamp( A / clamp(Y, 1., Y.max()), 0., 1. ); 
+		A_Y = clamp( A / clamp(Y, 1e-6, std::max(1e-6,Y.max())), 0., 1. ); 
 		vec diag_xn = zeros<colvec>(m); 
 		//~ for (k = 0; k < m; k++){
 			//~ diag_xn[k] = ((double)dot(F.row(k) , A_Y))/ std::max(Y.at(k), 1.) ;//Y[k]; 

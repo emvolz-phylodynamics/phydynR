@@ -252,17 +252,18 @@ phylo.source.attribution.hiv <- function( tree
 ) {
 print("NOTE : sample times must be in units of years") 	
 	# note time units in year
-	progparms<- c(	gamma0 = 1/(6/12) # EHI
-	  , gamma1 = 0.157 
-	  , gamma2 = 0.350
-	  , gamma3 = 0.282
-	  , gamma4 = .434 #aids 
-	  , pstartstage1 = 0.58
-	  , pstartstage2 = 0.23  #reg4 combine these 
-	  , pstartstage3 = 0.16
-	  , pstartstage4 = 0.03
+	stage_prog_yrs <- c( .5, 3.32, 2.7, 5.50, 5.06 ) #cori AIDS
+	stageprog_rates <- setNames( 1 / (stage_prog_yrs) 
+	 , c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')  )
+	
+	pstartstage <- c( 
+	  pstartstage1 = 0.76
+	 , pstartstage2 = 0.19
+	 , pstartstage3 = 0.05
+	 , pstartstage4 = 0
 	)
-	pstartstage <- progparms[ c('pstartstage1','pstartstage2', 'pstartstage3', 'pstartstage4') ]
+	progparms <- c( stageprog_rates, pstartstage )
+	
 	DEMENAMES <- paste(sep='', 'stage', 0:4)
 	
 	# prior probability of each stage 
@@ -296,7 +297,6 @@ print("NOTE : sample times must be in units of years")
 			}
 		}
 	}
-	
 	
 	# make tfgy 
 	times <- seq(0 , maxHeight+1, length.out = res)
