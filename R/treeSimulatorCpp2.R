@@ -651,7 +651,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	m <- nrow(Fs[[1]])
 	if (m < 2)  stop('Error: currently only models with at least two demes are supported')
 	
-	DEMES <- rownames( tfgy[[2]][[1]] ) 
+	DEMES <- names( tfgy[[4]][[1]] ) 
 	if (length(DEMES)!=m){
 		DEMES <- as.character( 1:m )
 	}
@@ -733,7 +733,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	# /CO HEIGHTS
 	
 	Amat <- sapply( 1:m, function(k ){
-		approx( tAL[,1], tAL[,1+k], xout = maxSampleTime - times[fgyi]  , rule = 2)$y
+		approx( tAL[,1], tAL[,1+k], xout = maxSampleTime - times[fgyi]  , rule = 2, method = 'constant')$y
 	})
 	As <- lapply( 1:nrow(Amat), function(i){
 		Amat[i, ]
@@ -747,18 +747,12 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	
 	finalA <- n-1 - ncos #sum(  As[[length(As)]] )
 	if (finalA > 2){
-		warning(paste(sep='', 'Estimated number of extant lineages at earliest time on time axis is ', finalA, ', and sampled lineages are not likely to have a single common ancestor. Root of returned tree will have daughter clades corresponding to simulated trees. '))
+		warning(paste(sep='', 'Estimated number of extant lineages at earliest time on time axis is ', finalA, ', and sampled lineages are not likely to have a single common ancestor. Root of returned tree will have daughter clades corresponding to simulated trees. Try shrinking time steps (increase res).'))
 	}
 	
 	#print(date())
 	coheights <- sort(coheights )
-if (F)
-{
-coheights <- coheights[1:2e3] 
-sortedSampleHeights2 <- sortedSampleHeights[ sortedSampleHeights < max(coheights) ]
-sortedSampleStates2 <- sortedSampleStates[1:length(sortedSampleHeights2),]
-tlabs <- tlabs[1:length(sortedSampleHeights2)]
-}
+
 	o <- simulateTreeCpp2( times[fgyi],  Fs[fgyi],  Gs[fgyi],  Ys[fgyi]
 		 , As
 		 , coheights
@@ -784,69 +778,6 @@ tlabs <- tlabs[1:length(sortedSampleHeights2)]
 		class(o) <- 'phylo'
 		o$Nnode <- o$Nnode + 1
 	}
-if(F){
-n2 <- length(sortedSampleHeights2)
-sampleDemes <- setNames( sapply( 1:n2, function(u) DEMES[which.max( sortedSampleStates2[u,])] ), o$tip.label )
-sum( grepl( 'riskLevel2', sampleDemes ))
-sortedSampleTimes2 <- sortedSampleTimes[ names( sortedSampleHeights2 ) ]
-R <- o$R
-.Q <- o$Q
-rownames(R) = colnames(R) = rownames(.Q) = colnames(.Q) <- DEMES
-rl2 <- grepl( 'riskLevel2', DEMES)
-rl1 <- grepl( 'riskLevel1', DEMES )
-cbind( DEMES[order( .Q['stage2.age1.care1.riskLevel1', ]  ) ],  sort( .Q['stage2.age1.care1.riskLevel1', ] ) )
-cbind( DEMES[order( .Q['stage1.age1.care1.riskLevel1', ]  ) ],  sort( .Q['stage1.age1.care1.riskLevel1', ] ) )
-cbind( DEMES[order( .Q['stage1.age1.care1.riskLevel2', ]  ) ],  sort( .Q['stage1.age1.care1.riskLevel2', ] ) )
-sum( .Q[ 'stage1.age1.care1.riskLevel1', rl2 ] )
-colnames(o$mstates) <- DEMES
-colnames(o$lstates) <- DEMES
-ms <- o$mstates
-#~ browser()
-#~ scatter.smooth( sort(o$heights),  rowSums( o$lstates[order(o$heights),rl2] )  )
-#~ scatter.smooth( sort(o$heights),  rowSums( o$mstates[order(o$heights),rl2] )  )
-
-
-rl2_donor_recip <- t( sapply( 1:2e3, function(ia){
-	a <- o$n + ia
-	u <- o$donor[a] + 1
-	v <- o$recip[a] + 1
-	c( sum( o$mstates[u,rl2]), sum(o$mstates[v,rl2] ) )
-})) 
-#~ matplot( o$heights[ (o$n+1):(o$n+2e3) ], rl2_donor_recip )
-#~ plot( rl2_donor_recip[,1], rl2_donor_recip[,2] , xlab='Pr RL2 of donor', ylab = 'Pr RL2 of recip')
-#~ hist( rl2_donor_recip[,1], main = 'Pr RL2 donor')
-#~ hist( rl2_donor_recip[,2], main = 'Pr RL2 recip')
-#~ scatter.smooth(  o$heights[ (o$n+1):(o$n+2e3) ], rl2_donor_recip[,2], main = 'Trend Pr RL2 recip' )
-}
-
-if (F)
-{ # check tip edgelengths
-tel <- sapply( 1:o$n, function(u) {
-	ie <- which(o$edge[,2] == u )
-	o$edge.length[ie] 
-}) / 365
-tip2demes <- sapply( 1:o$n, function(u){
-	DEMES[ which.max( sortedSampleStates2[u, ] ) ]
-})
-s1tips <- grepl( 'stage1', tip2demes )
-s2tips <- !grepl( 'stage1', tip2demes )
-s1tel <- tel[ s1tips]
-s1tel <- s1tel [ s1tel < 10 ]
-s2tel <- tel[ s2tips]
-s2tel <- s2tel [ s2tel < 10 ]
-boxplot( s1tel, s2tel )
-
-s1tips <- grepl( 'riskLevel1', tip2demes )
-s2tips <- grepl( 'riskLevel2', tip2demes )
-s1tel <- tel[ s1tips]
-s1tel <- s1tel [ s1tel < 10 ]
-s2tel <- tel[ s2tips]
-s2tel <- s2tel [ s2tel < 10 ]
-boxplot( s1tel, s2tel )
-wilcox.test( s1tel, s2tel )
-}
-
-#~ browser()
 
 	tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )

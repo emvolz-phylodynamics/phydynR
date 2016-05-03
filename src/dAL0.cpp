@@ -39,7 +39,8 @@ List dAL(double t, NumericVector y,  List parms){
 			//~ a[k] = std::max(0., std::min(1., A_x(k)/ Y(k)));
 			a[k] = std::max(0., ( A_x(k)/ Y(k)));
 		} else{
-			a[k] = std::min(1., std::max(0., A_x(k))); 
+			//~ a[k] = std::min(1., std::max(0., A_x(k))); 
+			a[k] = std::max(0., A_x(k)); 
 		} 
 	}
 	//dA
@@ -51,8 +52,9 @@ List dAL(double t, NumericVector y,  List parms){
 					dAL(k) -= a[l] * (F(l,k)) * a[k]; //max(0., A_x(k)-1.) / max(1., (Y(k)-1.)); //a[k];
 				} else
 				{
-					dAL(k) += ( std::max(0.0, (1.0 - a[k])) * F(k,l) + G(k,l)) * a[l] ;
-					//~ dA(k) += (  F(k,l) + G(k,l)) * a[l] ;
+					//~ dAL(k) += ( std::max(0.0, (1.0 - a[k])) * F(k,l) + G(k,l)) * a[l] ;
+					dAL(k) += ( (1.0 - a[k]) * F(k,l) + G(k,l)) * a[l] ;
+					//~ dAL(k) += (  F(k,l) + G(k,l)) * a[l] ;
 					dAL(k) -= ( F(l,k) + G(l,k)) * a[k];
 				}
 				dAL(m) += a[l] * (F(l,k)) * a[k];

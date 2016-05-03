@@ -19,6 +19,32 @@ using namespace Rcpp;
 using namespace arma; 
 
 
+mat finite_size_correction2(const vec& p_a, const vec& A, const IntegerVector extant, mat mstates)
+{ //compare to version in colik.cpp
+// TODO not working yet
+	// NOTE mstates m X n 
+	vec rho; 
+	vec rterm; 
+	//~ vec lterm; 
+	double lterm; 
+	vec p_u; 
+	vec Amin_pu; 
+	//~ for (int iu = 0; iu < extantLines.size(); iu++){
+	for (int iu = 0; iu < extant.size(); iu++){
+		if (extant(iu)==1){
+			p_u = mstates.row(iu); 
+			Amin_pu = clamp(( A - p_u), 1., INFINITY ); 
+			rterm = p_a / Amin_pu ; 
+			rho = A / Amin_pu; 
+			lterm = dot( rho, p_a); //
+			p_u = p_u % (lterm - rterm) ;
+			p_u = p_u / sum(p_u ) ; 
+			mstates.row(iu) = p_u; 
+		}
+	}
+	return mstates; 
+}
+
 
 void incorporateSamples( double h, int samplesAdded, mat lstates, mat mstates, NumericVector sortedSampleHeights, NumericMatrix sortedSampleStates, IntegerVector extant,  NumericVector heights, int m ){
 	for (int i = samplesAdded; i < sortedSampleHeights.size(); i++){
@@ -289,8 +315,17 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 				//~ numberExtant--;
 				
 				//lstate, mstate of a;
+				/* TODO does  this gives overly ladder-like trees??
 				lstates(a,donordeme) = 1.0;
 				mstates(a,donordeme) = 1.0;
+				*/
+				for ( int w = 0; w < m ; w++){
+					for (int z = 0; z < m; z++){
+						lstates(a, w) = F(w,z) * ( mstates(u,w)*mstates(v,z) / Y(z)/Y(w) +  mstates(u,z)*mstates(v,w) / Y(z)/Y(w) ) ;
+					}
+				}
+				lstates.row(a) = lstates.row(a) / sum(lstates.row(a)); 
+				mstates.row(a) = lstates.row(a); 
 				
 				// set ustates for u and v
 				ustates.row(u) = mstates.row(u); 
@@ -302,6 +337,8 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 				if (finiteSizeCorrection){
 					std::cout << "finiteSizeCorrection not implemented" << std::endl; 
 					throw 1; 
+					mstates = finite_size_correction2(lstates.row(a), A, extant, mstates);
+					/*
 					for (int s = 0; s < internalNodesAdded-1; s++){
 						if (extant[s]!=0){
 							for (int w = 0; w <m; w++){
@@ -321,6 +358,7 @@ List simulateTreeCpp2(const NumericVector times, const List Fs, const List Gs, c
 							mstates.row(s) = mstates.row(s) / sum(mstates.row(s));
 						}
 					}
+					*/
 				}
 			}
 		}
