@@ -5,7 +5,7 @@ require(Rcpp)
 colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
-  ,  AgtYboundaryCondition = TRUE # can also be numeric > 0
+  , AgtYboundaryCondition = TRUE # can also be numeric > 0
   , maxHeight = Inf 
   , expmat = FALSE
 ) 
@@ -100,6 +100,7 @@ colik.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE,
             bdt$daughters, bdt$n, bdt$Nnode, m, AgtYboundaryCondition)
     }
     else {
+    stop('Error: *expmat* option is not yet implemented. ')
         ll <- colik3cpp(heights, Fs[fgyi], Gs[fgyi], Ys[fgyi], 
             events, eventIndicatorNode, eventHeights, t(bdt$sortedSampleStates), 
             bdt$daughters, bdt$n, bdt$Nnode, m, AgtYboundaryCondition)

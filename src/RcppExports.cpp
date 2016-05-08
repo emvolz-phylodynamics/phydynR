@@ -29,6 +29,40 @@ BEGIN_RCPP
 END_RCPP
 }
 
+// simulateTreeCpp3
+List simulateTreeCpp3x0(const vec times
+	  , const List Fs, const List Gs, const List Ys
+	  , const vec sortedSampleHeights
+	  , const mat sortedSampleStates // m X n 
+	  , double maxSampleTime 
+	  , const int m
+	  , bool finiteSizeCorrection);
+RcppExport SEXP sourceCpp_simulateTreeCpp3x0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP maxSampleTimeSEXP, SEXP mSEXP, SEXP finiteSizeCorrectionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< const vec >::type sortedSampleHeights(sortedSampleHeightsSEXP);
+    Rcpp::traits::input_parameter< const mat >::type sortedSampleStates(sortedSampleStatesSEXP);
+    Rcpp::traits::input_parameter< double >::type maxSampleTime(maxSampleTimeSEXP);
+    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
+    Rcpp::traits::input_parameter< bool >::type finiteSizeCorrection(finiteSizeCorrectionSEXP);
+    __result = Rcpp::wrap(simulateTreeCpp3x0( times
+	  ,  Fs,  Gs,  Ys
+	  ,  sortedSampleHeights
+	  ,  sortedSampleStates // m X n 
+	  , maxSampleTime 
+	  ,  m
+	  , finiteSizeCorrection));
+    return __result;
+END_RCPP
+}
+
+
+
 // colik2cpp
 double colik2cpp(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const mat sortedSampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition);
 RcppExport SEXP sourceCpp_0_colik2cpp(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP) {

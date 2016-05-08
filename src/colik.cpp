@@ -9,8 +9,6 @@
 
 
 
-
-
 using namespace arma;
 using namespace Rcpp; 
 
@@ -364,7 +362,8 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 //~ cout << pa; 
 //~ cout << endl << endl ; 
 //~ if (any(is_nan(as<NumericVector>(wrap(pa))))) throw 1; 
-			P = finite_size_correction2(pa, A, extant, P);
+			P = finite_size_correction2(pa, A, extant, P);//TODO test 
+			// TODO make FSC optional? 
 			
 			//bookkeeping
 			nextant--; 
@@ -399,6 +398,7 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 }
 
 // this version uses matrix exp
+// TODO does not work on simpleTest0; probably has bugs
 //[[Rcpp::export()]]
 double colik3cpp(const NumericVector heights
   , const List Fs, const List Gs, const List Ys

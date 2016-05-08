@@ -1,8 +1,9 @@
-# compute co heights at R level, use rcpp to construct tree and compute line states
 require(Rcpp)
 require(inline)
-
-#TODO co sim method for sampling co heights not ensure A>2 for each coheight
+#~ sourceCpp( 'dAL1.cpp')
+#~ sourceCpp( 'treeSimulatorCpp2.cpp')
+#~ sourceCpp( 'treeSimulatorCpp3.cpp')
+#NOTE  co sim method for sampling co heights not ensure A>2 for each coheight
 
 
 
@@ -540,28 +541,6 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	
 	phylo$n = n <- length(sampleTimes)
 	Nnode <- phylo$Nnode
-if (F)
-{ # check tip edgelengths
-print('DatedTree')
-browser()
-o <- phylo
-tel <- sapply( 1:o$n, function(u) {
-	ie <- which(o$edge[,2] == u )
-	o$edge.length[ie] 
-}) / 365
-tip2demes <- sapply( 1:o$n, function(u){
-	colnames(o$sampleStates)[ which.max( o$sampleStates[u, ] ) ]
-})
-s1tips <- grepl( 'stage0', tip2demes )
-s2tips <- !grepl( 'stage0', tip2demes )
-#~ s1tips <- grepl( 'stage1', tip2demes )
-#~ s2tips <- !grepl( 'stage1', tip2demes )
-s1tel <- tel[ s1tips]
-s1tel <- s1tel [ s1tel < 10 ]
-s2tel <- tel[ s2tips]
-s2tel <- s2tel [ s2tel < 10 ]
-boxplot( s1tel, s2tel )
-}
 	# compute heights, ensure consistency of sample times and branch lengths
 	phylo$maxSampleTime   <- max(phylo$sampleTimes)
 	heights <- rep(NA, (phylo$Nnode + length(phylo$tip.label)) )
@@ -641,8 +620,8 @@ sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, s
 sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA)
 {# res = 1e3, 
 	# note sampleStates must be in same order as sampleTimes
-	# note may return multiple trees
-	if (is.na(step_size_multiplier)) step_size_multiplier <- 1
+	# note may return multiple trees with polytomous root
+	if (is.na(step_size_multiplier)) step_size_multiplier <- .10
 	times <- tfgy[[1]]
 	Fs <- tfgy[[2]]
 	Gs <- tfgy[[3]]
@@ -688,105 +667,26 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 		names(sortedSampleTimes) = names(sortedSampleHeights)  <- tlabs
 	}
 	
-	# CO HEIGHTS 
-	parms <- list(times = times[fgyi], Fs = Fs[fgyi], Gs = Gs[fgyi], Ys = Ys[fgyi] , m = m, deltah = abs( times[2] - times[1] )
-	  , times.size  = length(times ) )
-	maxHeight <- maxSampleTime - times[fgyi][length(times)]
-	ih <- 1
-	AL <- rep(0, m + 1)
-	tAL <- c()
-	h <- 0
-	heights <- c()
-	L <- c()
-	coheights <- c()
-	cumCos <- c(0)
-	while (ih < length( sortedSampleHeights )){
-		AL <- AL + c(sortedSampleStates[ih, ], 0)
-		if (sortedSampleHeights[ih] > h){
-			A0 <- sum(AL[-length(AL)] )
-			h1 <- sortedSampleHeights[ih+1]
-			datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
-			o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
-			tAL <- rbind( tAL, o )
-			AL <- o[nrow(o), 2:ncol(o)]
-			heights <- c( heights , datimes )
-			
-			cumCos <- c( cumCos, tail(cumCos,1) + A0 - rowSums( o[ ,2:(ncol(o)-1)] ) )
-			
-			L <- c( L, o[, ncol(o)] )
-			h  <- sortedSampleHeights[ih + 1]
-		} 
-		ih <- ih + 1
-	}
-	# last interval 
-	AL <- AL + c(sortedSampleStates[ih, ], 0)
-	ntlA <- sum(AL[1:(length(AL)-1)]) # total A at beginning of last interval
-	A0 <- sum(AL[-length(AL)] )
-	h1 <- maxHeight 
-	datimes <- seq(h, h1, length.out = max(2, ceiling( (h1 - h)/(step_size_multiplier * delta_times) ))  )
-	o <- ode(y = AL, times = datimes, func = dAL, parms = parms,  method = 'lsoda')
-	tAL <- rbind( tAL, o )
-	heights <- c( heights , datimes )
+	o <- simulateTreeCpp3x0( times[fgyi],  Fs[fgyi],  Gs[fgyi],  Ys[fgyi]
+	 , sortedSampleHeights #2
+	 , t(sortedSampleStates)
+	 , maxSampleTime
+	 , m
+	 , FALSE #TRUE #fsc
+	)
+	 # clean up edge, edge.length and Nnode
+	o$edge <- o$edge[which(!is.na(o$edge[,1])), ]
+	o$edge.length <- o$edge.length[!is.na(o$edge.length)]
+	o$Nnode <- length(unique( as.vector(o$edge))) - o$n
 	
-	cumCos <- c( cumCos, tail(cumCos,1) + A0 - rowSums( o[ ,2:(ncol(o)-1)] ) )
-	cumCos <- cumCos[-1]
-	# /CO HEIGHTS
-	
-	Amat <- sapply( 1:m, function(k ){
-		approx( tAL[,1], tAL[,1+k], xout = maxSampleTime - times[fgyi]  , rule = 2, method = 'constant')$y
-	})
-	As <- lapply( 1:nrow(Amat), function(i){
-		Amat[i, ]
-	})
-
-	if (T)
-	{ #TODO this method does not ensure A>2 for each coheight
-		ncos <- min( n -1 , floor(tail(cumCos,1)) ) #TODO ncos is a deterministic function of population trajectory
-		coheights <- approx( cumCos / ncos, heights,  xout = runif(ncos, 0, 1))$y
-	}
-	
-	finalA <- n-1 - ncos #sum(  As[[length(As)]] )
-	if (finalA > 2){
-		warning(paste(sep='', 'Estimated number of extant lineages at earliest time on time axis is ', finalA, ', and sampled lineages are not likely to have a single common ancestor. Root of returned tree will have daughter clades corresponding to simulated trees. Try shrinking time steps (increase res).'))
-	}
-	
-	#print(date())
-	coheights <- sort(coheights )
-
-	o <- simulateTreeCpp2( times[fgyi],  Fs[fgyi],  Gs[fgyi],  Ys[fgyi]
-		 , As
-		 , coheights
-		 , sortedSampleHeights #2
-		 , sortedSampleStates #2
-		 , maxSampleTime
-		 , m
-		 , FALSE
-		 , DEMES )
 	o$tip.label <- tlabs
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
-	ntrees <- 1 + ((n-1) - o$Nnode)
-	if (ntrees > 1 ){
-		# make a polytomy at t0
-		nu <-length(o$heights)
-		aclades <- setdiff(1:nu,  unique( o$edge[,2] ))
-		a <- 1 + nu
-		for ( ac in aclades){
-			o$edge <- rbind( o$edge, c(a, ac) )
-			o$edge.length <- c( o$edge.length, maxHeight - o$heights[ac] )
-		}
-		class(o) <- 'phylo'
-		o$Nnode <- o$Nnode + 1
-	}
-
+	
 	tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
 		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
-	}, error = function(e) browser())
-#~ 	tryCatch({
-#~ 		rownames(sortedSampleStates2) <- names(sortedSampleTimes2 ) ##!
-#~ 		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes2, sortedSampleStates2, tol = Inf) )
-#~ 	}, error = function(e) browser())
+	}, error = function(e) {print('Error: sim.co.tree.fgy--DatedTree'); NULL } )
 }
 
 

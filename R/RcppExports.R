@@ -29,6 +29,30 @@ simulateTreeCpp2 <- function(times
 		 , DEMES)
 }
 
+simulateTreeCpp3x0 <- function(times
+		 ,  Fs
+		 ,  Gs
+		 ,  Ys
+		 , sortedSampleHeights 
+		 , sortedSampleStates
+		 , maxSampleTime
+		 , m
+		 , finiteSizeCorrection
+) {
+	.Call('sourceCpp_simulateTreeCpp3x0',  PACKAGE='phydynR'
+		 , times
+		 ,  Fs
+		 ,  Gs
+		 ,  Ys
+		 , sortedSampleHeights 
+		 , sortedSampleStates
+		 , maxSampleTime
+		 , m
+		 , finiteSizeCorrection
+	)
+}
+
+
 colik2cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition) {
 	.Call(  'sourceCpp_0_colik2cpp', PACKAGE='phydynR'
 	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition
