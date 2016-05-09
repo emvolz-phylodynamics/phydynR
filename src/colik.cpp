@@ -270,7 +270,7 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 		
 		if (nextEventHeight > h ){
 			A = sum(P, 1);
-			A = arma::normalise(A,1)  * ((double)nextant);
+			A = arma::normalise(A,1.)  * ((double)nextant);
 			x0 = generate_initial_conditions(A) ; 
 //~ cout << "solving..." << endl;
 //~ cout << h << endl;
@@ -291,7 +291,7 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 			Q_from_state(Q, x0); 
 			A_from_state(A, x0); 
 			L = L_from_state(x0); 
-			A = arma::normalise(A,1) * ((double)nextant);
+			A = arma::normalise(A,1.) * ((double)nextant);
 			
 			P  = abs(Q.t() * P);
 //~ cout << P.n_rows << " " << P.n_cols << endl; 
@@ -306,7 +306,8 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 		{
 			u = eventIndicatorNode(ievent); 
 			nextant++; 
-			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded));
+			//~ P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded)); //WRONG! 2-norm is default
+			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded), 1.);
 			extant.at(u-1) = true; 
 			samplesAdded++; 
 		} else{
@@ -328,8 +329,8 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
 			v = daughters( a - 1, 1 ); 
-			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
-			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1.) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
 //~ double llterm = log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
 //~ if (llterm==-INFINITY)
@@ -355,7 +356,7 @@ double colik2cpp(const NumericVector heights, const List Fs, const List Gs, cons
 //~ cout << F;
 			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
 			// state of ancestor 
-			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1) ; 
+			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; 
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
 //~ cout << loglik << endl; 
@@ -490,7 +491,7 @@ if (false){
 					// update P & A 
 					P  = normalise(clamp(Q.t() * P,0.,1.), 1., 0); // norm cols to 1 
 					A = sum(P,1); // row sum
-					A = normalise(A,1) * ((double)nextant)  ;
+					A = normalise(A,1.) * ((double)nextant)  ;
 					
 					//update L
 					//~ L += dh * (A_Y.t() * (F * A_Y) );
@@ -537,7 +538,7 @@ if (false)
 		{
 			u = eventIndicatorNode(ievent); 
 			nextant++; 
-			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded));
+			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded), 1.);
 			extant.at(u-1) = true; 
 			samplesAdded++; 
 		} else{
@@ -555,12 +556,12 @@ if (false)
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
 			v = daughters( a - 1, 1 ); 
-			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
-			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1.) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			
 			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
 			// state of ancestor 
-			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1) ; 
+			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; 
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
 			
@@ -824,7 +825,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 		if (nextEventHeight > h )
 		{
 			A = sum(P, 1);
-			A = arma::normalise(A,1)  * ((double)nextant);
+			A = arma::normalise(A,1.)  * ((double)nextant);
 			x0 = generate_initial_conditions(A) ; 
 //~ cout << "solving..." << endl;
 //~ cout << h << endl;
@@ -852,7 +853,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			Q_from_state(Q, x0); 
 			A_from_state(A, x0); 
 			L = L_from_state(x0); 
-			A = arma::normalise(A,1) * ((double)nextant);
+			A = arma::normalise(A,1.) * ((double)nextant);
 			
 			Qrho_from_state( Qrho, x0sa ); 
 			psi_from_state( psi, x0sa );
@@ -872,9 +873,9 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			psi_time = psi_time % (rho.t() * psi ); 
 			
 			P  = abs(Q.t() * P);
-			P = arma::normalise( P, 1, 0 );
+			P = arma::normalise( P, 1., 0 );
 			rho = abs( Qrho.t() * rho ); 
-			rho = arma::normalise( rho, 1, 0); // p=1, dim=0
+			rho = arma::normalise( rho, 1., 0); // p=1, dim=0
 //~ std::cout << h <<std::endl;
 //~ std::cout << P ;
 //~ std::cout << rho ;
@@ -892,7 +893,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 		{
 			u = eventIndicatorNode(ievent); 
 			nextant++; 
-			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded) ,1);
+			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded) ,1.);
 			rho.col(u-1) = P.col(u-1); 
 			psi_time.at(u-1) = 1.; 
 			extant.at(u-1) = true; 
@@ -913,12 +914,12 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
 			v = daughters( a - 1, 1 ); 
-			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
-			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1.) / arma::clamp( Y, 1e-6, INFINITY ) ; 
+			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1.) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
 			
 			// state of ancestor 
-			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1) ; 
+			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; 
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
 			//P = finite_size_correction2(pa, A, extant, P);
@@ -937,10 +938,10 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			// update W(iw, iz)
 			for (int iw = 0; iw < n; iw++){
 				if (tipsDescendedFrom.at(u-1, iw)==1){
-					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 					for (int iz = iw+1; iz < n; iz++){
 						if (tipsDescendedFrom.at(v-1, iz)==1){
-							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ,1) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
 							double pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
 							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
 							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
@@ -965,24 +966,24 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
 					//tip descended from a and u
-					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1) ; 
+					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1.) ; 
 					//update psi(iw)
 					double puv = sum( rho_w__Y % (F * pvY) );
 					double pvu = sum( pvY % (F * rho_w__Y ));
 					puv = puv / (puv + pvu ) ;
 					psi_time.at(iw) *= puv ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-6, 1.) ,1);
+					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-6, 1.) ,1.);
 				} else if (tipsDescendedFrom.at(v-1, iw)==1){
 					//tip descended from a and v
-					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1) ; 
+					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1.) ; 
 					//update psi(iw)
 					double pvu = sum( rho_w__Y % (F * puY) );
 					double puv = sum( puY % (F * rho_w__Y ));
 					pvu = pvu / (puv + pvu ) ;
 					psi_time.at(iw) *= pvu ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-6, 1.) ,1);
+					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-6, 1.) ,1.);
 				}
 			}
 			
