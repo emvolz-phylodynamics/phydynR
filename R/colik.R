@@ -8,9 +8,31 @@ colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , AgtYboundaryCondition = TRUE # can also be numeric > 0
   , maxHeight = Inf 
   , expmat = FALSE
+  , forgiveAgtY = .2 #can be NA
 ) 
 {
 	tfgy <- demographic.process.model( theta, x0, t0, bdt$maxSampleTime, res = res, integrationMethod=integrationMethod) 
+	
+	# TODO need to c-ify this code; should probably go with likelihood and should check Y>A for each deme
+	if (!is.na( forgiveAgtY )){
+		if (forgiveAgtY < 0 | forgiveAgtY > 1 ){
+			stop('forgiveAgtY must be in (0,1)')
+		} 
+		soinh <- sort( bdt$heights[(1+bdt$n):(bdt$n+bdt$Nnode)] ) 
+		A.h <- function(h) {  sum(bdt$sortedSampleHeights <= h) - sum(soinh <=h)  }
+		#for (i in 1:length(tfgy[[1]])){
+		x <- sum( sapply( 1:length(tfgy[[1]]), function(i){
+			t <- tfgy[[1]][i]
+			h <- bdt$maxSampleTime - t
+			if (h < 0) return(FALSE)
+			if (sum(soinh < h)  > (1-forgiveAgtY)*bdt$Nnode) return(FALSE)
+			y <- tfgy[[4]][[i]]
+			if (sum(y) < A.h( h )) return(TRUE)
+			return(FALSE)
+		}))
+#~ browser()
+		if (sum(x) > 0 ) return(-Inf)
+	}
 	
 	colik.fgy(bdt
 	  , tfgy
@@ -22,7 +44,7 @@ colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
 }
 
 colik.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE, 
-    AgtYboundaryCondition = TRUE, maxHeight = Inf, expmat = TRUE) 
+    AgtYboundaryCondition = TRUE, maxHeight = Inf, expmat = FALSE) 
 {
     
     bdt <- reorder.phylo(bdt, "postorder")
@@ -108,6 +130,66 @@ colik.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE,
     ll
 }
 
+
+colik.rcolgem <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
+  , integrationMethod='rk4'
+  , maxHeight = Inf 
+  , forgiveAgtY = .2 #can be NA
+){
+	require(rcolgem)
+	tfgy <- demographic.process.model( theta, x0, t0, bdt$maxSampleTime, res = res, integrationMethod=integrationMethod) 
+	
+	# TODO need to c-ify this code; should probably go with likelihood and should check Y>A for each deme
+	if (!is.na( forgiveAgtY )){
+		if (forgiveAgtY < 0 | forgiveAgtY > 1 ){
+			stop('forgiveAgtY must be in (0,1)')
+		} 
+		soinh <- sort( bdt$heights[(1+bdt$n):(bdt$n+bdt$Nnode)] ) 
+		A.h <- function(h) {  sum(bdt$sortedSampleHeights <= h) - sum(soinh <=h)  }
+		#for (i in 1:length(tfgy[[1]])){
+		x <- sum( sapply( 1:length(tfgy[[1]]), function(i){
+			t <- tfgy[[1]][i]
+			h <- bdt$maxSampleTime - t
+			if (h < 0) return(FALSE)
+			if (sum(soinh < h)  > (1-forgiveAgtY)*bdt$Nnode) return(FALSE)
+			y <- tfgy[[4]][[i]]
+			if (sum(y) < A.h( h )) return(TRUE)
+			return(FALSE)
+		}))
+		if (sum(x) > 0 ) return(-Inf)
+	}
+	
+	colik.rcolgem.fgy(bdt
+	  , tfgy
+      , maxHeight = maxHeight
+      , forgiveAgtY = forgiveAgtY
+	  , integrationMethod = integrationMethod
+    ) 
+
+}
+
+colik.rcolgem.fgy <- function(bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
+    , maxHeight = Inf, expmat = TRUE
+    , forgiveAgtY = .2
+    , integrationMethod = 'rk4')
+{
+	require(rcolgem)
+#~ browser()
+	coalescent.log.likelihood.fgy2(bdt
+	, tfgy
+	, integrationMethod = integrationMethod
+	,  censorAtHeight= FALSE
+	, forgiveAgtY=forgiveAgtY
+	, returnTree=FALSE)
+#~ browser()
+#~ i <- length(tfgy[[1]]):1
+#~ 	coalescent.log.likelihood.fgy2(bdt, tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
+#~ 	, integrationMethod = integrationMethod
+#~ 	,  censorAtHeight= FALSE
+#~ 	, forgiveAgtY=forgiveAgtY
+#~ 	, returnTree=FALSE)
+
+}
 
 
 

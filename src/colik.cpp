@@ -485,7 +485,7 @@ if (false){
 					R.diag().zeros();
 					// penalise demes with high co: 
 					//~ dxdt[ Qind(k, z ) ] -= F(k,l) * a[l] * Q(x, k,z)/  std::max(Q(x, k,z), Y(k));
-					R.diag() = -sum(R,1) - ((F *  A_Y) / Y) ;
+					R.diag() = -sum(R,1) - ((F *  A_Y) / Y) ; //TODO test this
 					Q = normalise( expmat( R * dh ), 1., 1); // normalise row(3rd arg=1) to 1  
 					
 					// update P & A 
