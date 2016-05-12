@@ -610,14 +610,14 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 }
 
 
-sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates=NULL, res = 1e3, integrationMethod='lsoda'){
+sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates=NULL, res = 1e3, integrationMethod='lsoda', finiteSizeCorrections = FALSE){
 	maxSampleTime <- max(sampleTimes)
 	sim.co.tree.fgy ( 
 	  demographic.process.model( theta, x0, t0, maxSampleTime, res = res, integrationMethod=integrationMethod) 
 	  , sampleTimes, sampleStates
 	)
 }
-sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA)
+sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=FALSE)
 {# res = 1e3, 
 	# note sampleStates must be in same order as sampleTimes
 	# note may return multiple trees with polytomous root
@@ -672,7 +672,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	 , t(sortedSampleStates)
 	 , maxSampleTime
 	 , m
-	 , FALSE #TRUE #fsc
+	 , finiteSizeCorrections #TRUE #fsc
 	)
 	 # clean up edge, edge.length and Nnode
 	o$edge <- o$edge[which(!is.na(o$edge[,1])), ]

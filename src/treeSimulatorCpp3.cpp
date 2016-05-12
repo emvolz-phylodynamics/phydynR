@@ -131,7 +131,7 @@ public://TODO after debugging make these private
 	}
 	
 	
-	void finite_size_correction2(const vec& p_a, int a)//, const vec& A, const IntegerVector extant, mat mstates)
+	void finite_size_correction2(int ia)
 	{ //compare to version in colik.cpp
 		//update P
 		// NOTE mstates m X n 
@@ -143,12 +143,12 @@ public://TODO after debugging make these private
 		vec Amin_pu; 
 		//~ for (int iu = 0; iu < extantLines.size(); iu++){
 		for (int iu = 0; iu < extant.size(); iu++){
-			if (extant.at(iu) && iu != a){
+			if (extant.at(iu) && iu != ia){
 				p_u = P.col(iu); 
 				Amin_pu = clamp(( A - p_u), 1., INFINITY ); 
-				rterm = p_a / Amin_pu ; 
+				rterm = P.col(ia) / Amin_pu ; 
 				rho = A / Amin_pu; 
-				lterm = dot( rho, p_a); //
+				lterm = dot( rho, P.col(ia)); //
 				p_u = p_u % (lterm - rterm) ;
 				p_u = p_u / sum(p_u ) ; 
 				P.col(iu) = p_u; 
@@ -262,7 +262,7 @@ public://TODO after debugging make these private
 					edgesAdded++;
 					
 					//lstate, mstate of a;
-					//TODO this gives overly ladder-like trees?
+					// this gives overly ladder-like trees?
 					//~ lstates(a,donordeme) = 1.0;
 					//~ mstates(a,donordeme) = 1.0;
 					double slsa = 0.;
@@ -292,9 +292,9 @@ public://TODO after debugging make these private
 					
 					//update mstates of lines not in co 
 					if (finiteSizeCorrection){ //TODO 
-						std::cout << " finiteSizeCorrection not implemented " << endl; 
-						throw 1;
-						//~ P = finite_size_correction2(lstates.row(a), A, extant, P);
+						//~ std::cout << " finiteSizeCorrection not implemented " << endl; 
+						//~ throw 1;
+						finite_size_correction2(a );
 					}
 					
 			}
