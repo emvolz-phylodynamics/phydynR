@@ -122,7 +122,8 @@ colik.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE,
             bdt$daughters, bdt$n, bdt$Nnode, m, AgtYboundaryCondition)
     }
     else {
-    stop('Error: *expmat* option is not yet implemented. ')
+#~     stop('Error: *expmat* option is not yet implemented. ')
+		warning('*expmat* option is not debugged ')
         ll <- colik3cpp(heights, Fs[fgyi], Gs[fgyi], Ys[fgyi], 
             events, eventIndicatorNode, eventHeights, t(bdt$sortedSampleStates), 
             bdt$daughters, bdt$n, bdt$Nnode, m, AgtYboundaryCondition)

@@ -411,8 +411,8 @@ double colik3cpp(const NumericVector heights
   , const int n
   , const int Nnode
   , const int m
-  , double AgtYboundaryCondition )
-{
+  , double AgtYboundaryCondition 
+) {
 	double loglik = 0.;
 	mat P(m, n + Nnode, fill::zeros); 
 	int nextant = 0; 
@@ -486,6 +486,7 @@ if (false){
 					// penalise demes with high co: 
 					//~ dxdt[ Qind(k, z ) ] -= F(k,l) * a[l] * Q(x, k,z)/  std::max(Q(x, k,z), Y(k));
 					R.diag() = -sum(R,1) - ((F *  A_Y) / Y) ; //TODO test this
+					//~ R.diag() = -sum(R,1) ;
 					Q = normalise( expmat( R * dh ), 1., 1); // normalise row(3rd arg=1) to 1  
 					
 					// update P & A 
@@ -561,12 +562,12 @@ if (false)
 			
 			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
 			// state of ancestor 
-			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; 
+			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; //TODO check
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
 			
 			// TODO 
-			//~ P = finite_size_correction2(pa, A, extant, P);
+			P = finite_size_correction2(pa, A, extant, P);
 			
 			//bookkeeping
 			nextant--; 
