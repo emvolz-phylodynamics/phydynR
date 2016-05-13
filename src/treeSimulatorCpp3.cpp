@@ -149,7 +149,7 @@ public://TODO after debugging make these private
 				rterm = P.col(ia) / Amin_pu ; 
 				rho = A / Amin_pu; 
 				lterm = dot( rho, P.col(ia)); //
-				p_u = p_u % (lterm - rterm) ;
+				p_u = p_u % clamp((lterm - rterm), 0., INFINITY) ; // l > r
 				p_u = p_u / sum(p_u ) ; 
 				P.col(iu) = p_u; 
 			}

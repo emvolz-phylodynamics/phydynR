@@ -44,6 +44,43 @@ mat finite_size_correction2(const vec& p_a, const vec& A, const std::vector<bool
 	return P; 
 }
 
+void finite_size_correction3(const int ia, const vec& A, const std::vector<bool> extant, mat& P)
+{
+	// NOTE mstates m X n 
+	int u; 
+	vec rho; 
+	vec rterm; 
+	//~ vec lterm; 
+	double lterm; 
+	vec p_u; 
+	vec Amin_pu; 
+	vec p_a = P.col( ia ); 
+	for (int iu = 0; iu < extant.size(); iu++){
+		if (extant.at(iu) && iu!=ia){
+			u = iu + 1; 
+			p_u = P.col(u-1); 
+			Amin_pu = clamp(( A - p_u), 1., INFINITY ); 
+			rterm = p_a / Amin_pu ; 
+			rho = A / Amin_pu; 
+			lterm = dot( rho, p_a); //
+			p_u = p_u % clamp((lterm - rterm), 0., INFINITY ) ; // l > r
+//~ if (sum(p_u)<=0.){
+	//~ cout << " fsc3 messed up " << endl;
+	//~ cout << p_u << endl; 
+	//~ cout << p_a << endl; 
+	//~ cout << lterm << endl; 
+	//~ cout << rterm << endl; 
+	//~ cout << Amin_pu << endl; 
+	//~ cout << rho << endl; 
+	//~ cout  << endl; 
+	//~ cout  << endl; 
+//~ } //TODO check eval of A before calling this func
+			p_u = p_u / sum(p_u ) ; 
+			P.col(u - 1) = p_u; 
+		}
+	}
+}
+
 
 class DQAL{
 	List Fs, Gs, Ys; 
@@ -561,13 +598,24 @@ if (false)
 			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1.) / arma::clamp( Y, 1e-6, INFINITY ) ; 
 			
 			loglik += log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ;   
+//~ if ( !arma::is_finite( log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) ) ){
+	//~ cout << "lik term messed up" << endl ;
+	//~ cout << log(  as_scalar( puY.t() * (F * pvY) )  + as_scalar( pvY.t() * (F * puY) ) ) << endl ;
+	//~ cout << ih << endl ;
+	//~ cout << h0 << endl ;
+	//~ cout << h1 << endl ;
+	//~ cout << puY << endl ;
+	//~ cout << pvY << endl ;
+	//~ cout  << endl ;
+	//~ cout  << endl ;
+//~ }
 			// state of ancestor 
 			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; //TODO check
 			//~ pa = pa / sum(pa ) ; 
 			P.col(a - 1 ) = pa; 
 			
 			// TODO 
-			P = finite_size_correction2(pa, A, extant, P);
+			finite_size_correction3(a - 1, A, extant, P);
 			
 			//bookkeeping
 			nextant--; 

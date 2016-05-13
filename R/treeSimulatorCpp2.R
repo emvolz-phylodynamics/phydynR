@@ -617,7 +617,7 @@ sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, s
 	  , sampleTimes, sampleStates
 	)
 }
-sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=FALSE)
+sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=TRUE)
 {# res = 1e3, 
 	# note sampleStates must be in same order as sampleTimes
 	# note may return multiple trees with polytomous root
