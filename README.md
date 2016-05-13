@@ -1,5 +1,5 @@
 #phydynR: Coalescent simulation and likelihood for phylodynamic inference
-
+*This project is meant to replace the Rforge rcolgem project, but is in alpha stage. The rcolgem package is currently more stable and reliable.*
 
 ## Exponential growth example 
 Let's model a population which is growing exponentially with fixed per-capita birth rate `beta` and death rate `gamma`. 
