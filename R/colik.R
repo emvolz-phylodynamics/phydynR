@@ -179,7 +179,7 @@ colik.rcolgem.fgy <- function(bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
 	coalescent.log.likelihood.fgy2(bdt
 	, tfgy
 	, integrationMethod = integrationMethod
-	,  censorAtHeight= FALSE
+	,  censorAtHeight= ifelse( is.infinite( maxHeight ), FALSE, maxHeight )
 	, forgiveAgtY=forgiveAgtY
 	, returnTree=FALSE)
 #~ browser()
