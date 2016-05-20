@@ -176,6 +176,19 @@ colik.rcolgem.fgy <- function(bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
 {
 	require(rcolgem)
 #~ browser()
+	excl <- tfgy[[1]] > bdt$maxSampleTime
+	tfgy[[1]] <- tfgy[[1]][!excl]
+	tfgy[[2]] <- tfgy[[2]][!excl]
+	tfgy[[3]] <- tfgy[[3]][!excl]
+	tfgy[[4]] <- tfgy[[4]][!excl]
+	if ( tfgy[[1]][2] > tfgy[[1]][1]){
+		# should be in order of increasing height = decreasing time
+		fgyi <- length(tfgy[[1]]):1
+		tfgy[[1]] <- tfgy[[1]][fgyi]
+		tfgy[[2]] <- tfgy[[2]][fgyi]
+		tfgy[[3]] <- tfgy[[3]][fgyi]
+		tfgy[[4]] <- tfgy[[4]][fgyi]
+	}
 	coalescent.log.likelihood.fgy2(bdt
 	, tfgy
 	, integrationMethod = integrationMethod
@@ -311,7 +324,8 @@ optim.colik <- function(tre
 colik4.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
     , AgtYboundaryCondition = FALSE #TODO
     , maxHeight = Inf
-    , finiteSizeCorrection = TRUE) 
+    , finiteSizeCorrection = TRUE
+    , detailedOutput=FALSE) 
 {
 	if (AgtYboundaryCondition) warning("AgtYboundaryCondition not implemented")
     bdt <- reorder.phylo(bdt, "postorder")
@@ -404,5 +418,6 @@ colik4.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
 #~     print('Complete')
 #~     print(o$loglik)
 #~ browser()
+	if (detailedOutput){return(o)}
     o$loglik
 }

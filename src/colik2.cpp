@@ -183,7 +183,7 @@ public://TODO after debugging make these private
 		//~ R  = R.each_col() / Y; 
 		R.each_col() /= Y; 
 		R.diag().zeros();
-		R.diag() = -sum(R,1) - ((F *  A_Y) / Y) ;
+		R.diag() = -sum(R,1) ;//- ((F *  A_Y) / Y) ;
 		mat Q = normalise( expmat( R * dh ), 1., 1); // normalise row(3rd arg=1) to 1  
 		
 		// update P & A 
@@ -202,6 +202,18 @@ public://TODO after debugging make these private
 		//~ vec pu__Y = clamp(P.col(i),0., 1.)/clamp(Y, 1e-12, INFINITY) ;
 		//~ vec pv__Y = clamp(P.col(j), 0., 1.)/clamp(Y, 1e-12, INFINITY);
 		//~ return as_scalar(dot(pu__Y , (F * pv__Y)) + dot(pv__Y , (F * pu__Y))); 
+	}
+	
+	// TODO
+	/* line state of u conditioning on coalescent with v at bottom of branch */
+	vec pu_co_pv( vec pu, vec pv){
+		vec _pu = zeros(m); 
+		for (k = 0; k < m; k++){
+			for (l = 0; l < m; l++){
+				_pu(k) = pu(k) *(F(k,l)+F(l,k)) * pv(l) / (Y(k)*Y(l));
+			}
+		}
+		return arma::normalise( _pu, 1. );
 	}
 	
 	void update_lambda_uv(){
@@ -234,6 +246,7 @@ public://TODO after debugging make these private
 		// note times decreasing
 		for(it = start_it; it < times.size()-1; it++)
 		{
+			int nco = 0; 
 			//~ A = sum(P,1); // row sum
 			t =  times(it);
 			t1 =times(it+1);  //t - deltat;
@@ -279,6 +292,7 @@ public://TODO after debugging make these private
 //~ cout << "updated lambdauv " << total_lambda << endl; 
 					} else if (eventType==CO){
 //~ cout << " co event " << endl; 
+						nco++; 
 						u = daughters(a-1,0); 
 						v = daughters(a-1,1);
 if (!extant.at(u-1) || !extant.at(v-1)){
@@ -300,14 +314,24 @@ if (!extant.at(u-1) || !extant.at(v-1)){
 						P.col(a-1) = lstates.col(a-1);
 						
 						// set ustates for u and v
+						// TODO pu_co_pv
+						//~ P.col(u-1) = pu_co_pv( P.col(u-1), P.col(v-1)); 
+						//~ P.col(v-1) = pu_co_pv( P.col(v-1), P.col(u-1)); 
+						// TODO update total_lambda..
+						//~ update_lambda_uv();
 						ustates.col(u-1) = P.col(u-1);
 						ustates.col(v-1) = P.col(v-1);
 						
 						double lambdauv = co_rate_uv(u-1, v-1); 
-						loglik += log( lambdauv ) ;
-						rateTerms(a-1) = log( lambdauv ) ;
-						//~ loglik += log(lambda_uv(u-1,v-1) ) ;
-						//~ rateTerms(a-1) = log(lambda_uv(u-1,v-1) ) ;
+						if (true){
+							rateTerms(a-1) = log( lambdauv / total_lambda ); 
+							loglik += rateTerms(a-1); 
+						}else{
+							loglik += log( lambdauv ) ;
+							rateTerms(a-1) = log( lambdauv ) ;
+							//~ loglik += log(lambda_uv(u-1,v-1) ) ;
+							//~ rateTerms(a-1) = log(lambda_uv(u-1,v-1) ) ;
+						}
 						
 						extant.at(u-1) = false;
 						extant.at(v-1) = false;
@@ -332,11 +356,19 @@ if (!extant.at(u-1) || !extant.at(v-1)){
 				}
 			}
 			
-			loglik -= total_lambda * (h1-h0); 
+			if (true){
+				// ignore if interval is zero length
+				if ( (total_lambda*(h1-h0))>0){
+					survTerms(it) = R::dpois( (double)nco, total_lambda*(h1-h0), 1); 
+					loglik += survTerms(it); 
+				}
+			} else{
+				loglik -= total_lambda * (h1-h0); 
 //~ cout << " loglik " << loglik << endl; 
-			survTerms(it) = -total_lambda * (h1-h0); 
+				survTerms(it) = -total_lambda * (h1-h0); 
 //~ cout << " surv " << survTerms(it) << " "<< total_lambda << endl; 
-			
+			}
+		
 			// terminate early if all nodes added 
 			if ( internalNodesAdded >= Nnode ){
 				break; 
