@@ -536,7 +536,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo <- tryCatch( { multi2di( phylo ) }, error = function(e) phylo )
 	
 	phylo$sampleTimes <- sampleTimes[phylo$tip.label]
-	phylo$sampleStates <- sampleStates[phylo$tip.label, ]
+	phylo$sampleStates <- sampleStates[phylo$tip.label, ] 
 	if (is.vector(phylo$sampleStates)) phylo$sampleStates <- t(t( phylo$sampleStates))
 	
 	phylo$n = n <- length(sampleTimes)
@@ -563,7 +563,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 					} else if ( 0!=(heights[u] - (phylo$edge.length[i] + heights[v]) ) ){
 						edgeLengthChange <- TRUE 
 					}
-					phylo$edge.length[i] <- max(minEdgeLength, heights[u] - heights[v] ) 
+					phylo$edge.length[i] <- max(0, max(minEdgeLength, heights[u] - heights[v] ) )
 					heights[u] <- heights[v]  + phylo$edge.length[i]
 				} else{
 					heights[u] <- phylo$edge.length[i] + heights[v]
@@ -586,10 +586,10 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	
 	phylo$root <- which.max( phylo$heights)
 	
-	ix <- sort( sampleTimes, decreasing = TRUE, index.return=TRUE)$ix
-	phylo$sortedSampleHeights <- phylo$maxSampleTime - sampleTimes[ix]
+	ix <- sort( phylo$sampleTimes, decreasing = TRUE, index.return=TRUE)$ix
+	phylo$sortedSampleHeights <- phylo$maxSampleTime - phylo$sampleTimes[ix]
 	phylo$sortedSampleStates <- phylo$sampleStates[ix,] 
-	
+#~ print('Datedtree'); browser()
 	# parents and daughters 
 	phylo$parent = phylo$parents <- sapply(1:(phylo$n+phylo$Nnode), function(u) {
 		i <-  which(phylo$edge[,2]==u)
@@ -682,7 +682,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	o$tip.label <- tlabs
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
-	
+#~ print('sim tree'); browser()
 	tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
 		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )

@@ -111,6 +111,70 @@ BEGIN_RCPP
 END_RCPP
 }
 
+List colik4cpp(const vec in_times
+	  , const List in_Fs
+	  , const  List in_Gs
+	  , const List in_Ys //NOTE times decreasing
+	  , const vec in_sortedSampleHeights
+	  , const mat in_sortedSampleStates // m X n 
+	  , const uvec in_eventIndicator // sample or co (int)
+	  , const uvec in_eventIndicatorNode // node involved at each event
+	  , const vec in_eventHeights
+	  , const umat in_daughters // daughters of each node
+	  , const double in_maxSampleTime 
+	  , const int in_m
+	  , const bool in_finiteSizeCorrection
+	  , const double in_maxHeight
+	  );
+RcppExport SEXP sourceCpp_colik4cpp(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP
+  , SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP
+ , SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP
+ , SEXP eventHeightsSEXP, SEXP daughtersSEXP
+ , SEXP maxSampleTimeSEXP
+ ,SEXP mSEXP
+ , SEXP finiteSizeCorrectionSEXP
+ , SEXP maxHeightSEXP
+ //~ , SEXP AgtYboundaryConditionSEXP //TODO
+) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Ys(YsSEXP);
+    
+    Rcpp::traits::input_parameter< const vec >::type sortedSampleHeights(sortedSampleHeightsSEXP);
+    Rcpp::traits::input_parameter< const mat >::type sortedSampleStates(sortedSampleStatesSEXP);
+    
+    Rcpp::traits::input_parameter< const uvec >::type eventIndicator(eventIndicatorSEXP);
+    Rcpp::traits::input_parameter< const uvec >::type eventIndicatorNode(eventIndicatorNodeSEXP);
+    Rcpp::traits::input_parameter< const vec >::type eventHeights(eventHeightsSEXP);
+    Rcpp::traits::input_parameter< const umat >::type daughters(daughtersSEXP);
+    
+    Rcpp::traits::input_parameter< const double >::type maxSampleTime(maxSampleTimeSEXP);
+    
+    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
+    
+    Rcpp::traits::input_parameter< const bool >::type finiteSizeCorrection(finiteSizeCorrectionSEXP);
+    Rcpp::traits::input_parameter< const double >::type maxHeight(maxHeightSEXP);
+    
+    //~ Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
+   
+    __result = Rcpp::wrap(colik4cpp(times, Fs, Gs, Ys
+     , sortedSampleHeights, sortedSampleStates
+     , eventIndicator, eventIndicatorNode
+     , eventHeights,  daughters
+     , maxSampleTime
+     ,  m
+     , finiteSizeCorrection
+     , maxHeight));
+    
+    return __result;
+END_RCPP
+}
+
+
 
 // dAL
 List dAL(double t, NumericVector y, List parms);

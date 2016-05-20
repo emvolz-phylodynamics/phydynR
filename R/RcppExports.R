@@ -66,6 +66,28 @@ colik3cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, e
 }
 
 
+colik4cpp <- function( times, Fs, Gs, Ys
+	 , sortedSampleHeights, sortedSampleStates
+     , eventIndicator, eventIndicatorNode
+     , eventHeights, daughters
+     , maxSampleTime
+     ,  m
+     , finiteSizeCorrection
+     , maxHeight)
+{
+
+	.Call( 'sourceCpp_colik4cpp', PACKAGE='phydynR'
+	  , times, Fs, Gs, Ys
+	  , sortedSampleHeights,sortedSampleStates
+     , eventIndicator, eventIndicatorNode
+     , eventHeights, daughters
+     , maxSampleTime
+     ,  m
+     , finiteSizeCorrection
+     , maxHeight
+	)
+}
+
 updateWCpp <- function( W
   , psi_a 
   , utips

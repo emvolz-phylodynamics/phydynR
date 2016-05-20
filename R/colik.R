@@ -306,3 +306,103 @@ optim.colik <- function(tre
 	optim( par = of_theta, fn = .objfun, control = control )
 }
 
+
+##########################################
+colik4.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE
+    , AgtYboundaryCondition = FALSE #TODO
+    , maxHeight = Inf
+    , finiteSizeCorrection = TRUE) 
+{
+	if (AgtYboundaryCondition) warning("AgtYboundaryCondition not implemented")
+    bdt <- reorder.phylo(bdt, "postorder")
+    bdt$heights <- signif(bdt$heights, digits = floor(1/bdt$maxHeight/10) + 
+        6)
+    times <- tfgy[[1]]
+#~     if (times[2] > times[1]) stop("Times must be decreasing")
+    Fs <- tfgy[[2]]
+    Gs <- tfgy[[3]]
+    Ys <- tfgy[[4]]
+    m <- nrow(Fs[[1]])
+    if (m < 2) 
+        stop("Currently only models with at least two demes are supported")
+    DEMES <- names(Ys[[1]])
+    if (m == 2 & DEMES[2] == "V2" & ncol(bdt$sampleStates) == 
+        1) {
+        bdt$sampleStates <- cbind(bdt$sampleStates, rep(0, bdt$n))
+        bdt$sortedSampleStates <- cbind(bdt$sortedSampleStates, 
+            rep(0, bdt$n))
+    }
+    fgyi <- 1:length(Fs)
+    if (times[2] > times[1]) 
+        fgyi <- length(Fs):1
+    
+    t0 <- times[fgyi[length(fgyi)]]
+    if (timeOfOriginBoundaryCondition) {
+        if ((bdt$maxSampleTime - t0) < bdt$maxHeight) 
+            return(-Inf)
+    }
+    
+#~     heights <- times[fgyi[1]] - times[fgyi] #TODO heights shoudl be rel to mst?
+    heights <- bdt$maxSampleTime - times[fgyi] #TODO heights shoudl be rel to mst?
+    ndesc <- rep(0, bdt$n + bdt$Nnode)
+    for (iedge in 1:nrow(bdt$edge)) {
+        a <- bdt$edge[iedge, 1]
+        u <- bdt$edge[iedge, 2]
+        ndesc[a] <- ndesc[a] + ndesc[u] + 1
+    }
+    uniqhgts <- sort(unique(bdt$heights))
+    eventHeights <- rep(NA, (bdt$n + bdt$Nnode))
+    eventIndicatorNode <- rep(NA, bdt$n + bdt$Nnode)
+    events <- rep(NA, bdt$n + bdt$Nnode)
+    hgts2node <- lapply(uniqhgts, function(h) which(bdt$heights == 
+        h))
+    k <- 1
+    l <- 1
+    for (h in uniqhgts) {
+        us <- hgts2node[[k]]
+        if (k < length(hgts2node) | length(us) == 1) {
+            if (length(us) > 1) {
+#~ browser()
+                i_us <- sort(index.return = TRUE, decreasing = FALSE, 
+                  ndesc[us])$ix
+                for (u in us[i_us]) {
+                  eventHeights[l] <- h
+                  events[l] <- ifelse(u <= bdt$n, 0, 1)
+                  eventIndicatorNode[l] <- u
+                  l <- l + 1
+                }
+            }
+            else {
+                eventHeights[l] <- h
+                events[l] <- ifelse(us <= bdt$n, 0, 1)
+                eventIndicatorNode[l] <- us
+                l <- l + 1
+            }
+        }
+        k <- k + 1
+    }
+#~ browser()
+#~ bdt$tip.label [ eventIndicatorNode[ events==0 ] ]
+    excl <- is.na(eventHeights) | is.na(events) | is.na(eventIndicatorNode) | 
+        (eventHeights > maxHeight)
+    events <- events[!excl]
+    eventIndicatorNode <- eventIndicatorNode[!excl]
+    eventHeights <- eventHeights[!excl]
+
+#TODO bug? sum(events)!=Nnode? can appear if time res is small
+#~ 	sevents <- events[ events==0 ]
+#~ browser()
+    o <- colik4cpp( times[fgyi], Fs[fgyi], Gs[fgyi], Ys[fgyi]
+	  , bdt$sortedSampleHeights,  t(bdt$sortedSampleStates)
+     , events, eventIndicatorNode
+     , eventHeights, bdt$daughters
+     , bdt$maxSampleTime
+     ,  m
+     , finiteSizeCorrection
+     , maxHeight
+    )
+#~     print('Complete')
+#~     print(o$loglik)
+#~ browser()
+    o$loglik
+}
