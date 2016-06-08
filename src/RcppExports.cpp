@@ -254,3 +254,79 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+
+
+////// colik modular stuff
+// rco_finite_size_correction2
+void rco_finite_size_correction2(const int a, const vec& p_a, const vec& A, const uvec& extantLines, mat& mstates);
+RcppExport SEXP sourceCpp_0_rco_finite_size_correction2(SEXP aSEXP, SEXP p_aSEXP, SEXP ASEXP, SEXP extantLinesSEXP, SEXP mstatesSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const int >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const vec& >::type p_a(p_aSEXP);
+    Rcpp::traits::input_parameter< const vec& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const uvec& >::type extantLines(extantLinesSEXP);
+    Rcpp::traits::input_parameter< mat& >::type mstates(mstatesSEXP);
+    rco_finite_size_correction2(a, p_a, A, extantLines, mstates);
+    return R_NilValue;
+END_RCPP
+}
+// eventTimes2extant
+List eventTimes2extant(vec eventTimes, vec nodeheights, vec parentheights);
+RcppExport SEXP sourceCpp_0_eventTimes2extant(SEXP eventTimesSEXP, SEXP nodeheightsSEXP, SEXP parentheightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< vec >::type eventTimes(eventTimesSEXP);
+    Rcpp::traits::input_parameter< vec >::type nodeheights(nodeheightsSEXP);
+    Rcpp::traits::input_parameter< vec >::type parentheights(parentheightsSEXP);
+    __result = Rcpp::wrap(eventTimes2extant(eventTimes, nodeheights, parentheights));
+    return __result;
+END_RCPP
+}
+// update_alpha0
+List update_alpha0(vec pu, vec pv, mat F, vec Y, vec A);
+RcppExport SEXP sourceCpp_0_update_alpha0(SEXP puSEXP, SEXP pvSEXP, SEXP FSEXP, SEXP YSEXP, SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< vec >::type pu(puSEXP);
+    Rcpp::traits::input_parameter< vec >::type pv(pvSEXP);
+    Rcpp::traits::input_parameter< mat >::type F(FSEXP);
+    Rcpp::traits::input_parameter< vec >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< vec >::type A(ASEXP);
+    __result = Rcpp::wrap(update_alpha0(pu, pv, F, Y, A));
+    return __result;
+END_RCPP
+}
+// update_states0
+void update_states0(mat& mstates, mat Q);
+RcppExport SEXP sourceCpp_0_update_states0(SEXP mstatesSEXP, SEXP QSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< mat& >::type mstates(mstatesSEXP);
+    Rcpp::traits::input_parameter< mat >::type Q(QSEXP);
+    update_states0(mstates, Q);
+    return R_NilValue;
+END_RCPP
+}
+
+// solveQALboost0
+List solveQALboost0(vec times, List Fs, List Gs, List Ys, double h0, double h1, double L0, vec A0, double treeT);
+RcppExport SEXP sourceCpp_2_solveQALboost0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP h0SEXP, SEXP h1SEXP, SEXP L0SEXP, SEXP A0SEXP, SEXP treeTSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< double >::type h0(h0SEXP);
+    Rcpp::traits::input_parameter< double >::type h1(h1SEXP);
+    Rcpp::traits::input_parameter< double >::type L0(L0SEXP);
+    Rcpp::traits::input_parameter< vec >::type A0(A0SEXP);
+    Rcpp::traits::input_parameter< double >::type treeT(treeTSEXP);
+    __result = Rcpp::wrap(solveQALboost0(times, Fs, Gs, Ys, h0, h1, L0, A0, treeT));
+    return __result;
+END_RCPP
+}

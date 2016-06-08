@@ -114,3 +114,28 @@ sourceAttribMultiDemeCpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventI
 	)
 }
 
+
+
+############# colik modular stuff
+rco_finite_size_correction2 <- function(a, p_a, A, extantLines, mstates) {
+	.Call( 'sourceCpp_0_rco_finite_size_correction2', PACKAGE='phydynR'
+	, a, p_a, A, extantLines, mstates)
+}
+eventTimes2extant <- function(eventTimes, nodeheights, parentheights) {
+	.Call( 'sourceCpp_0_eventTimes2extant' , PACKAGE='phydynR'
+	, eventTimes, nodeheights, parentheights)
+}
+update_alpha0 <- function(pu, pv, Fmat, Yvec, A) {
+	.Call(  'sourceCpp_0_update_alpha0', PACKAGE='phydynR'
+	,pu, pv, Fmat, Yvec, A)
+}
+update_states0 <- function(mstates, Q) {
+	.Call(  'sourceCpp_0_update_states0', PACKAGE='phydynR'
+	 , mstates, Q)
+}
+solveQALboost0 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0, treeT) {
+	.Call( 'sourceCpp_2_solveQALboost0' , PACKAGE='phydynR'
+	 , times, Fs, Gs, Ys, h0, h1, L0, A0, treeT)
+}
+
+
