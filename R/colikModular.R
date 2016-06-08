@@ -9,22 +9,9 @@
 require(rcolgem)
 
 ##############################################################
-.solve.Q.A.L.rcolgem <- function(h0, h1, A0, L0, tree, fgymat)
-{ # uses C implementation
-	Q0 <- diag(tree$m)
-	parameters 	<- c(tree$m, tree$maxHeight, length(tree$heights), sum(A0), as.vector(fgymat))
-	y0 <- c( as.vector( Q0), A0,  L0 ) #
-#~ 	o <-  ode(y=y0, c(h0,h1), func = "dQAL", parms = parameters, dllname = "rcolgem", initfunc = "initfunc", method='lsoda' )
-	o <-  ode(y=y0, c(h0,h1), func = "dQAL", parms = parameters, dllname = "rcolgem", initfunc = "initfunc", method='adams' )
-	Q1 		<- t( matrix(  abs(o[nrow(o),2:(1 + tree$m^2)]) , nrow=tree$m) ) #NOTE the transpose
-	A1 <- o[nrow(o), (1 + tree$m^2 + 1):(1 + tree$m^2 +  tree$m)]
-	L1 <- o[nrow(o), ncol(o)]
-	return ( list(  unname(Q1), unname(A1),  unname(L1) ) ) #
-}
 
 .solve.Q.A.L.boost <- function(h0, h1, A0, L0, tree, tfgy)
 { # uses C implementation
-#~ browser()
 	solveQALboost0(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
 	 , h0
 	 , h1
@@ -35,7 +22,7 @@ require(rcolgem)
 ################################################################
 # helper function for updating ancestral node and likelihood terms
 .update.alpha <- function(u,v, tree, fgy, A)
-{ #CPP
+{ 
 	.F <- fgy$.F
 	.G <- fgy$.G
 	.Y <- fgy$.Y
@@ -61,14 +48,14 @@ require(rcolgem)
 
 .update.alpha.cpp <- function(u,v, tree, fgy, A)
 {
-#~ returns:  
-#~ 	o["pa"] = pa;
-#~ 	o["corate"] = corate;
-	update_alpha0(tree$mstates[,u] 
+	pacorate <- update_alpha0(tree$mstates[,u] 
 	  , tree$mstates[,v]
 	  , fgy$.F
 	  , fgy$.Y
+	  , A
 	)
+	pacorate[[1]] <- as.vector( pacorate[[1]] )
+	pacorate
 }
 
 
@@ -120,11 +107,11 @@ update_states_rcolgem0 <- function( tree, Q, extantLines )
 colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
-  , AgtYboundaryCondition = TRUE # can also be numeric > 0
   , maxHeight = Inf 
   , expmat = FALSE # TODO
   , finiteSizeCorrection=TRUE
-  , forgiveAgtY = .2 #can be NA
+  , forgiveAgtY = .2 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
+  , AgtY_penalty = 0 # penalises likelihood if A > Y
   , returnTree = FALSE
 ) 
 {
@@ -150,17 +137,6 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 	if (is.null( tree$ustates)) tree$ustates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
 	
 	# construct forcing timeseries for ode's, needed for rcolgem version
-#~ 	heights <- sort( tree$maxSampleTime - tfgy[[1]] )
-#~ 	heights <- heights[heights <= tree$maxHeight]
-#~ 	heights <- heights[heights >= 0]
-#~ 	fgymat <- t( sapply( heights, function(h) 
-#~ 	  with(get.fgy(h), {
-#~ 		c( as.vector(.F), as.vector(.G), as.vector(.Y) )
-#~ 	  })
-#~ 	) )
-#~ 	fgymat <- pmax(fgymat, 0)
-#~ inhs <- tree$heights[(tree$n+1):(tree$n+tree$Nnode)]
-#~ plot( ecdf( inhs))
 	eventTimes <- unique( sort(tree$heights) )
 	if (maxHeight) { 
 		eventTimes <- eventTimes[eventTimes<=maxHeight]
@@ -171,13 +147,14 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 	extantAtEvent_nodesAtHeight <- eventTimes2extant( eventTimes, tree$heights, tree$parentheight ) #1-2 millisec
 	extantAtEvent_list <- extantAtEvent_nodesAtHeight[[1]]
 	nodesAtHeight <- extantAtEvent_nodesAtHeight[[2]]
-#~ browser()
-	#debugging variables
+	
+	#variables to track progress at each node
 	tree$A <- c() #h->A
 	tree$lnS <- c()
 	tree$lnr <- c()
 	tree$ih <- c()
 	loglik <- 0
+	
 	for (ih in 1:(length(eventTimes)-1))
 	{
 		h0 <- eventTimes[ih]
@@ -188,12 +165,9 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 		##extantLines <- .extant.at.height(h0, tree) #TODO would be faster to compute on fly
 		extantLines <- extantAtEvent_list[[ih]]
 		if (length(extantLines) > 1 ){
-#~ browser()
 			A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
 		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
-#~ 		out2 <- .solve.Q.A.L.rcolgem(h0, h1, A0, L, tree, fgymat) #TODO problem here
 		out <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy) # 
-#~ browser()
 		Q <- out[[1]]
 		A <- out[[2]]
 		L <- out[[3]]
@@ -204,28 +178,17 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 		if (sum(is.nan(A)) > 0) A <- A0
 		
 		#update mstates 
-#~ .mstates <- tree$mstates
 		update_states0( tree$mstates , Q) #void
-#~ 		mstates0 <- update_states_rcolgem0( tree, Q, extantLines ) #TODO just doesnt work...
-#~ 		tree$mstates <- mstates0
-#TODO 
-#~ if (any(is.na(tree$mstates))) {
-#~ 	print('mstates1')
-#~ 	browser()
-#~ }		
+		
 		#if applicable: update ustate & calculate lstate of new line
-#~ 		newNodes <- which( tree$heights == h1)
-#~ 		newNodes <- newNodes[newNodes > length(tree$sampleTimes)] # <- internal nodes
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 
-#TODO
-#~ if (length(newNodes)>0) browser()
+		# NOTE re-evaluation of A here appears to be quite important 
 		if (length(extantLines)>1){
-			A <- rowSums( tree$mstates[, extantLines] )
+			A <- rowSums( tree$mstates[, extantLines] ) #TODO speedup
 		} else{
 			A <- tree$mstates[, extantLines]
 		}
-#~ if (sum(A) > 200) browser()
 		{
 			if ( (sum(fgy$.Y) < length(extantLines)) & (!forgiveAgtY) ) { L <- Inf }
 			else if ( (sum(fgy$.Y) < length(extantLines)) & (length(extantLines)/length(tree$tip.label)) > forgiveAgtY) { L <- Inf }
@@ -233,15 +196,24 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 			#for (alpha in newNodes){
 			if (length(newNodes)==1)
 			{
-				#? should rewrite to use helper functions
 				alpha <- newNodes
 				u <- tree$daughters[alpha,1]
 				v <- tree$daughters[alpha,2]
 				
-				tree2 <- tree
-				pa_corate2 <- .update.alpha.cpp(u,v, tree2, fgy, A) #TODO broken 00
-				pa_corate <- .update.alpha(u,v, tree, fgy, A) # TODO .5 .5??
+				#pa_corate <- .update.alpha(u,v, tree, fgy, A) # 
+				pa_corate <- .update.alpha.cpp(u,v, tree, fgy, A) 
 #TODO
+#~ if ( abs(pa_corate[[2]] - pa_corate2[[2]]) / pa_corate[[2]]  > .1 ) browser()
+# appears consistent with cpp version: 
+#~ pa<- (tree$mstates[,v]/fgy$.Y) * (fgy$.F %*% (tree$mstates[,u] / fgy$.Y) ) + 
+#~ (tree$mstates[,u]/fgy$.Y) * (fgy$.F %*% (tree$mstates[,v] / fgy$.Y) )
+#~ 
+#~ .Y <- pmax(A, fgy$.Y)
+#~ pa<- (tree$mstates[,v]/.Y) * (fgy$.F %*% (tree$mstates[,u] / .Y) ) + 
+#~ (tree$mstates[,u]/.Y) * (fgy$.F %*% (tree$mstates[,v] / .Y) )
+#~ 
+#~ pa<-  (fgy$.F * (tree$mstates[,u] / fgy$.Y)) %*% (tree$mstates[,v]/fgy$.Y)  + 
+#~  (fgy$.F * (tree$mstates[,v] / fgy$.Y) ) %*% (tree$mstates[,u]/fgy$.Y)
 				tree$coalescentRates[alpha] <- pa_corate[[2]] 
 				if (is.nan(L))
 				{
@@ -251,7 +223,7 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 				tree$lstates[,alpha] <- pa_corate[[1]]
 				tree$mstates[,alpha] <- pa_corate[[1]]
 				
-				# debug
+				# trace
 				tree$A <- rbind( tree$A, A)
 				tree$lnS <- c( tree$lnS, -L )
 				tree$lnr <- c( tree$lnr, log(pa_corate[[2]]) )
@@ -263,32 +235,9 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 				
 				# finite size corrections for lines not involved in coalescent
 				if (finiteSizeCorrection){
-if (F)
-{
-.mstates <- tree$mstates+1-1
-.mstates[,setdiff(1:ncol(.mstates),extantLines)] <- 0
-					mstates2 <- finite_size_correction1(.mstates, alpha, pa_corate[[1]], extantLines, A )
-#~ 					mstates_rco2 <- rco_finite_size_correction( pa_corate[[1]], A, extantLines, (tree$mstates) )
-					mstates_rco2 <- rco_finite_size_correction( pa_corate[[1]], A, extantLines, .mstates )
-print(sum( (.mstates - .mstates)^2 ))
-print(sum( (.mstates - mstates2)^2 ))
-print(sum( (.mstates -mstates_rco2 )^2 ))
-print(sum( (mstates_rco2 - mstates2)^2 ))
-					rco_finite_size_correction2(alpha, pa_corate[[1]], A, extantLines, .mstates )
-print(sum( (.mstates -mstates_rco2 )^2 ))
-#~ 					mstates_rcolgem <- ( rcolgem::finite_size_correction( pa_corate[[1]], A, extantLines, (tree$mstates) ) )
-#~ print(sum( (mstates_rcolgem - mstates2)^2 ))
-
-#~ 					tree$mstates <- mstates_rcolgem
-#~ browser()
-}
 					rco_finite_size_correction2(alpha, pa_corate[[1]], A, extantLines, tree$mstates )
 				}
-				#mstates2 <- tree$mstates #NOTE apparently a shallow copy
-				#finite_size_correction0( mstates2, alpha, pa_corate[[1]], extantLines, A ) #void #TODO introduces NaNs
-				#finite_size_correction0( tree$mstates, alpha, pa_corate[[1]], extantLines, A ) #void
 			} else if (length(newNodes)>1) {
-#~ browser()
 				stop("Likelihood for concurrent internal nodes not yet implemented")
 			} 
 		}

@@ -11,6 +11,7 @@
 
 using namespace arma;
 using namespace Rcpp; 
+using namespace std; 
 
 
 typedef std::vector<double> state_type; 
@@ -197,16 +198,23 @@ List solveQALboost0(vec times, List Fs, List Gs, List Ys
 	mat Q0 = diagmat( ones( m )) ;
 	double hres = times.size();//abs(times(1) - times(0)); 
 	DQAL2 dqal(Fs, Gs, Ys, m, hres, treeT ); 
-	
 	state_type x = dqal.generate_initial_conditions( A0 ); 
-	
+//~ cout << hres << endl;
+//~ Rf_PrintValue( wrap(x)); 
+//~ cout << A0 << endl;
+//~ cout << Q0 << endl;
+//~ cout << endl;
 	size_t steps = boost::numeric::odeint::integrate( dqal ,  x , h0 , h1 
 			  , (h1-h0)/10. );  
 	mat Q = dqal.Q_from_state( x); 
 	vec A = dqal.A_from_state( x); 
 	double L = dqal.L_from_state(x); 
+//~ cout << Q << endl;
+//~ cout << A << endl;
+//~ cout << L << endl;
 	List o; 
 	o["Q"] = Q;
 	o["A"] = A;
 	o["L"] = L;
+	return o; 
 }
