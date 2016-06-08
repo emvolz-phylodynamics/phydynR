@@ -2,7 +2,7 @@ require(RcppArmadillo)
 require(Rcpp)
 #~ sourceCpp('colik.cpp') 
 
-colik <- function(bdt, theta, demographic.process.model, x0, t0, res = 1e3
+colik <- function( bdt, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   , AgtYboundaryCondition = TRUE # can also be numeric > 0
@@ -58,6 +58,15 @@ colik.fgy <- function (bdt, tfgy, timeOfOriginBoundaryCondition = TRUE,
     if (m < 2) 
         stop("Currently only models with at least two demes are supported")
     DEMES <- names(Ys[[1]])
+    if (is.null(DEMES)){
+		DEMES <- rownames(Fs[[1]])
+    }
+    if (is.null(DEMES)){
+		DEMES <- rownames(Gs[[1]])
+    }
+    if (is.null(DEMES)){
+		stop('demographic model returns trajectory without deme names')
+    }
     if (m == 2 & DEMES[2] == "V2" & ncol(bdt$sampleStates) == 
         1) {
         bdt$sampleStates <- cbind(bdt$sampleStates, rep(0, bdt$n))
@@ -165,8 +174,7 @@ colik.rcolgem <- function(bdt, theta, demographic.process.model, x0, t0, res = 1
       , maxHeight = maxHeight
       , forgiveAgtY = forgiveAgtY
 	  , integrationMethod = integrationMethod
-    ) 
-
+    )
 }
 
 colik.rcolgem.fgy <- function(bdt, tfgy, timeOfOriginBoundaryCondition = TRUE

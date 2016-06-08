@@ -578,7 +578,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)
 	#phylo$heights <- signif( phylo$heights, digits = floor( 1 / phylo$maxHeight /10 )  +  6 ) #
-	phylo$parentheights <- sapply( 1:(n+Nnode), function(u){
+	phylo$parentheights = phylo$parentheight <- sapply( 1:(n+Nnode), function(u){
 		i <- which( phylo$edge[,2]== u)
 		if (length(i)!=1) return( NA )
 		phylo$heights[ phylo$edge[i,1] ]
