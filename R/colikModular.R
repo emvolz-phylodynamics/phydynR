@@ -33,14 +33,15 @@ require(rcolgem)
 
 
 ################################################################################
-colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
+
+colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
   , expmat = FALSE # not yet implemented
   , finiteSizeCorrection=TRUE
-  , forgiveAgtY = .2 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
-  , AgtY_penalty = 0 # penalises likelihood if A > Y
+  , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
+  , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
 ) 
 {
