@@ -1,51 +1,22 @@
 # This version breaks problem in to pieces to facilitate unit testing, but won't be as fast as pure cpp version
 # used for direct comparison of old rcolgem methods and new phydynr methods
 
-# NOTE this doesnt work, since src dir does not make it into package tarball
-# instead , src these directly in testing code 
-#~ sourceCpp(system.file('src/solveQALboost0.cpp', package='phydynR')) #TODO 
-#~ sourceCpp(system.file('src/colikModular0.cpp', package='phydynR')) #TODO 
-
 require(rcolgem)
 
 ##############################################################
 
 .solve.Q.A.L.boost <- function(h0, h1, A0, L0, tree, tfgy)
 { # uses C implementation
-	solveQALboost0(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
+	out <- solveQALboost0(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
 	 , h0
 	 , h1
 	 , L0
 	 , A0
 	 , tree$maxHeight)
+	out
 }
 ################################################################
 # helper function for updating ancestral node and likelihood terms
-.update.alpha <- function(u,v, tree, fgy, A)
-{ 
-	.F <- fgy$.F
-	.G <- fgy$.G
-	.Y <- fgy$.Y
-	{
-		.Y <- pmax(A, .Y)
-		FklXpuk_Yk <- (.F * tree$mstates[,u]/.Y)
-		FklXpvk_Yk <- (.F * tree$mstates[,v]/.Y)
-		FklXpuk_Yk[is.nan(FklXpuk_Yk)] <- 0
-		FklXpvk_Yk[is.nan(FklXpvk_Yk)] <- 0
-		vk_Yk <- pmin(pmax(tree$mstates[,v]/.Y, 0),1); vk_Yk[is.nan(vk_Yk)] <- 0
-		uk_Yk <- pmin(pmax(tree$mstates[,u]/.Y, 0),1); uk_Yk[is.nan(uk_Yk)] <- 0
-		ratekl <- FklXpuk_Yk %*% vk_Yk + FklXpvk_Yk %*% uk_Yk
-	}
-	
-	coalescentRate <- max( sum(ratekl) , 0)
-	
-	if (sum(ratekl)==0) {ratekl <- rep(1/tree$m, tree$m) * 1e-6}
-	# definitions of alpha state
-	p_a <- as.vector( ratekl / sum(ratekl) )
-#~ if ( tree$heights[u] > 11) browser()
-	list( pa = p_a, corate =coalescentRate) 
-}
-
 .update.alpha.cpp <- function(u,v, tree, fgy, A)
 {
 	pacorate <- update_alpha0(tree$mstates[,u] 
@@ -61,54 +32,12 @@ require(rcolgem)
 
 
 
-
-################################################################################
-
-#~ rcolgem::finite_size_correction
-
-#~void finite_size_correction0(mat& mstates
-#~   , int a
-#~   , vec pa
-#~   , uvec extantLines
-#~   , vec A
-#~ )
-
-################################################################################
-.extant.at.height <- function(h, tree)
-{
-	return( which( tree$heights <= h & tree$parentheight > h)  )
-}
-
-################################################################################
-#~ update_states0...
-
-update_states_rcolgem0 <- function( tree, Q, extantLines )
-{
-	if (length(extantLines) > 1)
-	{
-#~ browser()
-#~ 		nms <- t(rcolgem::update_mstates_arma( extantLines, t(Q), t(tree$mstates) ))
-		nms <- rcolgem::update_mstates_arma( extantLines, t(Q), tree$mstates )
-		tree$mstates <- nms
-		# NOTE will have slightly different results if recomputing A here, influences fcs: 
-			# renormalise
-		tree$mstates[,extantLines] <- pmax( tree$mstates[,extantLines], 0 )
-		tree$mstates[,extantLines] <- tree$mstates[,extantLines] / rowSums( tree$mstates[,extantLines] )
-	}
-	else{
-#~ browser()
-		tree$mstates[,extantLines] <- t( t(Q) %*% tree$mstates[,extantLines] )
-		tree$mstates[,extantLines] <- pmax(tree$mstates[,extantLines],0) / sum(abs(tree$mstates[,extantLines]))
-		#recalculate A
-	}
-	tree$mstates
-}
 ################################################################################
 colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
-  , expmat = FALSE # TODO
+  , expmat = FALSE # not yet implemented
   , finiteSizeCorrection=TRUE
   , forgiveAgtY = .2 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
   , AgtY_penalty = 0 # penalises likelihood if A > Y
@@ -162,7 +91,6 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 		fgy <- get.fgy(h1)
 		
 		#get A0, process new samples, calculate state of new lines
-		##extantLines <- .extant.at.height(h0, tree) #TODO would be faster to compute on fly
 		extantLines <- extantAtEvent_list[[ih]]
 		if (length(extantLines) > 1 ){
 			A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
@@ -179,7 +107,7 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 		
 		#update mstates 
 		update_states0( tree$mstates , Q) #void
-		
+				
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 
@@ -190,9 +118,15 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 			A <- tree$mstates[, extantLines]
 		}
 		{
-			if ( (sum(fgy$.Y) < length(extantLines)) & (!forgiveAgtY) ) { L <- Inf }
-			else if ( (sum(fgy$.Y) < length(extantLines)) & (length(extantLines)/length(tree$tip.label)) > forgiveAgtY) { L <- Inf }
-			
+			YmA <- (sum(fgy$.Y) < length(extantLines))
+			if (YmA < 0){
+				if (length(extantLines)/length(tree$tip.label)  > forgiveAgtY){
+					L <- Inf
+				} else{
+					L <- L + L * YmA * AgtY_penalty
+				}
+			}
+						
 			#for (alpha in newNodes){
 			if (length(newNodes)==1)
 			{
@@ -202,18 +136,6 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 				
 				#pa_corate <- .update.alpha(u,v, tree, fgy, A) # 
 				pa_corate <- .update.alpha.cpp(u,v, tree, fgy, A) 
-#TODO
-#~ if ( abs(pa_corate[[2]] - pa_corate2[[2]]) / pa_corate[[2]]  > .1 ) browser()
-# appears consistent with cpp version: 
-#~ pa<- (tree$mstates[,v]/fgy$.Y) * (fgy$.F %*% (tree$mstates[,u] / fgy$.Y) ) + 
-#~ (tree$mstates[,u]/fgy$.Y) * (fgy$.F %*% (tree$mstates[,v] / fgy$.Y) )
-#~ 
-#~ .Y <- pmax(A, fgy$.Y)
-#~ pa<- (tree$mstates[,v]/.Y) * (fgy$.F %*% (tree$mstates[,u] / .Y) ) + 
-#~ (tree$mstates[,u]/.Y) * (fgy$.F %*% (tree$mstates[,v] / .Y) )
-#~ 
-#~ pa<-  (fgy$.F * (tree$mstates[,u] / fgy$.Y)) %*% (tree$mstates[,v]/fgy$.Y)  + 
-#~  (fgy$.F * (tree$mstates[,v] / fgy$.Y) ) %*% (tree$mstates[,u]/fgy$.Y)
 				tree$coalescentRates[alpha] <- pa_corate[[2]] 
 				if (is.nan(L))
 				{
@@ -232,6 +154,14 @@ colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res =
 				
 				# update lik
 				loglik <- loglik + log( pa_corate[[2]] ) - L ;
+				if (is.infinite( loglik)){
+					if (returnTree){
+						return(list( loglik = loglik
+						 , tree = tree ))
+					} else{
+						return(loglik)
+					}
+				}
 				
 				# finite size corrections for lines not involved in coalescent
 				if (finiteSizeCorrection){
