@@ -38,6 +38,8 @@ simulateTreeCpp3x0 <- function(times
 		 , maxSampleTime
 		 , m
 		 , finiteSizeCorrection
+		 , substitutionRates
+		 , sequenceLength
 ) {
 	.Call('sourceCpp_simulateTreeCpp3x0',  PACKAGE='phydynR'
 		 , times
@@ -49,6 +51,8 @@ simulateTreeCpp3x0 <- function(times
 		 , maxSampleTime
 		 , m
 		 , finiteSizeCorrection
+		 , substitutionRates
+		 , sequenceLength
 	)
 }
 

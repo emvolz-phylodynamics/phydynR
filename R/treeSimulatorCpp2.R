@@ -610,14 +610,27 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 }
 
 
-sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes, sampleStates=NULL, res = 1e3, integrationMethod='lsoda', finiteSizeCorrections = FALSE){
+sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes
+  , sampleStates=NULL
+  , res = 1e3
+  , integrationMethod='lsoda'
+  , finiteSizeCorrections = TRUE
+  , substitutionRates = NULL
+  , sequenceLength = 0
+)
+{
 	maxSampleTime <- max(sampleTimes)
 	sim.co.tree.fgy ( 
 	  demographic.process.model( theta, x0, t0, maxSampleTime, res = res, integrationMethod=integrationMethod) 
 	  , sampleTimes, sampleStates
+	  , substitutionRates = substitutionRates
+	  , sequenceLength = sequenceLength
 	)
 }
-sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=TRUE)
+sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=TRUE
+  , substitutionRates = NULL
+  , sequenceLength = 0
+)
 {# res = 1e3, 
 	# note sampleStates must be in same order as sampleTimes
 	# note may return multiple trees with polytomous root
@@ -629,6 +642,18 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	
 	m <- nrow(Fs[[1]])
 	if (m < 2)  stop('Error: currently only models with at least two demes are supported')
+	
+	# check inputs if simulated evo distances
+	if (is.null(substitutionRates)){
+		substitutionRates <- rep(1, m)
+		sequenceLength <- 0
+	} else{
+		if (length(substitutionRates) == 1){
+			substitutionRates <- rep( substitutionRates, m )
+		} else if (length(substitutionRates)!=m){
+			stop('Number of substitutionRates should be one or equal to the number of demes')
+		}
+	}
 	
 	DEMES <- names( tfgy[[4]][[1]] ) 
 	if (length(DEMES)!=m){
@@ -673,20 +698,42 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	 , maxSampleTime
 	 , m
 	 , finiteSizeCorrections #TRUE #fsc
+	 , substitutionRates
+	 , sequenceLength
 	)
-	 # clean up edge, edge.length and Nnode
-	o$edge <- o$edge[which(!is.na(o$edge[,1])), ]
+#~ plot( o$edge.length, o$edge.length.sps )
+#~ print( cor( o$edge.length, o$edge.length.sps[1:198] ) )
+	# clean up edge, edge.length and Nnode
+	iedge <- which(!is.na(o$edge[,1]))
+	o$edge <- o$edge[iedge, ]
 	o$edge.length <- o$edge.length[!is.na(o$edge.length)]
 	o$Nnode <- length(unique( as.vector(o$edge))) - o$n
 	
 	o$tip.label <- tlabs
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
-#~ print('sim tree'); browser()
-	tryCatch({
+	obdt <- NULL
+	obdt <- tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
-		return(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
-	}, error = function(e) {print('Error: sim.co.tree.fgy--DatedTree'); NULL } )
+		(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
+	}, error = function(e) {cat('Error: sim.co.tree.fgy:DatedTree\n'); NULL} )
+	
+	if (sequenceLength > 0){
+		#also return evo distance tree
+		oo <- o
+		oo$edge.length <- as.vector(oo$edge.length.sps)[iedge]
+		oo$Nnode <- length(unique( as.vector(oo$edge))) - oo$n
+		oo$tip.label <- tlabs
+		oo$edge <- o$edge 
+		class(oo) <- 'phylo'
+		otree <- NULL
+		otree <- tryCatch({
+			read.tree(text=write.tree(oo)) 
+		}, error = function(e) {cat('Error: sim.co.tree.fgy:evo tree\n'); NULL} )
+		return( list( obdt, otree ))
+	} else{
+		return (obdt)
+	}
 }
 
 

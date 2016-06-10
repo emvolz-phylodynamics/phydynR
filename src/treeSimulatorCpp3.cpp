@@ -36,6 +36,10 @@ public://TODO after debugging make these private
 	vec edge_length;
 	vec heights;
 	
+	// for sim genetic distances
+	vec edge_length_substPerSite; 
+	vec edge_length_substPerSite_nodeWise;
+	
 	mat lambda_uv;
 	
 	mat P;
@@ -67,13 +71,17 @@ public://TODO after debugging make these private
 	double maxSampleTime ;
 	int m;
 	bool finiteSizeCorrection;
+	vec substitutionRates; // m rates 
+	int sequenceLength; 
 	
 	CoSim( vec in_times, List in_Fs,  List in_Gs,  List in_Ys
 	  ,  vec in_sortedSampleHeights
 	  ,  mat in_sortedSampleStates // m X n 
 	  , double in_maxSampleTime 
 	  , int in_m
-	  , bool in_finiteSizeCorrection) : times(in_times),Fs(in_Fs),Gs(in_Gs),Ys(in_Ys),sortedSampleHeights(in_sortedSampleHeights),sortedSampleStates(in_sortedSampleStates),maxSampleTime(in_maxSampleTime),m(in_m),finiteSizeCorrection(in_finiteSizeCorrection) 
+	  , bool in_finiteSizeCorrection
+	  , vec in_substitutionRates
+	  , int in_sequenceLength) : times(in_times),Fs(in_Fs),Gs(in_Gs),Ys(in_Ys),sortedSampleHeights(in_sortedSampleHeights),sortedSampleStates(in_sortedSampleStates),maxSampleTime(in_maxSampleTime),m(in_m),finiteSizeCorrection(in_finiteSizeCorrection),substitutionRates(in_substitutionRates),sequenceLength(in_sequenceLength)
 	{
 		
 		n = sortedSampleHeights.size();
@@ -89,8 +97,12 @@ public://TODO after debugging make these private
 		// note root does not have edge
 		edge = zeros(n+Nnode, 2);  //
 		std::fill( edge.begin(), edge.end(), NumericVector::get_na() ) ;
-		edge_length = vec(n+Nnode); //
+		edge_length = vec(n+Nnode-1); //NOTE no root edge
 		std::fill( edge_length.begin(), edge_length.end(), NumericVector::get_na() ) ;
+		edge_length_substPerSite = vec(n+Nnode-1); //
+		std::fill( edge_length_substPerSite.begin(), edge_length_substPerSite.end(), 0. ) ;
+		edge_length_substPerSite_nodeWise = vec(n + Nnode);
+		std::fill( edge_length_substPerSite_nodeWise.begin(), edge_length_substPerSite_nodeWise.end(), 0. ) ;
 		//~ heights = vec(n+Nnode); heights.fill(INFINITY);
 		heights = zeros(n+Nnode); heights.fill(INFINITY);
 		
@@ -181,6 +193,16 @@ public://TODO after debugging make these private
 		P  = normalise(clamp(Q.t() * P,0.,1.), 1., 0); // norm cols to 1 
 	}
 	
+	void update_edge_length_substPerSite(const double dh){
+		int k; 
+		for (int iu = 0; iu < extant.size(); iu++){
+			if (extant.at(iu)){
+				for (int k = 0; k < m; k++){
+					edge_length_substPerSite_nodeWise(iu) += R::rpois( dh * substitutionRates(k) *sequenceLength ); 
+				}
+			}
+		}
+	}
 	
 	//~ List cosim()
 	void cosim()
@@ -208,6 +230,9 @@ public://TODO after debugging make these private
 			G = as<mat>(Gs[it]);
 			Y = clamp( as<vec>(Ys[it]), 1e-12, INFINITY);
 			update_states( h1-h0); //
+			if (sequenceLength > 0 ){
+				update_edge_length_substPerSite( h1 - h0 );
+			}
 			// co rates
 			double lambda = 0.; 
 			lambda_uv = zeros(n + Nnode, n + Nnode ); 
@@ -255,10 +280,12 @@ public://TODO after debugging make these private
 					edge(edgesAdded, 0) = a;
 					edge(edgesAdded, 1) = u;
 					edge_length(edgesAdded) = heights(a)-heights(u);
+					edge_length_substPerSite(edgesAdded) = edge_length_substPerSite_nodeWise(u);
 					edgesAdded++;
 					edge(edgesAdded, 0) = a;
 					edge(edgesAdded, 1) = v;
 					edge_length(edgesAdded) = heights(a)-heights(v);
+					edge_length_substPerSite(edgesAdded) = edge_length_substPerSite_nodeWise(v);
 					edgesAdded++;
 					
 					//lstate, mstate of a;
@@ -339,6 +366,10 @@ public://TODO after debugging make these private
 			std::cout << "Error: Time axis did not cover all sample times." << std::endl; 
 			throw 1; 
 		}
+		
+		if (sequenceLength > 0 ){
+			edge_length_substPerSite /= (double)sequenceLength; 
+		}
 	}
 
 };
@@ -353,14 +384,19 @@ List simulateTreeCpp3x0(const vec times
 	  , const mat sortedSampleStates // m X n 
 	  , double maxSampleTime 
 	  , const int m
-	  , bool finiteSizeCorrection)
+	  , bool finiteSizeCorrection
+	  , vec substitutionRates
+	  , int sequenceLength)
 {
-	CoSim cosim(times, Fs, Gs, Ys, sortedSampleHeights, sortedSampleStates, maxSampleTime, m, finiteSizeCorrection);
+	CoSim cosim(times, Fs, Gs, Ys, sortedSampleHeights, sortedSampleStates, maxSampleTime, m, finiteSizeCorrection
+	  ,  substitutionRates
+	  ,  sequenceLength);
 	//~ return cosim.cosim(); 
 	cosim.cosim(); 
 	List ret;
 	ret["edge"] = cosim.edge;
 	ret["edge.length"] = cosim.edge_length;
+	ret["edge.length.sps"] = cosim.edge_length_substPerSite; // 
 	ret["n"] = cosim.n;
 	ret["Nnode"] = cosim.internalNodesAdded;//Nnode
 	ret["lstates"] = cosim.lstates;

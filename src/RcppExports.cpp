@@ -29,6 +29,7 @@ BEGIN_RCPP
 END_RCPP
 }
 
+
 // simulateTreeCpp3
 List simulateTreeCpp3x0(const vec times
 	  , const List Fs, const List Gs, const List Ys
@@ -36,8 +37,11 @@ List simulateTreeCpp3x0(const vec times
 	  , const mat sortedSampleStates // m X n 
 	  , double maxSampleTime 
 	  , const int m
-	  , bool finiteSizeCorrection);
-RcppExport SEXP sourceCpp_simulateTreeCpp3x0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP maxSampleTimeSEXP, SEXP mSEXP, SEXP finiteSizeCorrectionSEXP) {
+	  , bool finiteSizeCorrection
+	  , vec substitutionRates
+	  , int sequenceLength);
+RcppExport SEXP sourceCpp_simulateTreeCpp3x0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP sortedSampleHeightsSEXP, SEXP sortedSampleStatesSEXP, SEXP maxSampleTimeSEXP, SEXP mSEXP, SEXP finiteSizeCorrectionSEXP
+, SEXP substitutionRatesSEXP, SEXP sequenceLengthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -50,13 +54,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type maxSampleTime(maxSampleTimeSEXP);
     Rcpp::traits::input_parameter< const int >::type m(mSEXP);
     Rcpp::traits::input_parameter< bool >::type finiteSizeCorrection(finiteSizeCorrectionSEXP);
+    Rcpp::traits::input_parameter< const vec >::type substitutionRates(substitutionRatesSEXP);
+    Rcpp::traits::input_parameter< const int >::type sequenceLength(sequenceLengthSEXP);
     __result = Rcpp::wrap(simulateTreeCpp3x0( times
 	  ,  Fs,  Gs,  Ys
 	  ,  sortedSampleHeights
 	  ,  sortedSampleStates // m X n 
 	  , maxSampleTime 
 	  ,  m
-	  , finiteSizeCorrection));
+	  , finiteSizeCorrection
+	  , substitutionRates
+	  , sequenceLength));
     return __result;
 END_RCPP
 }
