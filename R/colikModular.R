@@ -63,7 +63,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		tree$lstates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
 		tree$lstates[,1:tree$n ] <- t( tree$sampleStates )
 	}
-	tree$mstates <- tree$lstates
+	tree$mstates <- tree$lstates + 1 - 1
 	if (is.null( tree$ustates)) tree$ustates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
 	
 	# construct forcing timeseries for ode's, needed for rcolgem version
