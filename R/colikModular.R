@@ -45,16 +45,37 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
   , returnTree = FALSE
 ) 
 {
+	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
+		warning('t0 occurs after root of tree. Results may be innacurate.')
+	}
 	# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 	tfgy <- demographic.process.model( theta, x0, t0, tree$maxSampleTime, res = res, integrationMethod=integrationMethod) 
-		
+	
 	get.fgy <- function(h)
 	{# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
-		ih <- 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  )
+		#ih <- 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  )
+		ih <- min( length(tfgy[[1]]), 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  ) )
 		list( .F = tfgy[[2]][[ih]]
 		 , .G = tfgy[[3]][[ih]]
 		 , .Y = tfgy[[4]][[ih]]
 		 )
+	}
+	
+	.newNodes.order <- function(nn, extantLines){
+		# gives order to traverse new nodes if heights are concurrent
+		if (length(nn) <=1 ){
+			return (nn)
+		}
+		o <- c()
+		while (!(all(nn %in% o) ) ){
+			for (a in setdiff( nn, o) ){
+				d <- tree$daughters[a, ] 
+				if (all( d%in%union(extantLines, o) )){
+					o <- c( o, a )
+				}
+			}
+		}
+		o
 	}
 	
 	if (is.null( tree$n ) ) tree$n <- length( tree$sampleTimes)
@@ -66,7 +87,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 	tree$mstates <- tree$lstates + 1 - 1
 	if (is.null( tree$ustates)) tree$ustates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
 	
-	# construct forcing timeseries for ode's, needed for rcolgem version
 	eventTimes <- unique( sort(tree$heights) )
 	if (maxHeight) { 
 		eventTimes <- eventTimes[eventTimes<=maxHeight]
@@ -84,7 +104,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 	tree$lnr <- c()
 	tree$ih <- c()
 	loglik <- 0
-	
 	for (ih in 1:(length(eventTimes)-1))
 	{
 		h0 <- eventTimes[ih]
@@ -129,12 +148,12 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 			}
 						
 			#for (alpha in newNodes){
-			if (length(newNodes)==1)
+			#if (length(newNodes)==1) {#alpha <- newNodes
+			#for (alpha in newNodes)
+			for (alpha in .newNodes.order(newNodes, extantLines) )
 			{
-				alpha <- newNodes
 				u <- tree$daughters[alpha,1]
 				v <- tree$daughters[alpha,2]
-				
 				#pa_corate <- .update.alpha(u,v, tree, fgy, A) # 
 				pa_corate <- .update.alpha.cpp(u,v, tree, fgy, A) 
 				tree$coalescentRates[alpha] <- pa_corate[[2]] 
@@ -168,9 +187,9 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 				if (finiteSizeCorrection){
 					rco_finite_size_correction2(alpha, pa_corate[[1]], A, extantLines, tree$mstates )
 				}
-			} else if (length(newNodes)>1) {
-				stop("Likelihood for concurrent internal nodes not yet implemented")
-			} 
+			} #else if (length(newNodes)>1) {
+			#	stop("Likelihood for concurrent internal nodes not yet implemented")
+			#} 
 		}
 		
 		# if coalescent occurred, reset cumulative hazard function
