@@ -240,7 +240,7 @@ print(date())
 	if (cd4 >= 200 ) return(4)
 	return(5)
 }
-phylo.source.attribution.hiv <- function( tree
+phylo.source.attribution.hiv.msm <- function( tree
   , sampleTimes # must use years
   , cd4s # named numeric vector, cd4 at time of sampling 
   , ehi # named logical vector, may be NA, TRUE if patient sampled with early HIV infection (6 mos )
@@ -325,5 +325,118 @@ print("NOTE : sample times must be in units of years")
 	  , treeErrorTol = 1e-3
 	  , timeOfOriginBoundaryCondition = FALSE
 	)
-	 
 }
+
+phylo.source.attribution.hiv.het <- function( tree
+  , sampleTimes # must use years
+  , sex # m or f for each sample, no NA allowed
+  , cd4s # named numeric vector, cd4 at time of sampling 
+  , ehi # named logical vector, may be NA, TRUE if patient sampled with early HIV infection (6 mos )
+  , numberPeopleLivingWithHIV_m # scalar
+  , numberPeopleLivingWithHIV_f # scalar
+  , numberNewInfectionsPerYear_m # scalar ; new infections *in* men, not *by* men
+  , numberNewInfectionsPerYear_f # scalar 
+  , maxHeight
+  , res = 1e3
+  , treeErrorTol = 1e-2
+) {
+cat("NOTE : sample times must be in units of years\n")
+	if (length(sampleTimes)!=length(tree$tip.label)) stop('Sample time must be defined for all tips in tree')
+	if(is.null(names(sampleTimes))) names(sampleTimes) <- tree$tip.label
+	if (any(is.na(sex))) stop('sex variable must be defined for all samples')
+	if (length(sex)!=length(sampleTimes)) stop('sex variable must be defined for all samples')
+	if(is.null(names(sex))) names(sex) <- names(sampleTimes)
+	
+	if(is.null(names(cd4s))) names(cd4s) <- names(sampleTimes)
+	
+#~ 	if (length(setdiff( names(sampleTimes), names(sex) )
+	# note time units in year
+	stage_prog_yrs <- c( .5, 3.32, 2.7, 5.50, 5.06 ) #cori AIDS
+	stageprog_rates <- setNames( 1 / (stage_prog_yrs) 
+	 , c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')  )
+	
+	pstartstage <- c( 
+	  pstartstage1 = 0.76
+	 , pstartstage2 = 0.19
+	 , pstartstage3 = 0.05
+	 , pstartstage4 = 0
+	)
+	progparms <- c( stageprog_rates, pstartstage )
+	
+	DEMENAMES <- c( paste(sep='', 'm_stagem', 0:4)
+	 , paste(sep='', 'f_stage', 0:4) )
+	
+	# prior probability of each stage 
+	# NOTE this would only be approx, since does not account for stage 0 going to stages > 1: 
+	#pstage <- (1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')] ) / sum(1/progparms[c('gamma0', 'gamma1', 'gamma2', 'gamma3', 'gamma4')])
+	prEverReach <- cumsum(  pstartstage )
+	meanDurNRStages <- (1/progparms[c( 'gamma1', 'gamma2', 'gamma3', 'gamma4')] )
+	pstage1 <- c( 1/progparms['gamma0'], prEverReach * meanDurNRStages)
+	pstage <- pstage1 / sum(pstage1)
+	pstage[1] <- (numberNewInfectionsPerYear/2) / (numberPeopleLivingWithHIV)
+	pstage <- pstage / sum(pstage) 
+	
+	sampleStates <- matrix( 0, nrow = length(tree$tip.label), ncol = 5*2 )
+	rownames(sampleStates) <- names(sampleTimes)
+	colnames(sampleStates) <- DEMENAMES
+	for ( tl in names(sampleTimes)){
+		stage <- .cd42stage( cd4s[tl] )
+		
+		i <- ifelse( sex[tl]=='m' , 0 ,  5)
+		if (is.na( stage) ){
+			i <- 6:10
+			if ( sex[tl]=='m' ){
+				i <- 1:5
+			}
+			sampleStates[tl,i ] <- pstage 
+		} else if (stage > 2){
+			sampleStates[tl, stage+i] <- 1
+		} else{
+			sampleStates[tl, 1+i] <- pstage[1] / (pstage[1] + pstage[2] )
+			sampleStates[tl, 2+i] <- pstage[2] / (pstage[1] + pstage[2] )
+		}
+		if (!is.na( ehi[tl] )){
+			if (ehi[tl]) {
+				sampleStates[tl,1 + i] <- 1
+				sampleStates[tl,2:5 + i] <- 0
+			}
+		}
+	}
+	
+	# make tfgy 
+	times <- seq(0 , maxHeight+1, length.out = res)
+	Ys <- lapply( 1:res, function(i) setNames( numberPeopleLivingWithHIV * rep(pstage,2), DEMENAMES ) )
+	Fs <- lapply( 1:res, function(i) {
+		FF <- matrix ( 0, nrow = 5*2, ncol = 5*2)
+		rownames(FF) = colnames(FF) <- DEMENAMES
+		FF[1:5, 6] <- numberNewInfectionsPerYear_m * pstage
+		FF[6:10, 1] <- numberNewInfectionsPerYear_f * pstage
+		FF
+	})
+	Gs <- lapply( 1:res, function(i ){
+		GG <- matrix(0, nrow = 5*2, ncol = 5*2 )
+		rownames(GG) = colnames(GG) <- DEMENAMES
+		GG[1,2:5] <- pstage[1] * numberPeopleLivingWithHIV_m * pstartstage
+		GG[2,3]   <- pstage[2] * numberPeopleLivingWithHIV_m * progparms['gamma1'] 
+		GG[3,4]   <- pstage[3] * numberPeopleLivingWithHIV_m * progparms['gamma2'] 
+		GG[4,5]   <- pstage[4] * numberPeopleLivingWithHIV_m * progparms['gamma3'] 
+		
+		GG[5+1,5+2:5] <- pstage[1] * numberPeopleLivingWithHIV_f * pstartstage
+		GG[5+2,5+3]   <- pstage[2] * numberPeopleLivingWithHIV_f * progparms['gamma1'] 
+		GG[5+3,5+4]   <- pstage[3] * numberPeopleLivingWithHIV_f * progparms['gamma2'] 
+		GG[5+4,5+5]   <- pstage[4] * numberPeopleLivingWithHIV_f * progparms['gamma3'] 
+		
+		GG
+	})
+	tfgy <- list( times, Fs, Gs, Ys )
+	
+	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol )
+	phylo.source.attribution.multiDeme.fgy( bdt
+	  , maxHeight
+	  , tfgy
+	  , treeErrorTol = 1e-3
+	  , timeOfOriginBoundaryCondition = FALSE
+	)
+	
+}
+
