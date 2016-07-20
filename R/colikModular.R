@@ -127,8 +127,9 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		
 		#update mstates 
 		# TODO should only update extant lines 
-		update_states0( tree$mstates , Q) #void
-				
+		 update_states0( tree$mstates , Q) #void
+		# tree$mstates <- update_states1( tree$mstates , Q, extantLines) 
+		
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 

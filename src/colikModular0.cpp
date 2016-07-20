@@ -107,3 +107,12 @@ void update_states0( mat& mstates , mat Q)
 	mstates = normalise( clamp(mstates, 0., 1.), 1., 0);
 }
 
+//[[Rcpp::export()]]
+mat update_states1( mat& mstates, mat Q , vec extantLines){
+	int u; 
+	for (int iu = 0; iu < extantLines.size(); iu++){
+		u = extantLines(iu)-1; // R -> c indexing
+		mstates.col(u)  = normalise( clamp( Q.t() * mstates.col(u), 0., 1.), 1.);
+	}
+	return mstates;
+}
