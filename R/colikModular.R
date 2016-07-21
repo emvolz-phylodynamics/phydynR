@@ -61,7 +61,8 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		 )
 	}
 	
-	.newNodes.order <- function(nn, extantLines){
+	.newNodes.order <- function(nn, extantLines)
+	{
 		# gives order to traverse new nodes if heights are concurrent
 		if (length(nn) <=1 ){
 			return (nn)
@@ -126,9 +127,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		if (sum(is.nan(A)) > 0) A <- A0
 		
 		#update mstates 
-		# TODO should only update extant lines 
-		 update_states0( tree$mstates , Q) #void
-		# tree$mstates <- update_states1( tree$mstates , Q, extantLines) 
+		tree$mstates <- update_states1( tree$mstates , Q, extantLines) 
 		
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]

@@ -318,6 +318,18 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+mat update_states1(mat& mstates, mat Q, vec el);
+RcppExport SEXP sourceCpp_0_update_states1(SEXP mstatesSEXP, SEXP QSEXP, SEXP elSEXP) {
+BEGIN_RCPP
+	Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< mat& >::type mstates(mstatesSEXP);
+    Rcpp::traits::input_parameter< mat >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< vec >::type el(elSEXP);
+    __result = update_states1(mstates, Q, el);
+    return __result; 
+END_RCPP
+}
 
 // solveQALboost0
 List solveQALboost0(vec times, List Fs, List Gs, List Ys, double h0, double h1, double L0, vec A0, double treeT);
