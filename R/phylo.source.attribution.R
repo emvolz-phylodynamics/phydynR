@@ -210,7 +210,7 @@ print(date())
 	  , events
 	  , eventIndicatorNode
 	  , eventHeights
-	  , t( bdt$sortedSampleStates  ) # m X n 
+	  , t(bdt$sampleStates) # m X n 
 	  , bdt$daughters
 	  , bdt$n
 	  , bdt$Nnode
@@ -438,7 +438,10 @@ cat("NOTE : sample times must be in units of years\n")
 		GG
 	})
 	tfgy <- list( times, Fs, Gs, Ys )
-	
+browser()
+fdemes <- DEMENAMES[6:10]
+mdemes <- setdiff( DEMENAMES, fdemes)
+cbind( rowSums( sampleStates[, mdemes]), rowSums( sampleStates[, fdemes]))
 	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol )
 	phylo.source.attribution.multiDeme.fgy( bdt
 	  , maxHeight

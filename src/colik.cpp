@@ -695,7 +695,7 @@ public:
 		for (z = 0; z < m; z++){ // col of Q
 			for (k = 0; k < m; k++){ //row of Q
 				dxdt[ Qind(k, z ) ] = 0. ; 
-				for (l = 0. ; l < m; l++){
+				for (l = 0 ; l < m; l++){
 					if (k!=l){
 						if ( Q(x, l,z) > 0)
 						{
@@ -799,12 +799,26 @@ void psi_from_state( vec &psi, state_type xfin ){
 	}
 }
 
+//TODO
+int which_max ( vec x )
+{
+	int i = -1; 
+	double m = -INFINITY; 
+	for (int ii = 0; ii < x.size(); ii++){
+		if ( x(ii) > m){
+			i = ii; 
+			m = x(ii) ; 
+		}
+	}
+	return i; 
+}
+
 //[[Rcpp::export()]]
 List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const List Gs, const List Ys
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights
-  , const mat sortedSampleStates
+  , const mat sampleStates  
   , const IntegerMatrix daughters // daughters of each node
   , const int n
   , const int Nnode
@@ -820,7 +834,6 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 	int samplesAdded = 0;
 	mat Q  = zeros(m, m );
 	mat Qrho  = zeros(m, m );
-	//~ vec Psi = zeros(n, n + Nnode); //records probability i'th sample is host at j'th node 
 	vec psi = zeros(m) ; // corresponding to each state over each interval
 	vec psi_time = zeros(n); // for each tip, varies over time 
 	
@@ -870,35 +883,18 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 	
 	h = 0.; 
 	while( nextEventHeight != INFINITY && nextEventHeight < maxHeight ){
-//~ std::cout << h << " " << nextEventHeight << " " << maxHeight << " "  << std::endl; 
 		if (nextEventHeight > h )
 		{
 			A = sum(P, 1);
 			A = arma::normalise(A,1.)  * ((double)nextant);
 			x0 = generate_initial_conditions(A) ; 
-//~ cout << "solving..." << endl;
-//~ cout << h << endl;
-//~ cout << nextEventHeight << endl;
-//~ cout << A << endl;
-//~ Rf_PrintValue( wrap(x0)); 
 			size_t steps = boost::numeric::odeint::integrate( dqal ,  x0 , h , nextEventHeight 
 			  , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-			//~ size_t steps = boost::numeric::odeint::integrate_const(eu_stepper, dqal ,  x0 , h , nextEventHeight 
-			  //~ , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-//~ Rf_PrintValue( wrap(x0)); 
-//~ cout << steps << endl;
-//~ throw 1; 
-			// 
 			
 			//  same for sa ... 
 			x0sa = generate_initial_conditions_dqpsia( A) ; 
-//~ Rf_PrintValue( wrap(x0sa) );
 			steps = boost::numeric::odeint::integrate( dqpsia ,  x0sa , h , nextEventHeight 
 			  , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-			//~ steps = boost::numeric::odeint::integrate_const(eu_stepper, dqpsia ,  x0sa , h , nextEventHeight 
-			  //~ , std::min( default_step_size,  (nextEventHeight-h)/10.) );  
-//~ Rf_PrintValue( wrap( x0sa)); 
-//~ throw 1; 
 			Q_from_state(Q, x0); 
 			A_from_state(A, x0); 
 			L = L_from_state(x0); 
@@ -925,15 +921,6 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			P = arma::normalise( P, 1., 0 );
 			rho = abs( Qrho.t() * rho ); 
 			rho = arma::normalise( rho, 1., 0); // p=1, dim=0
-//~ std::cout << h <<std::endl;
-//~ std::cout << P ;
-//~ std::cout << rho ;
-//~ std::cout << psi; 
-//~ std::cout << Qrho; 
-//~ std::cout << psi_time ;
-//~ std::cout << std::endl ;
-//~ std::cout << std::endl ;
-//~ std::cout << std::endl ;
 		} else{
 			L = 0.; 
 		}
@@ -942,7 +929,8 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 		{
 			u = eventIndicatorNode(ievent); 
 			nextant++; 
-			P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded) ,1.);
+			//~ P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded) ,1.); //TODO
+			P.col(u-1) = arma::normalise(sampleStates.col(u-1) ,1.);
 			rho.col(u-1) = P.col(u-1); 
 			psi_time.at(u-1) = 1.; 
 			extant.at(u-1) = true; 
@@ -954,11 +942,6 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			G = as<mat>(Gs[ih]);
 			Y = as<vec>(Ys[ih]);
 			Y = arma::clamp(Y, 1e-6, INFINITY );
-//~ if (sum(A) > sum(Y)) {
-	//~ cout << Y ; 
-	//~ cout << nextEventHeight << " " << ih << endl; 
-	//~ cout << " sum A > sum Y  " << endl ;
-//~ }
 			
 			a = eventIndicatorNode(ievent);
 			u = daughters(a -1 , 0); 
@@ -987,14 +970,31 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			// update W(iw, iz)
 			for (int iw = 0; iw < n; iw++){
 				if (tipsDescendedFrom.at(u-1, iw)==1){
-					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+					rho_w__Y = arma::normalise(  arma::min(Y,rho.col(iw)) ,1.) / arma::clamp(Y, 1e-16, INFINITY ) ; 
 					for (int iz = iw+1; iz < n; iz++){
 						if (tipsDescendedFrom.at(v-1, iz)==1){
-							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ,1.) / arma::clamp(Y, 1e-6, INFINITY ) ; 
+							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ,1.) / arma::clamp(Y, 1e-16, INFINITY ) ; 
 							double pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
 							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
 							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
 							double pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
+
+if (pwz > .00001 || pzw > .00001){
+int wmz = which_max( rho.col(iz)); 
+int wmw = which_max( rho.col(iw)); 
+cout << wmz << " " << wmw << endl; 
+if ((wmz <= 4 && wmw <= 4) || (wmz > 4 && wmw > 4)){
+	cout << rho_w__Y << endl;
+	cout << rho_z__Y << endl;
+	cout << F << endl;
+	cout << pwz0 << endl;
+	cout << pzw0 << endl;
+	cout << rho.col(iz) << endl;
+	cout << rho.col(iw) << endl;
+	cout << endl;  
+	cout << endl;  
+}	
+}
 							
 							donorW.push_back( iw + 1);
 							recipW.push_back( iz+1 );
@@ -1015,24 +1015,28 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
 					//tip descended from a and u
-					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1.) ; 
+					//~ rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-16, 1. ) ,1.) ; 
+					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double puv = sum( rho_w__Y % (F * pvY) );
 					double pvu = sum( pvY % (F * rho_w__Y ));
 					puv = puv / (puv + pvu ) ;
 					psi_time.at(iw) *= puv ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-6, 1.) ,1.);
+					//~ rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-16, 1.) ,1.);
+					rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) , 1.);
 				} else if (tipsDescendedFrom.at(v-1, iw)==1){
 					//tip descended from a and v
-					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-6, 1. ) ,1.) ; 
+					//~ rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-16, 1. ) ,1.) ; 
+					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double pvu = sum( rho_w__Y % (F * puY) );
 					double puv = sum( puY % (F * rho_w__Y ));
 					pvu = pvu / (puv + pvu ) ;
 					psi_time.at(iw) *= pvu ;
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-6, 1.) ,1.);
+					//~ rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-16, 1.) ,1.);
+					rho.col(iw) = arma::normalise(  rho_w__Y % (F * puY) ,1.);
 				}
 			}
 			
