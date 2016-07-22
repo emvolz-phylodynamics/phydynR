@@ -349,6 +349,8 @@ cat("NOTE : sample times must be in units of years\n")
 	
 	if(is.null(names(cd4s))) names(cd4s) <- names(sampleTimes)
 	
+	if(is.null(names(ehi))) names(ehi) <- names(sampleTimes)
+	
 #~ 	if (length(setdiff( names(sampleTimes), names(sex) )
 	# note time units in year
 	stage_prog_yrs <- c( .5, 3.32, 2.7, 5.50, 5.06 ) #cori AIDS
@@ -373,7 +375,7 @@ cat("NOTE : sample times must be in units of years\n")
 	meanDurNRStages <- (1/progparms[c( 'gamma1', 'gamma2', 'gamma3', 'gamma4')] )
 	pstage1 <- c( 1/progparms['gamma0'], prEverReach * meanDurNRStages)
 	pstage <- pstage1 / sum(pstage1)
-	pstage[1] <- (numberNewInfectionsPerYear/2) / (numberPeopleLivingWithHIV)
+	pstage[1] <- ((numberNewInfectionsPerYear_f+numberNewInfectionsPerYear_m)/2) / (numberPeopleLivingWithHIV_m + numberPeopleLivingWithHIV_f)
 	pstage <- pstage / sum(pstage) 
 	
 	sampleStates <- matrix( 0, nrow = length(tree$tip.label), ncol = 5*2 )
@@ -389,13 +391,20 @@ cat("NOTE : sample times must be in units of years\n")
 				i <- 1:5
 			}
 			sampleStates[tl,i ] <- pstage 
+			if (!is.na( ehi[tl] ) ){
+				if (ehi[tl]) {
+					i <- ifelse( sex[tl]=='m' , 0 ,  5)
+					sampleStates[tl,1 + i] <- 1
+					sampleStates[tl,2:5 + i] <- 0
+				}
+			}
 		} else if (stage > 2){
 			sampleStates[tl, stage+i] <- 1
 		} else{
 			sampleStates[tl, 1+i] <- pstage[1] / (pstage[1] + pstage[2] )
 			sampleStates[tl, 2+i] <- pstage[2] / (pstage[1] + pstage[2] )
 		}
-		if (!is.na( ehi[tl] )){
+		if (!is.na( ehi[tl] ) & !is.na(stage)){
 			if (ehi[tl]) {
 				sampleStates[tl,1 + i] <- 1
 				sampleStates[tl,2:5 + i] <- 0
@@ -405,7 +414,7 @@ cat("NOTE : sample times must be in units of years\n")
 	
 	# make tfgy 
 	times <- seq(0 , maxHeight+1, length.out = res)
-	Ys <- lapply( 1:res, function(i) setNames( numberPeopleLivingWithHIV * rep(pstage,2), DEMENAMES ) )
+	Ys <- lapply( 1:res, function(i) setNames( c(numberPeopleLivingWithHIV_m * pstage,numberPeopleLivingWithHIV_m * pstage) , DEMENAMES)  ) 
 	Fs <- lapply( 1:res, function(i) {
 		FF <- matrix ( 0, nrow = 5*2, ncol = 5*2)
 		rownames(FF) = colnames(FF) <- DEMENAMES

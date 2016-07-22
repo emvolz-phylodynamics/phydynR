@@ -172,7 +172,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 				tree$lnr <- c( tree$lnr, log(pa_corate[[2]]) )
 				tree$ih <- c( tree$ih, h1)
 				
-				
 				# update lik
 				loglik <- loglik + log( pa_corate[[2]] ) - L ;
 				if (is.infinite( loglik)){
