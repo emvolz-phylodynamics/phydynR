@@ -978,23 +978,6 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
 							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
 							double pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
-
-if (pwz > .00001 || pzw > .00001){
-int wmz = which_max( rho.col(iz)); 
-int wmw = which_max( rho.col(iw)); 
-cout << wmz << " " << wmw << endl; 
-if ((wmz <= 4 && wmw <= 4) || (wmz > 4 && wmw > 4)){
-	cout << rho_w__Y << endl;
-	cout << rho_z__Y << endl;
-	cout << F << endl;
-	cout << pwz0 << endl;
-	cout << pzw0 << endl;
-	cout << rho.col(iz) << endl;
-	cout << rho.col(iw) << endl;
-	cout << endl;  
-	cout << endl;  
-}	
-}
 							
 							donorW.push_back( iw + 1);
 							recipW.push_back( iz+1 );
@@ -1015,7 +998,6 @@ if ((wmz <= 4 && wmw <= 4) || (wmz > 4 && wmw > 4)){
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
 					//tip descended from a and u
-					//~ rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-16, 1. ) ,1.) ; 
 					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double puv = sum( rho_w__Y % (F * pvY) );
@@ -1023,11 +1005,9 @@ if ((wmz <= 4 && wmw <= 4) || (wmz > 4 && wmw > 4)){
 					puv = puv / (puv + pvu ) ;
 					psi_time.at(iw) *= puv ;
 					//update rho(iw)
-					//~ rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * pvY) , 1e-16, 1.) ,1.);
 					rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) , 1.);
 				} else if (tipsDescendedFrom.at(v-1, iw)==1){
 					//tip descended from a and v
-					//~ rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 1e-16, 1. ) ,1.) ; 
 					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double pvu = sum( rho_w__Y % (F * puY) );
@@ -1035,7 +1015,6 @@ if ((wmz <= 4 && wmw <= 4) || (wmz > 4 && wmw > 4)){
 					pvu = pvu / (puv + pvu ) ;
 					psi_time.at(iw) *= pvu ;
 					//update rho(iw)
-					//~ rho.col(iw) = arma::normalise( arma::clamp( rho_w__Y % (F * puY), 1e-16, 1.) ,1.);
 					rho.col(iw) = arma::normalise(  rho_w__Y % (F * puY) ,1.);
 				}
 			}
