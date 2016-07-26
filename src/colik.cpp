@@ -714,19 +714,11 @@ public:
 			dxdt[ psi_ind( z ) ] = 0. ;
 			for (k = 0; k < m; k++){ //row of Q - current deme
 				for (l = 0. ; l < m; l++){ //source of transm
-					// TODO possibly should have (Y_l - A_l)/Y_l terms as in paper 
-					//~ dxdt[psi_ind(k,z)] -= F(i,l,k) * psi(x, k, z) / std::max(psi(x, k, z), Y(k)); 
 					// NOTE Q is filling the role of rho_{ik} in the paper 
 					dxdt[psi_ind(z)] -= std::max(0., (1 - a[l])) * F(l,k) * std::max(0., psi(x, z)) * Q(x,k,z) / std::max(Q(x, k, z), Y(k)); 
 				}
 			}
 		}
-		// NO
-		//~ for (k = 0; k < m; k++){
-			//~ for (l = 0; l < m; l++){
-				//~ dxdt[psi_ind( l )] -= F(i,l,k) * psi(x, k) / std::max(psi(x,k), Y(k)); 
-			//~ }
-		//~ }
     }
 private:
 	double Q( const state_type &x, int k, int l) {
@@ -799,19 +791,6 @@ void psi_from_state( vec &psi, state_type xfin ){
 	}
 }
 
-//TODO
-int which_max ( vec x )
-{
-	int i = -1; 
-	double m = -INFINITY; 
-	for (int ii = 0; ii < x.size(); ii++){
-		if ( x(ii) > m){
-			i = ii; 
-			m = x(ii) ; 
-		}
-	}
-	return i; 
-}
 
 //[[Rcpp::export()]]
 List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const List Gs, const List Ys
@@ -967,6 +946,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 			// sa stuff ; upate psi , rho 
 			vec rho_w__Y = zeros(m); 
 			vec rho_z__Y = zeros(m); 
+			double pwz0,pzw0,pwz,pzw;
 			// update W(iw, iz)
 			for (int iw = 0; iw < n; iw++){
 				if (tipsDescendedFrom.at(u-1, iw)==1){
@@ -974,10 +954,20 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 					for (int iz = iw+1; iz < n; iz++){
 						if (tipsDescendedFrom.at(v-1, iz)==1){
 							rho_z__Y = arma::normalise(  arma::min(Y,rho.col(iz)) ,1.) / arma::clamp(Y, 1e-16, INFINITY ) ; 
-							double pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
-							double pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
-							double pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
-							double pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
+							pwz0 = sum( rho_w__Y % (F * rho_z__Y) );
+							pzw0 = sum( rho_z__Y % (F * rho_w__Y ));
+							
+							if ( (pwz0 + pzw0) > 0 ){
+								pwz = psi_time.at(iw) * psi_time.at(iz) * pwz0 / (pwz0 + pzw0) ;
+								pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
+							}  else{
+								//~ cout << " (pwz0 + pzw0) = 0 " << endl; 
+								//~ cout << psi_time.at(iw) << " " <<  psi_time.at(iz)<< endl; 
+								//~ cout << rho.col(iw) << endl; 
+								//~ cout << rho.col(iz) << endl;
+								pwz = 0.;
+								pzw = 0.; 
+							}
 							
 							donorW.push_back( iw + 1);
 							recipW.push_back( iz+1 );
