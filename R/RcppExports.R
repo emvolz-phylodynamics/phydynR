@@ -147,3 +147,7 @@ solveQALboost0 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0, treeT) {
 }
 
 
+dQLcpp <- function ( x, FF, GG, YY, A0 ){
+	.Call( 'scpp_dQL', PACKAGE='phydynR'
+	 , x, FF , GG , YY, A0 )
+}

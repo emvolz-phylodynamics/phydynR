@@ -1,7 +1,6 @@
 # This version breaks problem in to pieces to facilitate unit testing, but won't be as fast as pure cpp version
 # used for direct comparison of old rcolgem methods and new phydynr methods
 
-require(rcolgem)
 
 ##############################################################
 
@@ -14,6 +13,30 @@ require(rcolgem)
 	 , A0
 	 , tree$maxHeight)
 	out
+}
+
+
+.solve.Q.A.L.deSolve <- function(h0, h1, A0, L0, tree, tfgy)
+{
+#~ dQLcpp
+#~ function (x, FF, GG, YY, A0)
+	m <- length(A0)
+	.dQL <-  function( t, y, parms, ...){
+		# t : h
+		ih <- min( length(tfgy[[1]]), 1+floor( length(tfgy[[1]]) * t / (tree$maxSampleTime- tail(tfgy[[1]],1))  ) )
+		list( as.vector( dQLcpp( y, tfgy[[2]][[ih]]
+		 , tfgy[[3]][[ih]]
+		 , tfgy[[4]][[ih]]
+		 , A0 )))
+	}
+	times <- seq(h0, h1, length.out = 2)
+	y0 <- c( as.vector( diag( length(A0))), L0)
+	o <- ode(y0, times,  func = .dQL, parms=list() , method = 'lsoda')
+	y1 <- o[nrow(o), -1]
+	L1 <- unname( y1[length(y1)] )
+	QQ <- matrix( y1[-length(y1)], nrow = m, ncol = m, byrow=TRUE)
+	QQ <- QQ  / rowSums( QQ) 
+	list( QQ , QQ %*% A0 , L1)
 }
 ################################################################
 # helper function for updating ancestral node and likelihood terms
@@ -60,7 +83,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		 , .Y = tfgy[[4]][[ih]]
 		 )
 	}
-	
 	.newNodes.order <- function(nn, extantLines)
 	{
 		# gives order to traverse new nodes if heights are concurrent
@@ -98,7 +120,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 	extantAtEvent_nodesAtHeight <- eventTimes2extant( eventTimes, tree$heights, tree$parentheight ) #1-2 millisec
 	extantAtEvent_list <- extantAtEvent_nodesAtHeight[[1]]
 	nodesAtHeight <- extantAtEvent_nodesAtHeight[[2]]
-	
 	#variables to track progress at each node
 	tree$A <- c() #h->A
 	tree$lnS <- c()
@@ -116,10 +137,13 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		if (length(extantLines) > 1 ){
 			A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
 		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
-		out <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy) # 
+#~ L0 <- L
+#~ 		out0 <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy) # 
+		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy) # 
 		Q <- out[[1]]
 		A <- out[[2]]
 		L <- out[[3]]
+#~ print( c(  out[[3]], out0[[3]]) )
 
 		# clean output
 		if (is.nan(L)) {L <- Inf}
@@ -132,6 +156,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 
+#~ print (c (L0, L, length(newNodes)))
 		# NOTE re-evaluation of A here appears to be quite important 
 		if (length(extantLines)>1){
 			A <- rowSums( tree$mstates[, extantLines] ) #TODO speedup

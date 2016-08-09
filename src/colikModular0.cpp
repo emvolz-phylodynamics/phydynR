@@ -86,11 +86,14 @@ List update_alpha0(vec pu
   , vec A
 ){
 	int m = Y.size(); 
-	Y = max( A, clamp(Y, MINY, INFINITY)); //NOTE this line is very important!
-	vec pu__Y = clamp( pu/Y , 0., 1.);
-	vec pv__Y = clamp( pv/Y , 0., 1.);
+	Y = max( A, clamp(Y, MINY, INFINITY)); //NOTE this line is very important! 
+	//~ vec pu__Y = clamp( pu/Y , 0., 1.);
+	//~ vec pv__Y = clamp( pv/Y , 0., 1.);
+	vec pu__Y =pu/Y ;
+	vec pv__Y =pv/Y ;
 	vec pa = pu__Y % (F * pv__Y) + pv__Y % (F*pu__Y); 
 	double corate = sum(pa); 
+	//~ double corate =  F(0,0)   / Y(0) / Y(0) / 2.; 
 	pa = normalise( pa, 1.);
 	List o; 
 	o["pa"] = pa;

@@ -350,3 +350,21 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+
+//dQL
+vec dQL( vec x , mat F , mat G, vec Y, vec A0);
+RcppExport SEXP scpp_dQL( SEXP xSP , SEXP FSP, SEXP GSP, SEXP YSP, SEXP A0SP){
+BEGIN_RCPP
+	Rcpp::RObject __result; 
+	Rcpp::RNGScope __rngScope;
+	
+	Rcpp::traits::input_parameter<vec>::type x(xSP);
+	Rcpp::traits::input_parameter<vec>::type Y(YSP);
+	Rcpp::traits::input_parameter<vec>::type A0(A0SP);
+	Rcpp::traits::input_parameter<mat>::type F(FSP);
+	Rcpp::traits::input_parameter<mat>::type G(GSP);
+	
+	__result = Rcpp::wrap(dQL( x, F, G, Y, A0 ));
+	return __result;
+END_RCPP
+}
