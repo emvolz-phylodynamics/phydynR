@@ -16,7 +16,7 @@
 }
 
 
-.solve.Q.A.L.deSolve <- function(h0, h1, A0, L0, tree, tfgy)
+.solve.Q.A.L.deSolve <- function(h0, h1, A0, L0, tree, tfgy, integrationMethod='lsoda')
 {
 #~ dQLcpp
 #~ function (x, FF, GG, YY, A0)
@@ -31,7 +31,8 @@
 	}
 	times <- seq(h0, h1, length.out = 2)
 	y0 <- c( as.vector( diag( length(A0))), L0)
-	o <- ode(y0, times,  func = .dQL, parms=list() , method = 'lsoda')
+#~ 	o <- ode(y0, times,  func = .dQL, parms=list() , method = 'lsoda')
+	o <- ode(y0, times,  func = .dQL, parms=list() , method = integrationMethod)
 	y1 <- o[nrow(o), -1]
 	L1 <- unname( y1[length(y1)] )
 	QQ <- matrix( y1[-length(y1)], nrow = m, ncol = m, byrow=TRUE)
@@ -139,7 +140,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
 #~ L0 <- L
 #~ 		out0 <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy) # 
-		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy) # 
+		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy, integrationMethod=integrationMethod) # 
 		Q <- out[[1]]
 		A <- out[[2]]
 		L <- out[[3]]
