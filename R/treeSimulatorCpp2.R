@@ -524,7 +524,9 @@ deaths.attr("names") = rcnames;
 
 
 ##################################################################################
-DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6, minEdgeLength = 0){
+DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6
+ , minEdgeLength = 0
+ , roundEdgeLengthDown = 0){
 	if (is.null(names(sampleTimes))) stop('sampleTimes vector must have names of tip labels')
 	if (is.null(sampleStates) & !is.null(sampleStatesAnnotations) ) sampleStates <- .infer.sample.states.from.annotation(phylo, sampleStatesAnnotations)
 	if (is.null(sampleStates) & is.null(sampleStatesAnnotations)) { sampleStates <- t(t( rep(1, length(phylo$tip.label)))) ; rownames( sampleStates) <- phylo$tip.label }
@@ -538,6 +540,10 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo$sampleTimes <- sampleTimes[phylo$tip.label]
 	phylo$sampleStates <- sampleStates[phylo$tip.label, ] 
 	if (is.vector(phylo$sampleStates)) phylo$sampleStates <- t(t( phylo$sampleStates))
+	
+	if (roundEdgeLengthDown > 0 ){
+		phylo$edge.length[ phylo$edge.length < roundEdgeLengthDown ] <- 0
+	}
 	
 	phylo$n = n <- length(sampleTimes)
 	Nnode <- phylo$Nnode
@@ -564,6 +570,9 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 						edgeLengthChange <- TRUE 
 					}
 					phylo$edge.length[i] <- max(0, max(minEdgeLength, heights[u] - heights[v] ) )
+					if ( phylo$edge.length[i] < roundEdgeLengthDown ){
+						phylo$edge.length[i] <- 0
+					}
 					heights[u] <- heights[v]  + phylo$edge.length[i]
 				} else{
 					heights[u] <- phylo$edge.length[i] + heights[v]
@@ -574,6 +583,11 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 			}
 			curgen <- unique(nextgen)
 		}
+#~ 		if (any( phylo$edge.length < roundEdgeLengthDown )){
+#~ 			if (roundEdgeLengthDown > 0 ){
+#~ 				phylo$edge.length[ phylo$edge.length < roundEdgeLengthDown ] <- 0
+#~ 			}
+#~ 		}
 	}
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)
