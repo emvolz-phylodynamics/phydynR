@@ -91,12 +91,18 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 			return (nn)
 		}
 		o <- c()
+		nrep <- 0
 		while (!(all(nn %in% o) ) ){
 			for (a in setdiff( nn, o) ){
 				d <- tree$daughters[a, ] 
-				if (all( d%in%union(extantLines, o) )){
+				if (all( d%in%union( union(1:tree$n,extantLines), o) )){ # note include samples here, since sample with zero edge length will not be extant
 					o <- c( o, a )
 				}
+			}
+			nrep <- nrep + 1
+			if (nrep > 1 + length(nn)){
+				o <- sample(nn, replace=F)
+				break
 			}
 		}
 		o
@@ -104,8 +110,13 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 	
 	if (is.null( tree$n ) ) tree$n <- length( tree$sampleTimes)
 	if (is.null(tree$m)) tree$m <- length( tfgy[[4]][[1]] )
-	if (is.null( tree$lstates)) {
+	if (ncol(tree$sampleStates)==1 & tree$m == 2){ # make exception for unstructured models
+		tree$sampleStates <- cbind( tree$sampleStates, rep( 0 , tree$n) )
+	}
+	#if (is.null( tree$lstates)) 
+	{
 		tree$lstates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
+		tree$lstates[1,] <- 1
 		tree$lstates[,1:tree$n ] <- t( tree$sampleStates )
 	}
 	tree$mstates <- tree$lstates + 1 - 1
@@ -138,13 +149,11 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		if (length(extantLines) > 1 ){
 			A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
 		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
-#~ L0 <- L
-#~ 		out0 <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy) # 
+		
 		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy, integrationMethod=integrationMethod) # 
 		Q <- out[[1]]
 		A <- out[[2]]
 		L <- out[[3]]
-#~ print( c(  out[[3]], out0[[3]]) )
 
 		# clean output
 		if (is.nan(L)) {L <- Inf}
@@ -157,7 +166,6 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 
-#~ print (c (L0, L, length(newNodes)))
 		# NOTE re-evaluation of A here appears to be quite important 
 		if (length(extantLines)>1){
 			A <- rowSums( tree$mstates[, extantLines] ) #TODO speedup
@@ -173,10 +181,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 					L <- L + L * abs(YmA) * AgtY_penalty
 				}
 			}
-						
-			#for (alpha in newNodes){
-			#if (length(newNodes)==1) {#alpha <- newNodes
-			#for (alpha in newNodes)
+			
 			for (alpha in .newNodes.order(newNodes, extantLines) )
 			{
 				u <- tree$daughters[alpha,1]

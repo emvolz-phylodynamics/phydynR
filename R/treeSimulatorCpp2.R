@@ -572,6 +572,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 					phylo$edge.length[i] <- max(0, max(minEdgeLength, heights[u] - heights[v] ) )
 					if ( phylo$edge.length[i] < roundEdgeLengthDown ){
 						phylo$edge.length[i] <- 0
+						edgeLengthChange <- TRUE 
 					}
 					heights[u] <- heights[v]  + phylo$edge.length[i]
 				} else{
@@ -583,11 +584,6 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 			}
 			curgen <- unique(nextgen)
 		}
-#~ 		if (any( phylo$edge.length < roundEdgeLengthDown )){
-#~ 			if (roundEdgeLengthDown > 0 ){
-#~ 				phylo$edge.length[ phylo$edge.length < roundEdgeLengthDown ] <- 0
-#~ 			}
-#~ 		}
 	}
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)
