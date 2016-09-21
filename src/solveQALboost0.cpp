@@ -338,8 +338,9 @@ List solveQALboost0(vec times, List Fs, List Gs, List Ys
  , double h1
  , double L0
  , vec A0
- , double treeT
+ //, double treeT
 ){
+	double treeT = std::abs( times(0) - times(times.size()-1)); 
 	int m = A0.size();
 	mat Q0 = diagmat( ones( m )) ;
 	double hres = times.size();//abs(times(1) - times(0)); 

@@ -11,7 +11,8 @@
 	 , h1
 	 , L0
 	 , A0
-	 , tree$maxHeight)
+	 #, tree$maxHeight
+	)
 	out
 }
 
@@ -151,6 +152,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
 		
 		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy, integrationMethod=integrationMethod) # 
+		#out <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy)
 		Q <- out[[1]]
 		A <- out[[2]]
 		L <- out[[3]]

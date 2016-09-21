@@ -332,8 +332,8 @@ END_RCPP
 }
 
 // solveQALboost0
-List solveQALboost0(vec times, List Fs, List Gs, List Ys, double h0, double h1, double L0, vec A0, double treeT);
-RcppExport SEXP sourceCpp_2_solveQALboost0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP h0SEXP, SEXP h1SEXP, SEXP L0SEXP, SEXP A0SEXP, SEXP treeTSEXP) {
+List solveQALboost0(vec times, List Fs, List Gs, List Ys, double h0, double h1, double L0, vec A0);
+RcppExport SEXP sourceCpp_2_solveQALboost0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP h0SEXP, SEXP h1SEXP, SEXP L0SEXP, SEXP A0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -345,8 +345,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type h1(h1SEXP);
     Rcpp::traits::input_parameter< double >::type L0(L0SEXP);
     Rcpp::traits::input_parameter< vec >::type A0(A0SEXP);
-    Rcpp::traits::input_parameter< double >::type treeT(treeTSEXP);
-    __result = Rcpp::wrap(solveQALboost0(times, Fs, Gs, Ys, h0, h1, L0, A0, treeT));
+    __result = Rcpp::wrap(solveQALboost0(times, Fs, Gs, Ys, h0, h1, L0, A0));
     return __result;
 END_RCPP
 }

@@ -141,9 +141,9 @@ update_states1 <- function(mstates, Q, el) {
 	.Call(  'sourceCpp_0_update_states1', PACKAGE='phydynR'
 	 , mstates, Q, el)
 }
-solveQALboost0 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0, treeT) {
+solveQALboost0 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0) {
 	.Call( 'sourceCpp_2_solveQALboost0' , PACKAGE='phydynR'
-	 , times, Fs, Gs, Ys, h0, h1, L0, A0, treeT)
+	 , times, Fs, Gs, Ys, h0, h1, L0, A0)
 }
 
 
