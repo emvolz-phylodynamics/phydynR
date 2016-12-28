@@ -32,13 +32,18 @@
 	}
 	times <- seq(h0, h1, length.out = 2)
 	y0 <- c( as.vector( diag( length(A0))), L0)
-#~ 	o <- ode(y0, times,  func = .dQL, parms=list() , method = 'lsoda')
-	o <- ode(y0, times,  func = .dQL, parms=list() , method = integrationMethod)
+	#o <- ode(y0, times,  func = .dQL, parms=list() , method = 'rk4')
+	tt <- tryCatch(o <- ode(y0, times,  func = .dQL, parms=list() , method = integrationMethod),warning=function(w) w)
+	if (is(tt,"warning")) return(tt)
 	y1 <- o[nrow(o), -1]
 	L1 <- unname( y1[length(y1)] )
 	QQ <- matrix( y1[-length(y1)], nrow = m, ncol = m, byrow=TRUE)
-	QQ <- QQ  / rowSums( QQ) 
-	list( QQ , QQ %*% A0 , L1)
+	QQ <- QQ  / rowSums( QQ)
+	##AA <- QQ %*% A0
+	# Igor: i think this is the right way but this AA is not used anyway
+	#AA <- t(QQ) %*% A0
+	#AA <- sum(A0) * AA / sum(AA)
+	list( QQ , NA , L1)
 }
 ################################################################
 # helper function for updating ancestral node and likelihood terms
@@ -68,8 +73,10 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
+  , solveODE = 0
 ) 
 {
+ 
 	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
 		warning('t0 occurs after root of tree. Results may be innacurate.')
 	}
@@ -144,27 +151,50 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 		h0 <- eventTimes[ih]
 		h1 <- eventTimes[ih+1]
 		fgy <- get.fgy(h1)
-		
-		#get A0, process new samples, calculate state of new lines
-		extantLines <- extantAtEvent_list[[ih]]
-		if (length(extantLines) > 1 ){
-			A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
-		} else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
-		
-		out <- .solve.Q.A.L.deSolve(h0, h1, A0, L, tree, tfgy, integrationMethod=integrationMethod) # 
-		#out <- .solve.Q.A.L.boost(h0, h1, A0, L, tree, tfgy)
-		Q <- out[[1]]
-		A <- out[[2]]
-		L <- out[[3]]
+	
+	  #get A0, process new samples, calculate state of new lines
+	  extantLines <- extantAtEvent_list[[ih]]
+	  if (length(extantLines) > 1 ){
+	    A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
+          } else if (length(extantLines)==1){ A0 <- tree$mstates[,extantLines] }
+	  worklist <- c(h0,h1)
+	  numTries <- 0
+	  L <- 0
+	  while (length(worklist) > 1) {
+	    hw0 <- worklist[1]
+            hw1 <- worklist[2]
+            worklist <- worklist[c(-1)]
+            if (solveODE==0) {
+	      out <- .solve.Q.A.L.deSolve(hw0, hw1, A0, L, tree, tfgy, integrationMethod=integrationMethod)
+	    } else {
+	      out <- .solve.Q.A.L.boost(hw0, hw1, A0, L, tree, tfgy)
+	    }
+	    if (is(out,"warning")) {
+              worklist <- c(hw0,(hw0+hw1)/2,worklist)
+	      print("Try again")
+	      next  # try again
+             }	      	
+	     Q <- out[[1]]
+	     A <- out[[2]]
+	     L <- L+out[[3]]
 
-		# clean output
-		if (is.nan(L)) {L <- Inf}
-		if (sum(is.nan(Q)) > 0) Q <- diag(length(A))
-		if (sum(is.nan(A)) > 0) A <- A0
+	     # clean output
+	     if (is.nan(L)) {L <- Inf}
+	     if (sum(is.nan(Q)) > 0) Q <- diag(length(A))
+	     if (sum(is.nan(A)) > 0) A <- A0
 		
-		#update mstates 
-		tree$mstates <- update_states1( tree$mstates , Q, extantLines) 
-		
+	      #update mstates 
+	      tree$mstates <- update_states1( tree$mstates , Q, extantLines)
+              if (length(worklist)>1) {
+	        if (length(extantLines) > 1 ){
+	          A0 <- rowSums(tree$mstates[,extantLines]) #TODO faster compute this on fly
+                } else if (length(extantLines)==1){
+		  A0 <- tree$mstates[,extantLines]
+		}
+	      }
+            } # end while worklist
+
+
 		#if applicable: update ustate & calculate lstate of new line
 		newNodes <- nodesAtHeight[[ih+1]]
 		newNodes <- newNodes[newNodes > tree$n] 
