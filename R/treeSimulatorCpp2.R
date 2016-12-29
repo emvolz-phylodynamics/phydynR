@@ -585,6 +585,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 			curgen <- unique(nextgen)
 		}
 	}
+	if (any(is.na(heights))) stop('Could not compute internal node heights. Check sample times and names of sample time vector.')
 	phylo$heights <- heights
 	phylo$maxHeight <- max(phylo$heights)
 	#phylo$heights <- signif( phylo$heights, digits = floor( 1 / phylo$maxHeight /10 )  +  6 ) #

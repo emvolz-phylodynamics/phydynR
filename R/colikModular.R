@@ -32,7 +32,6 @@
 	}
 	times <- seq(h0, h1, length.out = 2)
 	y0 <- c( as.vector( diag( length(A0))), L0)
-	#o <- ode(y0, times,  func = .dQL, parms=list() , method = 'rk4')
 	tt <- tryCatch(o <- ode(y0, times,  func = .dQL, parms=list() , method = integrationMethod),warning=function(w) w)
 	if (is(tt,"warning")) return(tt)
 	y1 <- o[nrow(o), -1]
@@ -69,7 +68,7 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
   , expmat = FALSE # not yet implemented
-  , finiteSizeCorrection=TRUE
+  , finiteSizeCorrection=F
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
@@ -83,6 +82,34 @@ colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t
 	# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 	tfgy <- demographic.process.model( theta, x0, t0, tree$maxSampleTime, res = res, integrationMethod=integrationMethod) 
 	
+	colik.fgy1(tfgy 
+	  , tree
+	  , integrationMethod
+	  , timeOfOriginBoundaryCondition
+	  , maxHeight
+	  , expmat 
+	  , finiteSizeCorrection
+	  , forgiveAgtY 
+	  , AgtY_penalty
+	  , returnTree
+	  , solveODE 
+	)
+}
+
+colik.fgy1 <- function(
+	tfgy 
+	  , tree
+	  , integrationMethod='lsoda'
+	  , timeOfOriginBoundaryCondition=T
+	  , maxHeight=Inf
+	  , expmat =F
+	  , finiteSizeCorrection=F
+	  , forgiveAgtY =1
+	  , AgtY_penalty=1
+	  , returnTree=F
+	  , solveODE =0
+){
+	if (tfgy[[1]] < tfgy[[2]] ) stop('tfgy must be in order of decreasing time.')
 	get.fgy <- function(h)
 	{# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 		#ih <- 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  )
