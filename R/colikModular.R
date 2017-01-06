@@ -109,7 +109,7 @@ colik.fgy1 <- function(
 	  , returnTree=F
 	  , solveODE =0
 ){
-	if (tfgy[[1]] < tfgy[[2]] ) stop('tfgy must be in order of decreasing time.')
+	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	get.fgy <- function(h)
 	{# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 		#ih <- 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  )
