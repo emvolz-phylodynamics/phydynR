@@ -526,7 +526,7 @@ deaths.attr("names") = rcnames;
 ##################################################################################
 DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6
  , minEdgeLength = 0
- , roundEdgeLengthDown = 0){
+ ){
 	if (is.null(names(sampleTimes))) stop('sampleTimes vector must have names of tip labels')
 	if (is.null(sampleStates) & !is.null(sampleStatesAnnotations) ) sampleStates <- .infer.sample.states.from.annotation(phylo, sampleStatesAnnotations)
 	if (is.null(sampleStates) & is.null(sampleStatesAnnotations)) { sampleStates <- t(t( rep(1, length(phylo$tip.label)))) ; rownames( sampleStates) <- phylo$tip.label }
@@ -541,9 +541,7 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo$sampleStates <- sampleStates[phylo$tip.label, ] 
 	if (is.vector(phylo$sampleStates)) phylo$sampleStates <- t(t( phylo$sampleStates))
 	
-	if (roundEdgeLengthDown > 0 ){
-		phylo$edge.length[ phylo$edge.length < roundEdgeLengthDown ] <- 0
-	}
+	phylo$edge.length <- pmax( minEdgeLength, phylo$edge.length )
 	
 	phylo$n = n <- length(sampleTimes)
 	Nnode <- phylo$Nnode
@@ -563,22 +561,17 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 				u<- phylo$edge[i,1]
 				v<- phylo$edge[i,2]
 				if (!is.na(heights[u])){ # ensure branch lengths consistent
-					if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > tol )
+					if ( heights[u] > 0 & abs(heights[u] - (phylo$edge.length[i] + heights[v])) > (minEdgeLength+tol) )
 					{ #
 					  stop( 'Tree is poorly formed. Branch lengths incompatible with sample times.')
 					} else if ( 0!=(heights[u] - (phylo$edge.length[i] + heights[v]) ) ){
 						edgeLengthChange <- TRUE 
 					}
 					phylo$edge.length[i] <- max(0, max(minEdgeLength, heights[u] - heights[v] ) )
-					if ( phylo$edge.length[i] < roundEdgeLengthDown ){
-						phylo$edge.length[i] <- 0
-						edgeLengthChange <- TRUE 
-					}
 					heights[u] <- heights[v]  + phylo$edge.length[i]
 				} else{
 					heights[u] <- phylo$edge.length[i] + heights[v]
 				}
-				
 				
 				nextgen <- c(nextgen, u)
 			}
@@ -600,7 +593,6 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	ix <- sort( phylo$sampleTimes, decreasing = TRUE, index.return=TRUE)$ix
 	phylo$sortedSampleHeights <- phylo$maxSampleTime - phylo$sampleTimes[ix]
 	phylo$sortedSampleStates <- phylo$sampleStates[ix,] 
-#~ print('Datedtree'); browser()
 	# parents and daughters 
 	phylo$parent = phylo$parents <- sapply(1:(phylo$n+phylo$Nnode), function(u) {
 		i <-  which(phylo$edge[,2]==u)
