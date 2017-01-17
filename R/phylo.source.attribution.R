@@ -135,6 +135,8 @@ phylo.source.attribution.multiDeme.fgy <- function( dated_tree
 ) 
 {
 	bdt <- dated_tree
+	mel <- min(bdt$edge.length)
+	if (mel <= 0) stop('Tree has a zero edge length. Try setting minEdgeLength to a value greater than zero. \n')
 	bdt <- reorder.phylo( bdt, 'postorder' )
 	bdt$heights <- signif( bdt$heights, digits = floor( 1 / bdt$maxHeight /10 )  +  6 ) #TODO move to DatedTree
 	
@@ -248,7 +250,8 @@ phylo.source.attribution.hiv.msm <- function( tree
   , numberNewInfectionsPerYear # scalar 
   , maxHeight
   , res = 1e3
-  , treeErrorTol = 1e-2
+  , treeErrorTol = 1/12
+  , minEdgeLength=1/52
 ) {
 print("NOTE : sample times must be in units of years") 	
 	# note time units in year
@@ -318,7 +321,9 @@ print("NOTE : sample times must be in units of years")
 	})
 	tfgy <- list( times, Fs, Gs, Ys )
 	
-	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol )
+	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol , minEdgeLength=minEdgeLength)
+	mel <- min(bdt$edge.length)
+	if (mel <= 0) stop('Tree has a zero edge length. Try setting minEdgeLength to a value greater than zero. \n')
 	phylo.source.attribution.multiDeme.fgy( bdt
 	  , maxHeight
 	  , tfgy
@@ -339,6 +344,7 @@ phylo.source.attribution.hiv.het <- function( tree
   , maxHeight
   , res = 1e3
   , treeErrorTol = 1e-2
+  , minEdgeLength=1/52
 ) {
 cat("NOTE : sample times must be in units of years\n")
 	if (length(sampleTimes)!=length(tree$tip.label)) stop('Sample time must be defined for all tips in tree')
@@ -438,7 +444,9 @@ cat("NOTE : sample times must be in units of years\n")
 		GG
 	})
 	tfgy <- list( times, Fs, Gs, Ys )
-	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol )
+	bdt <- DatedTree( tree , sampleTimes , sampleStates = sampleStates , tol = treeErrorTol, minEdgeLength=minEdgeLength )
+	mel <- min(bdt$edge.length)
+	if (mel <= 0) stop('Tree has a zero edge length. Try setting minEdgeLength to a value greater than zero. \n')
 	phylo.source.attribution.multiDeme.fgy( bdt
 	  , maxHeight
 	  , tfgy

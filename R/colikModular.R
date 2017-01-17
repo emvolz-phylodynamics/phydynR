@@ -192,18 +192,18 @@ colik.fgy1 <- function(
             hw1 <- worklist[2]
             worklist <- worklist[c(-1)]
             if (solveODE==0) {
-	      out <- .solve.Q.A.L.deSolve(hw0, hw1, A0, L, tree, tfgy, integrationMethod=integrationMethod)
-	    } else {
-	      out <- .solve.Q.A.L.boost(hw0, hw1, A0, L, tree, tfgy)
-	    }
+			  out <- .solve.Q.A.L.deSolve(hw0, hw1, A0, L, tree, tfgy, integrationMethod=integrationMethod)
+			} else {
+				out <- .solve.Q.A.L.boost(hw0, hw1, A0, L, tree, tfgy)
+			}
 	    if (is(out,"warning")) {
               worklist <- c(hw0,(hw0+hw1)/2,worklist)
 	      print("Try again")
 	      next  # try again
-             }	      	
-	     Q <- out[[1]]
-	     A <- out[[2]]
-	     L <- L+out[[3]]
+        }	      	
+	    Q <- out[[1]]
+	    A <- out[[2]]
+	    L <- L+out[[3]]
 
 	     # clean output
 	     if (is.nan(L)) {L <- Inf}
@@ -219,7 +219,7 @@ colik.fgy1 <- function(
 		  A0 <- tree$mstates[,extantLines]
 		}
 	      }
-            } # end while worklist
+     } # end while worklist
 
 
 		#if applicable: update ustate & calculate lstate of new line
