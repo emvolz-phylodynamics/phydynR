@@ -151,3 +151,9 @@ dQLcpp <- function ( x, FF, GG, YY, A0 ){
 	.Call( 'scpp_dQL', PACKAGE='phydynR'
 	 , x, FF , GG , YY, A0 )
 }
+
+############################
+
+solvePikL0 <- function( times, Fs, Gs, Ys, h0, h1, pik0) {
+	.Call( 'sourceCpp_1_solvePikL0', PACKAGE='phydynR', times, Fs, Gs, Ys, h0, h1, pik0 )
+}

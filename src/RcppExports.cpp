@@ -367,3 +367,22 @@ BEGIN_RCPP
 	return __result;
 END_RCPP
 }
+
+
+// likelihood that solves for state for each line
+List solvePikL0(vec times, List Fs, List Gs, List Ys, double h0, double h1, mat pik0);
+RcppExport SEXP sourceCpp_1_solvePikL0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP h0SEXP, SEXP h1SEXP, SEXP pik0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< double >::type h0(h0SEXP);
+    Rcpp::traits::input_parameter< double >::type h1(h1SEXP);
+    Rcpp::traits::input_parameter< mat >::type pik0(pik0SEXP);
+    __result = Rcpp::wrap(solvePikL0(times, Fs, Gs, Ys, h0, h1, pik0));
+    return __result;
+END_RCPP
+}
