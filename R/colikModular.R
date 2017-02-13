@@ -107,7 +107,7 @@ colik.fgy1 <- function(
 	  , forgiveAgtY =1
 	  , AgtY_penalty=1
 	  , returnTree=F
-	  , solveODE =0
+	  , solveODE =1
 ){
 	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	get.fgy <- function(h)

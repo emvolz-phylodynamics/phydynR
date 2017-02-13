@@ -55,7 +55,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 ) {
 	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	t0 <- tail( tfgy[[1]], 1)
-	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
+	if ( min(tree$maxHeight, maxHeight) >  (tree$maxSampleTime- t0) ){
 		warning('t0 occurs after root of tree. Results may be innacurate.')
 	}
 	
