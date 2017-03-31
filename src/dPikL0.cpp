@@ -93,6 +93,7 @@ List solvePikL0(vec times, List Fs, List Gs, List Ys
  , double h0
  , double h1
  , mat pik0
+ , double step_size_res
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
 	int m = pik0.n_rows;
@@ -102,10 +103,15 @@ List solvePikL0(vec times, List Fs, List Gs, List Ys
 	DPikL0 dpikl0(Fs, Gs, Ys, m, hres, treeT, nextant ); 
 	state_type x = dpikl0.generate_initial_conditions( pik0 , m, nextant); 
 	
-	size_t steps = boost::numeric::odeint::integrate( dpikl0 ,  x , h0 , h1 
-			  , (h1-h0)/100. );  
-	
-	
+	using namespace boost::numeric::odeint; 
+	if (step_size_res < 1){
+		size_t steps = integrate( dpikl0 ,  x , h0 , h1 
+				  , (h1-h0)/100. );  
+	} else{
+		runge_kutta_cash_karp54<state_type> stepper;
+		double dt = std::abs( times(1) - times(0)); 
+		integrate_const( stepper, dpikl0, x, h0, h1,  std::min( dt/step_size_res, (h1-h0)/step_size_res) );
+	}
 	mat pik1 = dpikl0.x2Pik( x); 
 	double L = x[nextant*m + 1 - 1]; 
 	

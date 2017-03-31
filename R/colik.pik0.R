@@ -25,6 +25,7 @@ colik.pik <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
+  , step_size_res = 10 # for adaptive ode solver, set to value < 1
 ) {
  
 	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
@@ -40,6 +41,7 @@ colik.pik <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
 	  , forgiveAgtY 
 	  , AgtY_penalty
 	  , returnTree
+	  , step_size_res
 	)
 }
 
@@ -52,6 +54,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
+  , step_size_res = 10
 ) {
 	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	t0 <- tail( tfgy[[1]], 1)
@@ -141,6 +144,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 		 ,h0
 		 ,h1
 		 ,pik0
+		 ,step_size_res
 		) 
 		pik1 <- pmax( pik1L1[[1]] , 0)
 		pik1 <- pik1[ , 1:(ncol(pik1)-1)]
