@@ -186,7 +186,8 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 				if (is.nan(L))
 				{
 					warning('is.nan(L)')
-					L <- (h1 - h0) * pa_corate[[2]]
+					#L <- (h1 - h0) * pa_corate[[2]]
+					L <- Inf
 				}
 				tree$lstates[,alpha] <- pa_corate[[1]]
 				tree$mstates[,alpha] <- pa_corate[[1]]
@@ -199,12 +200,12 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 				
 				# update lik
 				loglik <- loglik + log( pa_corate[[2]] ) - L ;
-				if (is.infinite( loglik)){
+				if (is.infinite( loglik) | is.na(loglik) ){
 					if (returnTree){
-						return(list( loglik = loglik
+						return(list( loglik = -Inf
 						 , tree = tree ))
 					} else{
-						return(loglik)
+						return(-Inf)
 					}
 				}
 				
