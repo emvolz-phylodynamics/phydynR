@@ -102,8 +102,8 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 	}
 	#if (is.null( tree$lstates)) 
 	{
-		tree$lstates <- matrix(0, ncol = tree$n + tree$Nnode, nrow = tree$m)
-		tree$lstates[1,] <- 1
+		tree$lstates <- matrix(NA, ncol = tree$n + tree$Nnode, nrow = tree$m)
+		#~ tree$lstates[1,] <- 1
 		tree$lstates[,1:tree$n ] <- t( tree$sampleStates )
 	}
 	tree$mstates <- tree$lstates + 1 - 1
@@ -218,7 +218,6 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 			L <- 0 
 		}
 	}
-	
 	if (returnTree){
 		return(list( loglik = loglik
 		 , tree = tree ))
