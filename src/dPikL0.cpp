@@ -14,7 +14,8 @@ using namespace Rcpp;
 using namespace std; 
 
 
-const double MIN_Y = 1e-12 ;
+
+const double MIN_Y = 1. ;
 
 typedef std::vector<double> state_type; 
 
@@ -49,14 +50,17 @@ public:
 		
 		vec A = sum(Pik, 1 );
 		vec Ampik = zeros(m); 
+		vec Ampik_Y = zeros(m); 
 		for (z = 0; z < nextant; z++){
 			dPik.col(z) = R * Pik.col(z) ; 
 			
 			Ampik = clamp( A - Pik.col(z), 0., INFINITY);
+
+			Ampik_Y = clamp( A / Y , 0., 1e6 );
 			for (k = 0; k < m; k++){
 				for( l = 0; l < m; l++){
-					dPik(k,z) -= (Pik(k,z)/Y(k)) * F(k,l) * Ampik(l) / Y(l) ; 
-					dL += (Pik(k,z)/Y(k)) * F(k,l) * Ampik(l) / Y(l) ; 
+					dPik(k,z) -= (Pik(k,z)/Y(k)) * F(k,l) * Ampik_Y(l) ; 
+					dL += (Pik(k,z)/Y(k)) * F(k,l) * Ampik_Y(l) ; 
 				}
 			}
 		}
