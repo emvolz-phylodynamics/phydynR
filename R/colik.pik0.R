@@ -18,7 +18,7 @@
 
 
 ################################################################################
-colik.pik <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
+colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 

@@ -63,7 +63,7 @@
 
 ################################################################################
 
-colik = colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
+colik.modular0 <- function(tree, theta, demographic.process.model, x0, t0, res = 1e3
   , integrationMethod='lsoda'
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
