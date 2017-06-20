@@ -204,6 +204,8 @@ phylo.source.attribution.multiDeme.fgy <- function( dated_tree
 #~ browser()
 print('start source attrib') 
 print(date())
+if(F)
+{
 	W <- sourceAttribMultiDemeCpp(
 	  heights
 	  , Fs[fgyi]
@@ -220,6 +222,25 @@ print(date())
 	  , TRUE
 	  , maxHeight
 	)
+}
+	W <- sourceAttribMultiDemeCpp2(
+	  heights
+	  , Fs[fgyi]
+	  , Gs[fgyi]
+	  , Ys[fgyi]
+	  , events
+	  , eventIndicatorNode
+	  , eventHeights
+	  , t(bdt$sampleStates) # m X n 
+	  , bdt$daughters
+	  , bdt$n
+	  , bdt$Nnode
+	  , m
+	  , TRUE
+	  , maxHeight
+	  , 10
+	)
+	
 	W$donor <- bdt$tip.label[ W$donor ]
 	W$recip <- bdt$tip.label[ W$recip ]
 print('source attrib complete')

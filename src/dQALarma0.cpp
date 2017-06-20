@@ -13,7 +13,7 @@ using namespace Rcpp;
 using namespace std; 
 
 
-const double MIN_Y = 1e-12 ;
+const double MIN_Y = 1. ;
 
 mat Q_from_state( const vec xfin, int m ){
 	// TODO faster version using fill

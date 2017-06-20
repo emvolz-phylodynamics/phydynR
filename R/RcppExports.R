@@ -111,6 +111,7 @@ updateWCpp <- function( W
 
 
 
+#########################
 
 sourceAttribMultiDemeCpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight) {
 	.Call(  'sourceCpp_0_sourceAttribMultiDemeCpp', PACKAGE='phydynR'
@@ -118,6 +119,14 @@ sourceAttribMultiDemeCpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventI
 	)
 }
 
+
+sourceAttribMultiDemeCpp2 <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res) {
+	.Call(  'sourceCpp_1_sourceAttribMultiDemeCpp2', PACKAGE='phydynR'
+	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res
+	)
+}
+
+#~ sourceCpp_1_sourceAttribMultiDemeCpp2
 
 
 ############# colik modular stuff

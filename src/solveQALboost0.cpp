@@ -14,7 +14,7 @@ using namespace Rcpp;
 using namespace std; 
 
 
-const double MIN_Y = 1e-12 ;
+const double MIN_Y = 1.;
 
 typedef std::vector<double> state_type; 
 

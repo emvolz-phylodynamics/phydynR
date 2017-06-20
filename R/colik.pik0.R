@@ -62,6 +62,11 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 		warning('t0 occurs after root of tree. Results may be innacurate.')
 	}
 	
+	# validate input TODO may be slow
+	tfgy[[2]] <- lapply( tfgy[[2]] , function(x) pmax( x, 0 ) )
+	tfgy[[3]] <- lapply( tfgy[[3]] , function(x) pmax( x, 0 ) )
+	tfgy[[4]] <- lapply( tfgy[[4]] , function(x) setNames(pmax(0, x ), names(x) ) )
+	
 	get.fgy <- function(h)
 	{# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 		#ih <- 1+floor( length(tfgy[[1]]) * h / (tree$maxSampleTime- tail(tfgy[[1]],1))  )

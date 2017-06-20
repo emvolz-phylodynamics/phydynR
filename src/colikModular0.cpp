@@ -6,7 +6,8 @@
 
 #include <RcppArmadillo.h>
 
-static const double MINY = 1e-12;
+//~ static const double MINY = 1e-12;
+static const double MINY = 1.;
 
 using namespace arma;
 using namespace Rcpp; 

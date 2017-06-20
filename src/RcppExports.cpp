@@ -263,6 +263,34 @@ BEGIN_RCPP
 END_RCPP
 }
 
+// sourceAttribMultiDemeCpp2
+List sourceAttribMultiDemeCpp2(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const mat sampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition, const double maxHeight, const int step_size_res);
+
+RcppExport SEXP sourceCpp_1_sourceAttribMultiDemeCpp2(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP, SEXP maxHeightSEXP, SEXP step_size_resSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector >::type heights(heightsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< const List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicator(eventIndicatorSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicatorNode(eventIndicatorNodeSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type eventHeights(eventHeightsSEXP);
+    Rcpp::traits::input_parameter< const mat >::type sampleStates(sampleStatesSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix >::type daughters(daughtersSEXP);
+    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int >::type Nnode(NnodeSEXP);
+    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
+    Rcpp::traits::input_parameter< const double >::type maxHeight(maxHeightSEXP);
+    Rcpp::traits::input_parameter< const int >::type step_size_res(step_size_resSEXP);
+    rcpp_result_gen = Rcpp::wrap(sourceAttribMultiDemeCpp2(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res));
+    return rcpp_result_gen;
+END_RCPP
+}
+
+
 
 ////// colik modular stuff
 // rco_finite_size_correction2
