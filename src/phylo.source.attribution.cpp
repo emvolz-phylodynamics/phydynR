@@ -84,17 +84,20 @@ public:
 		R_rho.each_row() /= Y.t();
 		R_rho.diag().zeros(); 
 		R_rho.diag() = R.diag(); // NOTE prob not conserved, sum should be psi //-sum( R, 0).t(); 
-		
+//~ cout << " integrating and computing x2 funcs " << endl;
 		mat Pik = x2Pik( x ); 
 		mat dPik = zeros<mat>( m, nextant); 
 		
 		mat rho_ik = x2rho( x ); 
-		mat drho_ik = zeros<mat>( m, nextant); 
+		mat drho_ik = zeros<mat>( m, nextant_tip); 
 		
 		vec A = sum(Pik, 1 );
 		vec Ampik = zeros(m); 
 		vec Ampik_Y = zeros(m); 
-		
+//~ cout << " nextant and nextant tip " << nextant << " " << nextant_tip << endl; 
+//~ cout <<  " " << Pik.n_cols << " " << rho_ik.n_cols << endl; 
+//~ cout <<  " " << dPik.n_cols << " " << drho_ik.n_cols << endl; 
+//~ cout << x.size() << " " << dxdt.size() << " " << m*nextant + m*nextant_tip << endl; 
 		// d P
 		for (z = 0; z < nextant; z++){
 			dPik.col(z) = R * Pik.col(z) ; 
@@ -123,7 +126,7 @@ public:
 			}
 		}
 		
-		w = 0; 
+		//~ w = 0; 
 		for (int z = 0; z < nextant_tip; z++){
 			for (int k = 0; k < m; k++){
 				dxdt[w] = drho_ik( k, z); 
@@ -248,7 +251,7 @@ List sourceAttribMultiDemeCpp2( const NumericVector heights, const List Fs, cons
 	uvec row_indices = zeros<uvec>(m); 
 //~ cout << row_indices << endl ; 
 	for (int k = 0;k < m; k++) row_indices(k) = k; 
-cout << row_indices << endl ; 
+//~ cout << row_indices << endl ; 
 	
 	h = 0.; 
 	while( nextEventHeight != INFINITY && nextEventHeight < maxHeight ){
@@ -263,18 +266,20 @@ cout << row_indices << endl ;
 			A = sum(P, 1);
 			A = arma::normalise(A,1.)  * ((double)nextant);
 cout << h << endl;
-cout << extant_indices << endl; 
-cout << row_indices << endl; 
-cout << "P" << endl;
-cout << P.submat(row_indices, extant_indices) << endl; 
-cout << "rho" << endl;
-cout << rho.submat(row_indices, extant_tip_indices) << endl; 
-throw 1; 
+//~ cout << extant_indices << endl; 
+//~ cout << row_indices << endl; 
+//~ cout << "P" << endl;
+//~ cout << P.submat(row_indices, extant_indices) << endl; 
+//~ cout << "rho" << endl;
+//~ cout << rho.submat(row_indices, extant_tip_indices) << endl; 
+//~ throw 1; 
+//~ cout << " start cond " << endl;
 			x = dpikrho.generate_initial_conditions( P.submat(row_indices, extant_indices)
 			  , rho.submat(row_indices, extant_tip_indices)
 			  , m, nextant, nextant_tip); 
 //~ cout << vec(x) << endl; 
 			//
+//~ cout << " integrating " << endl; 
 			if (step_size_res < 1){
 				integrate_steps = integrate( dpikrho ,  x , h , nextEventHeight
 						  , (nextEventHeight - h)/100. );  
@@ -282,7 +287,8 @@ throw 1;
 				integrate_const( stepper, dpikrho, x, h, nextEventHeight
 				 ,  std::min( dt/step_size_res, (nextEventHeight-h)/step_size_res) );
 			}
-			
+//~ cout << " done integrating " << endl; 
+
 			P.submat(row_indices, extant_indices) = dpikrho.x2Pik( x );
 			rho.submat(row_indices, extant_tip_indices) = dpikrho.x2rho( x );
 			
@@ -293,6 +299,7 @@ throw 1;
 		if (eventIndicator(ievent)==SAMPLE)
 		{
 			u = eventIndicatorNode(ievent); 
+//~ cout << " sample " << u-1 << " " << rho.n_cols << endl;
 			nextant++; 
 			nextant_tip++; 
 			//~ P.col(u-1) = arma::normalise(sortedSampleStates.col(samplesAdded) ,1.); //TODO
@@ -316,6 +323,8 @@ throw 1;
 			puY = arma::normalise(  arma::min(Y,P.col(u- 1 )) ,1.) / arma::clamp( Y, MIN_Y, INFINITY ) ; 
 			pvY = arma::normalise(  arma::min(Y,P.col(v- 1 )) ,1.) / arma::clamp( Y, MIN_Y, INFINITY ) ; 
 			//~ loglik += log( (( puY * F) * pvY).at(0,0) ) ; 
+cout << puY << endl;
+cout << pvY << endl; 
 			
 			// state of ancestor 
 			pa =  arma::normalise( (F * puY) % pvY + (F * pvY) % puY ,1.) ; 
@@ -351,11 +360,12 @@ throw 1;
 								//~ pzw = psi_time.at(iw) * psi_time.at(iz) *  pzw0 / (pwz0 + pzw0 ) ;
 								pwz = psi_w * psi_z * pwz0 / ( pwz0 + pzw0); 
 								pzw = psi_w * psi_z * pzw0 / ( pwz0 + pzw0); 
+								
 							}  else{
-								cout << " (pwz0 + pzw0) = 0 " << endl; 
-								cout << psi_time.at(iw) << " " <<  psi_time.at(iz)<< endl; 
-								cout << rho.col(iw) << endl; 
-								cout << rho.col(iz) << endl;
+//~ cout << " (pwz0 + pzw0) = 0 " << endl; 
+//~ cout << psi_time.at(iw) << " " <<  psi_time.at(iz)<< endl; 
+//~ cout << rho.col(iw) << endl; 
+//~ cout << rho.col(iz) << endl;
 								pwz = 0.;
 								pzw = 0.; 
 							}
@@ -378,25 +388,47 @@ throw 1;
 			//update rho and psi
 			for (int iw = 0; iw < n; iw++){// w & z tips
 				if (tipsDescendedFrom.at(u-1, iw)==1){
+//~ cout << iw << " " << rho.n_cols << " " << tipsDescendedFrom.n_cols << endl; 
 					//tip descended from a and u
 					rho_w__Y = arma::normalise( arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double puv = sum( rho_w__Y % (F * pvY) );
 					double pvu = sum( pvY % (F * rho_w__Y ));
 					puv = puv / (puv + pvu ) ;
+					psi_time.at(iw) = sum( rho.col(iw)); 
 					psi_time.at(iw) *= puv ;
+//~ if (psi_time.at(iw)<1){
+	//~ cout << "psi_time.at(iw)<=0" << endl;
+	//~ cout << rho.col(iw) << endl; 
+	//~ cout << sum(rho.col(iw)) << endl; 
+	//~ cout << psi_time.at(iw) << endl; 
+	//~ cout << puv << endl; 
+//~ }
 					//update rho(iw)
-					rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) , 1.);
+					//~ rho.col(iw) = arma::normalise( rho_w__Y % (F * pvY) , 1.);
+					rho.col(iw) =  (rho_w__Y % (F * pvY)) ;
+					rho.col(iw) =  psi_time.at(iw) * rho.col(iw) / sum(rho.col(iw));
 				} else if (tipsDescendedFrom.at(v-1, iw)==1){
+//~ cout << iw << " " << rho.n_cols << " " << tipsDescendedFrom.n_cols << endl; 
 					//tip descended from a and v
 					rho_w__Y = arma::normalise(arma::clamp(  arma::min(Y,rho.col(iw))  / Y, 0., 1. ) ,1.) ; 
 					//update psi(iw)
 					double pvu = sum( rho_w__Y % (F * puY) );
 					double puv = sum( puY % (F * rho_w__Y ));
 					pvu = pvu / (puv + pvu ) ;
+					psi_time.at(iw) = sum( rho.col(iw)); 
 					psi_time.at(iw) *= pvu ;
+//~ if (psi_time.at(iw)<1){
+	//~ cout << "psi_time.at(iw)<=0" << endl;
+	//~ cout << rho.col(iw) << endl; 
+	//~ cout << sum(rho.col(iw)) << endl; 
+	//~ cout << psi_time.at(iw) << endl; 
+	//~ cout << pvu << endl; 
+//~ }
 					//update rho(iw)
-					rho.col(iw) = arma::normalise(  rho_w__Y % (F * puY) ,1.);
+					//~ rho.col(iw) = arma::normalise(  rho_w__Y % (F * puY) ,1.);
+					rho.col(iw) =  (rho_w__Y % (F * pvY)) ;
+					rho.col(iw) =  psi_time.at(iw) * rho.col(iw) / sum(rho.col(iw));
 				}
 			}
 		}

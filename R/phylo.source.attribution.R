@@ -132,6 +132,7 @@ phylo.source.attribution.multiDeme.fgy <- function( dated_tree
   , tfgy
   , treeErrorTol = 1e-2
   , timeOfOriginBoundaryCondition = FALSE
+  , mode = 2
 ) 
 {
 	bdt <- dated_tree
@@ -204,7 +205,8 @@ phylo.source.attribution.multiDeme.fgy <- function( dated_tree
 #~ browser()
 print('start source attrib') 
 print(date())
-if(F)
+#~ browser()
+if(mode == 1)
 {
 	W <- sourceAttribMultiDemeCpp(
 	  heights
@@ -222,7 +224,7 @@ if(F)
 	  , TRUE
 	  , maxHeight
 	)
-}
+} else{
 	W <- sourceAttribMultiDemeCpp2(
 	  heights
 	  , Fs[fgyi]
@@ -240,6 +242,7 @@ if(F)
 	  , maxHeight
 	  , 10
 	)
+}
 	
 	W$donor <- bdt$tip.label[ W$donor ]
 	W$recip <- bdt$tip.label[ W$recip ]
@@ -273,6 +276,7 @@ phylo.source.attribution.hiv.msm <- function( tree
   , res = 1e3
   , treeErrorTol = 1/12
   , minEdgeLength=1/52
+  , mode = 2
 ) {
 print("NOTE : sample times must be in units of years") 	
 	# note time units in year
@@ -350,6 +354,7 @@ print("NOTE : sample times must be in units of years")
 	  , tfgy
 	  , treeErrorTol = 1e-3
 	  , timeOfOriginBoundaryCondition = FALSE
+	  , mode = mode
 	)
 }
 
