@@ -419,7 +419,7 @@ deaths.attr("names") = rcnames;
 				## NOTE x0 should be passed here in case there are estimated parameters related to initial conditions
 				if (m == 2 & length(x0) == (1+mm) & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
 				#reorder x0 if necessary
-				if (length(x0)!=m + mm) stop(paste('initial conditons incorrect dimension', x0, m, mm) )
+				if (length(x0)!=m + mm) stop(paste('initial conditons incorrect dimension', paste(x0, m, mm) ) )
 				if ( sum( !(c(demeNames, nonDemeNames) %in% names(x0)) )  > 0)  stop(paste('initial conditions vector incorrect names', names(x0), demeNames, nonDemeNames))
 				y0 <- x0[c(demeNames, nonDemeNames)]
 								
@@ -458,8 +458,8 @@ deaths.attr("names") = rcnames;
 			{ # value : list(times, births, migrations, sizes )
 				# NOTE x0 should be passed here in case there are estimated parameters related to initial conditions
 				#reorder x0 if necessary
-				if (m == 2 & length(x0) == 1 & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
-				if (length(x0)!=m + mm) stop('initial conditons incorrect dimension', x0, m, mm) 
+				if (m == 2 & length(x0) == (1+mm) & demeNames[2]=='V2') x0 <- c(x0, V2 = 0)
+				if (length(x0)!=m + mm) stop('initial conditons incorrect dimension', paste(x0, m, mm)  )
 				if ( sum( !(c(demeNames, nonDemeNames) %in% names(x0)) )  > 0)  stop('initial conditions vector incorrect names', names(x0), demeNames, nonDemeNames)
 				y0 <- x0[c(demeNames, nonDemeNames)]
 				
