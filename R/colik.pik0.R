@@ -144,7 +144,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
         
 		## update mstates, L 
 		# <new code here>
-		pik0 <- cbind( tree$mstates[, extantLines ]  ,rep(0, m ))
+		pik0 <- cbind( tree$mstates[, extantLines ]  ,rep(0, tree$m ))
 		pik1L1 <- solvePikL0(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
 		 ,h0
 		 ,h1
