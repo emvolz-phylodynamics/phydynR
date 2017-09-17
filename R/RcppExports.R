@@ -57,59 +57,6 @@ simulateTreeCpp3x0 <- function(times
 }
 
 
-colik2cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition) {
-	.Call(  'sourceCpp_0_colik2cpp', PACKAGE='phydynR'
-	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition
-	)
-}
-
-colik3cpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition) {
-	.Call(  'sourceCpp_0_colik3cpp', PACKAGE='phydynR'
-	 , heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sortedSampleStates, daughters, n, Nnode, m, AgtYboundaryCondition
-	)
-}
-
-
-colik4cpp <- function( times, Fs, Gs, Ys
-	 , sortedSampleHeights, sortedSampleStates
-     , eventIndicator, eventIndicatorNode
-     , eventHeights, daughters
-     , maxSampleTime
-     ,  m
-     , finiteSizeCorrection
-     , maxHeight)
-{
-
-	.Call( 'sourceCpp_colik4cpp', PACKAGE='phydynR'
-	  , times, Fs, Gs, Ys
-	  , sortedSampleHeights,sortedSampleStates
-     , eventIndicator, eventIndicatorNode
-     , eventHeights, daughters
-     , maxSampleTime
-     ,  m
-     , finiteSizeCorrection
-     , maxHeight
-	)
-}
-
-updateWCpp <- function( W
-  , psi_a 
-  , utips
-  , vtips
-  , utipsW
-  , vtipsW )
-{
-	.Call( 'sourceCpp_0_updateWCpp', PACKAGE='phydynR'
-	  , W
-	  , psi_a 
-	  , utips
-	  , vtips
-	  , utipsW
-	  , vtipsW
-	)
-}
-
-
 
 #########################
 

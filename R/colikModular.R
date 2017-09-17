@@ -286,13 +286,6 @@ colik.fgy1 <- function(
 		if (length(newNodes) > 0) {
 			L <- 0 
 		}
-#~ print( A)
-#~ print(ih)
-#~ print(loglik)
-#~ print(fgy)
-#~ print( c( h0, h1 ))
-#~ print(Q)
-#~ cat('\n')
 	}
 	
 	if (returnTree){
