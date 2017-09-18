@@ -304,3 +304,23 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+
+
+// solveQfwd0
+mat solveQfwd0(vec times, List Fs, List Gs, List Ys, List deaths, int m, double h1, double h0);
+RcppExport SEXP sourceCpp_1_solveQfwd0(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP deathsSEXP, SEXP mSEXP, SEXP h1SEXP, SEXP h0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< List >::type deaths(deathsSEXP);
+    Rcpp::traits::input_parameter< int >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type h1(h1SEXP);
+    Rcpp::traits::input_parameter< double >::type h0(h0SEXP);
+    rcpp_result_gen = Rcpp::wrap(solveQfwd0(times, Fs, Gs, Ys, deaths, m, h1, h0));
+    return rcpp_result_gen;
+END_RCPP
+}

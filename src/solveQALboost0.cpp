@@ -79,7 +79,7 @@ public:
 						}
 						if (Q(x, k,z) > 0)
 						{
-							dxdt[ Qind(k, z ) ] -= (F(l,k) + G(l,k)) *  Q(x, k,z)/  std::max(Q(x, k,z), Y(k));
+							dxdt[ Qind(k, z ) ] -= (F(l,k) + G(l,k)) *  Q(x, k,z)/  std::max(Q(x,k,z), Y(k));
 						}
 					}
 					// coalescent:

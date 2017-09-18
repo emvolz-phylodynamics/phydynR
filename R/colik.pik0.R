@@ -121,6 +121,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 	S <- 1
 	L <- 0
 	
+	# NOTE extant refers to node indices with parent lineage extant 
 	extantAtEvent_nodesAtHeight <- eventTimes2extant( eventTimes, tree$heights, tree$parentheight ) #1-2 millisec
 	extantAtEvent_list <- extantAtEvent_nodesAtHeight[[1]]
 	nodesAtHeight <- extantAtEvent_nodesAtHeight[[2]]

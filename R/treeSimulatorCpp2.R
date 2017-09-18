@@ -266,8 +266,11 @@ deaths.attr("names") = rcnames;
 				Gs <- lapply( nrow(ox):1, function(i) {
 					Gcpp( ox[i,2:ncol(ox)], ox[i,1], m, unlist(theta), demeNames)$G
 				})
+				dths <- lapply( nrow(ox):1, function(i) {
+					death.cpp(ox[i,2:ncol(ox)], times[i], m, unlist(theta), demeNames)
+				})
 				# include ox for debugging
-				o <- list( times=rev(times), births=Fs, migrations=Gs, sizes=Ys , ox )
+				o <- list( times=rev(times), births=Fs, migrations=Gs, sizes=Ys , ox, deaths=dths )
 				class(o) <- c('tfgy', 'list')
 				o
 			}
@@ -291,6 +294,7 @@ deaths.attr("names") = rcnames;
 				Fs <- list()
 				Gs <- list()
 				Ys <- list()
+				deaths <- list()
 				times <- seq(t0, t1, length.out = res )
 				Dt <- times[2] - times[1]
 				x <- y0
@@ -306,6 +310,7 @@ deaths.attr("names") = rcnames;
 					rG <- matrix( nrow=m, ncol = m, pmax(0, rnorm(m*m, mean = as.vector(GG)*Dt, sd = sqrt( as.vector(GG)*Dt)  ) ) )
 					Gs[[it]] <- rG / Dt
 					.deaths <- death.cpp(x, t, m, theta, demeNames)
+					deaths[[it]] <- .deaths
 					rdeaths <- pmax(0, rnorm(m, mean = .deaths * Dt, sd = sqrt(.deaths * Dt)   ) )
 					stepx_demes <- colSums( rF) + colSums( rG ) - rowSums( rG ) - rdeaths
 					if (mm > 0){
@@ -323,7 +328,7 @@ deaths.attr("names") = rcnames;
 				
 				
 				# include ox for debugging
-				o <- list( times=rev(times), births=rev(Fs), migrations=rev(Gs), sizes=rev(Ys) , ox )
+				o <- list( times=rev(times), births=rev(Fs), migrations=rev(Gs), sizes=rev(Ys) , ox, deaths=rev(deaths) )
 				class(o) <- c('tfgy', 'list')
 				o
 			}
@@ -447,9 +452,9 @@ deaths.attr("names") = rcnames;
 				Ys <- lapply( nrow(ox):1, function(i) ox[i, demeNames] )
 				Fs <- lapply( nrow(ox):1, function(i) .birth.matrix(ox[i,], ox[i,1], parms)  ) 
 				Gs <- lapply( nrow(ox):1, function(i) .migration.matrix(ox[i,], ox[i,1], parms)  ) 
-				
+				deaths <- lapply( nrow(ox):1, function(i) tDeaths(ox[i,], ox[i,1], parms)  ) 
 				# include ox for debugging
-				o <- list( times=rev(times), births=Fs, migrations=Gs, sizes=Ys , ox )
+				o <- list( times=rev(times), births=Fs, migrations=Gs, sizes=Ys , ox, deaths=deaths )
 				class(o) <- c('tfgy', 'list')
 				o
 			}
@@ -472,6 +477,7 @@ deaths.attr("names") = rcnames;
 				Fs <- list()
 				Gs <- list()
 				Ys <- list()
+				deaths<- list()
 				times <- seq(t0, t1, length.out = res )
 				Dt <- times[2] - times[1]
 				x <- y0
@@ -488,6 +494,7 @@ deaths.attr("names") = rcnames;
 					Gs[[it]] <- rG / Dt
 					.deaths <- tDeaths( x, t, parms )
 					rdeaths <- pmax(0, rnorm(m, mean = .deaths * Dt, sd = sqrt(.deaths * Dt)   ) )
+					deaths[[it]] <- rdeaths
 					stepx_demes <- colSums( rF) + colSums( rG ) - rowSums( rG ) - rdeaths
 					stepx_demes[is.na(stepx_demes)] <- 0
 					if (mm > 0){
@@ -508,7 +515,7 @@ deaths.attr("names") = rcnames;
 				
 				
 				# include ox for debugging
-				o <- list( times=rev(times), births=rev(Fs), migrations=rev(Gs), sizes=rev(Ys) , ox )
+				o <- list( times=rev(times), births=rev(Fs), migrations=rev(Gs), sizes=rev(Ys) , ox, deaths=rev(deaths) )
 				class(o) <- c('tfgy', 'list')
 				o
 			}
@@ -607,6 +614,9 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 		#if (length( uv)!=2) print( uv )
 		uv
 	}))
+	
+	phylo$daughter2edge <- sapply( 1:(phylo$n+phylo$Nnode), function(u) which( phylo$edge[,2]==u))
+	phylo$parent2edges <- sapply( 1:(phylo$n+phylo$Nnode), function(u) which( phylo$edge[,1]==u))
 	
 	class(phylo) <- c("DatedTree", "phylo")
 	phylo
