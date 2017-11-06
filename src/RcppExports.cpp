@@ -267,6 +267,26 @@ BEGIN_RCPP
 END_RCPP
 }
 
+
+// solveQALboost1
+List solveQALboost1(vec times, List Fs, List Gs, List Ys, double h0, double h1, double L0, vec A0);
+RcppExport SEXP sourceCpp_solveQALboost1(SEXP timesSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP h0SEXP, SEXP h1SEXP, SEXP L0SEXP, SEXP A0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< vec >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< List >::type Fs(FsSEXP);
+    Rcpp::traits::input_parameter< List >::type Gs(GsSEXP);
+    Rcpp::traits::input_parameter< List >::type Ys(YsSEXP);
+    Rcpp::traits::input_parameter< double >::type h0(h0SEXP);
+    Rcpp::traits::input_parameter< double >::type h1(h1SEXP);
+    Rcpp::traits::input_parameter< double >::type L0(L0SEXP);
+    Rcpp::traits::input_parameter< vec >::type A0(A0SEXP);
+    __result = Rcpp::wrap(solveQALboost1(times, Fs, Gs, Ys, h0, h1, L0, A0));
+    return __result;
+END_RCPP
+}
+
 //dQL
 vec dQL( vec x , mat F , mat G, vec Y, vec A0);
 RcppExport SEXP scpp_dQL( SEXP xSP , SEXP FSP, SEXP GSP, SEXP YSP, SEXP A0SP){

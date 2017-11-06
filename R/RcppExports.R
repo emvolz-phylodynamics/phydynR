@@ -102,6 +102,11 @@ solveQALboost0 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0) {
 	 , times, Fs, Gs, Ys, h0, h1, L0, A0)
 }
 
+solveQALboost1 <- function(times, Fs, Gs, Ys, h0, h1, L0, A0) {
+	.Call( 'sourceCpp_solveQALboost1' , PACKAGE='phydynR'
+	 , times, Fs, Gs, Ys, h0, h1, L0, A0)
+}
+
 
 dQLcpp <- function ( x, FF, GG, YY, A0 ){
 	.Call( 'scpp_dQL', PACKAGE='phydynR'

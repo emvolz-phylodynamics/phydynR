@@ -16,6 +16,17 @@
 	out
 }
 
+.solve.Q.A.L.boost1 <- function(h0, h1, A0, L0, tree, tfgy)
+{ # solves eqns for logit transform of Q
+	out <- solveQALboost1(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
+	 , h0
+	 , h1
+	 , L0
+	 , A0
+	)
+	out
+}
+
 
 .solve.Q.A.L.deSolve <- function(h0, h1, A0, L0, tree, tfgy, integrationMethod='lsoda')
 {
@@ -107,7 +118,7 @@ colik.fgy1 <- function(
 	  , forgiveAgtY =1
 	  , AgtY_penalty=1
 	  , returnTree=F
-	  , solveODE =1
+	  , solveODE =0
 ){
 	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	get.fgy <- function(h)
@@ -193,8 +204,12 @@ colik.fgy1 <- function(
             worklist <- worklist[c(-1)]
             if (solveODE==0) {
 			  out <- .solve.Q.A.L.deSolve(hw0, hw1, A0, L, tree, tfgy, integrationMethod=integrationMethod)
-			} else {
+			} else if (solveODE==1){
 				out <- .solve.Q.A.L.boost(hw0, hw1, A0, L, tree, tfgy)
+			} else if (solveODE == 2){
+				out <- .solve.Q.A.L.boost1(hw0, hw1, A0, L, tree, tfgy)
+			} else{
+				stop('Invalid *solveODE* value' )
 			}
 	    if (is(out,"warning")) {
               worklist <- c(hw0,(hw0+hw1)/2,worklist)
