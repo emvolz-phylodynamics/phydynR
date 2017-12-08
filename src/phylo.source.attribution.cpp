@@ -52,7 +52,7 @@ NumericMatrix updateWCpp(NumericMatrix W,  NumericVector psi_a
 
 
 
-typedef std::vector<double> state_type; 
+typedef std::vector<double> ode_state_type; 
 
 class DPikRhoPsi{
 	List Fs, Gs, Ys; 
@@ -66,7 +66,7 @@ class DPikRhoPsi{
 public:
 	DPikRhoPsi( const List Fs, const List  Gs, const List Ys, const int m, const double hres, const double treeT, const int nextant) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),nextant(nextant),nextant_tip(nextant_tip) { };
 	
-	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)//, const double /* t */ )
     {
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
 		mat F = as<mat>(Fs[i]); 
@@ -131,11 +131,11 @@ public:
 		}
 	}
 	
-	mat x2Pik( state_type x ){
+	mat x2Pik( ode_state_type x ){
 		return mat( &x[0], m, nextant ); 
 	}
 	
-	mat x2rho( state_type x ){
+	mat x2rho( ode_state_type x ){
 		return mat( &x[m*nextant], m, nextant_tip ); 
 	}
 	
@@ -147,8 +147,8 @@ public:
 		nextant_tip = ne; 
 	}
 	
-	state_type generate_initial_conditions( mat pik0, mat rho0, int m, int nextant, int nextant_tip ){
-		state_type x( m * nextant + m * nextant_tip , 0.); 
+	ode_state_type generate_initial_conditions( mat pik0, mat rho0, int m, int nextant, int nextant_tip ){
+		ode_state_type x( m * nextant + m * nextant_tip , 0.); 
 		int w = 0; 
 		for (int z =0; z < nextant; z++){
 			for (int k = 0; k < m; k++){
@@ -223,9 +223,9 @@ List sourceAttribMultiDemeCpp2( const NumericVector heights, const List Fs, cons
 	
 	double psi_w, psi_z;   
 	
-	state_type x;
+	ode_state_type x;
 	DPikRhoPsi dpikrho(Fs, Gs, Ys, m, hres, treeT, nextant ); 
-	runge_kutta_cash_karp54<state_type> stepper;
+	runge_kutta_cash_karp54<ode_state_type> stepper;
 	double dt = std::abs( heights(1) - heights(0));
 		
 	// iterate events 

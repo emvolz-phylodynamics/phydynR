@@ -15,7 +15,7 @@ using namespace Rcpp;
 static const int SAMPLE  = 0; 
 static const int CO = 1; 
 
-typedef std::vector<double> state_type; 
+typedef std::vector<double> ode_state_type; 
 
 mat finite_size_correction2(const vec& p_a, const vec& A, const std::vector<bool> extant, mat P)
 {
@@ -78,7 +78,7 @@ class DQAL{
 	double treeT; 
 public:
 	DQAL( List Fs, List  Gs, List Ys, int m, double hres, double treeT ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT) {};
-	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)//, const double /* t */ )
     {
 		// time index
 		//~ int i =  (int)min( 1+(int)( hres * (*t) / treeT ), hres);
@@ -177,13 +177,13 @@ private:
 		//~ return as<vec>(Ys[ih]).at(k);
 	//~ }
 	
-	double Q( const state_type &x, int k, int l) {
+	double Q( const ode_state_type &x, int k, int l) {
 		return x[l*m+k]; 
 	}
-	double A( const state_type &x, int k) {
+	double A( const ode_state_type &x, int k) {
 		return x[(int)pow(m,2) + k]; 
 	}
-	double L( const state_type &x ) {
+	double L( const ode_state_type &x ) {
 		return x[ (int)pow(m,2) + m] ;
 	}
 	
@@ -199,9 +199,9 @@ private:
 }; 
 
 
-state_type generate_initial_conditions( vec A){
+ode_state_type generate_initial_conditions( vec A){
 	int m = A.size() ;
-	state_type x( (int)pow(m,2) + m + 1, 0. ); 
+	ode_state_type x( (int)pow(m,2) + m + 1, 0. ); 
 	int k = 0; 
 	for (int i =0; i < m; i++){
 		for (int j =0 ; j < m; j++){
@@ -218,7 +218,7 @@ state_type generate_initial_conditions( vec A){
 	return x; 
 }
 
-void Q_from_state( mat &Q, state_type xfin ){
+void Q_from_state( mat &Q, ode_state_type xfin ){
 	int m = Q.n_rows; 
 	int k =0 ;
 	for (int i = 0; i < m; i++){
@@ -233,7 +233,7 @@ void Q_from_state( mat &Q, state_type xfin ){
 	//~ Q = Q / arma::sum(Q, 1) ; 
 }
 
-void A_from_state( vec &A, state_type xfin){
+void A_from_state( vec &A, ode_state_type xfin){
 	int m = A.size(); 
 	int k = 0; 
 	for ( int i = (int)pow(m,2); i < ((int)pow(m,2)+m); i++){
@@ -242,7 +242,7 @@ void A_from_state( vec &A, state_type xfin){
 	}
 }
 
-double L_from_state( state_type xfin){
+double L_from_state( ode_state_type xfin){
 	return (double)xfin[xfin.size()-1]; 
 }
 
@@ -260,7 +260,7 @@ class DQpsiA{
 	double treeT; 
 public:
 	DQpsiA( List Fs, List  Gs, List Ys, int m, double hres, double treeT ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT) {};
-	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)//, const double /* t */ )
     {
 		// time index
 		//~ NOTE hres = length(times)
@@ -325,13 +325,13 @@ public:
 		}
     }
 private:
-	double Q( const state_type &x, int k, int l) {
+	double Q( const ode_state_type &x, int k, int l) {
 		return x[l*m+k]; 
 	}
-	double psi( const state_type &x, int k) {
+	double psi( const ode_state_type &x, int k) {
 		return x[(int)pow(m,2) +  k]; 
 	}
-	double A( const state_type &x, int k) {
+	double A( const ode_state_type &x, int k) {
 		return x[(int)pow(m,2) + m + k]; 
 	}
 	int Qind( int k, int l ){
@@ -347,9 +347,9 @@ private:
 
 
 
-state_type generate_initial_conditions_dqpsia(vec A){
+ode_state_type generate_initial_conditions_dqpsia(vec A){
 	int m = A.size() ;
-	state_type x( (int)pow(m,2) + m + m, 0. ); 
+	ode_state_type x( (int)pow(m,2) + m + m, 0. ); 
 	int k = 0; 
 	for (int i =0; i < m; i++){
 		for (int j =0 ; j < m; j++){
@@ -371,7 +371,7 @@ state_type generate_initial_conditions_dqpsia(vec A){
 }
 
 
-void Qrho_from_state( mat &Qrho, state_type xfin ){
+void Qrho_from_state( mat &Qrho, ode_state_type xfin ){
 	int m = Qrho.n_rows; 
 	int k =0 ;
 	for (int i = 0; i < m; i++){
@@ -386,7 +386,7 @@ void Qrho_from_state( mat &Qrho, state_type xfin ){
 }
 
 
-void psi_from_state( vec &psi, state_type xfin ){
+void psi_from_state( vec &psi, ode_state_type xfin ){
 	int m = psi.size(); 
 	int k = 0; 
 	for ( int i = (int)pow(m,2); i < ((int)pow(m,2)+m); i++){
@@ -446,10 +446,10 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 	double hres =  heights.size() ;
 	double treeT = heights[heights.size()-1]; // note increasing order   
 	DQAL dqal(Fs, Gs, Ys, m, hres, treeT ); 
-	state_type x0;//, x; 
+	ode_state_type x0;//, x; 
 	
 	DQpsiA dqpsia( Fs, Gs, Ys, m, hres, treeT );
-	state_type x0sa; 
+	ode_state_type x0sa; 
 	
 	// iterate events 
 	double nextEventHeight = eventHeights(0); 
@@ -462,7 +462,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
 	double L = 0.; 	
 	
 	//
-	//~ boost::numeric::odeint::euler< state_type > eu_stepper;
+	//~ boost::numeric::odeint::euler< ode_state_type > eu_stepper;
 	
 	h = 0.; 
 	while( nextEventHeight != INFINITY && nextEventHeight < maxHeight ){
