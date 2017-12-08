@@ -13,7 +13,7 @@
 
 
 
-using namespace arma;
+//~ using namespace arma;
 using namespace Rcpp; 
 using namespace std; 
 
@@ -32,10 +32,10 @@ class DQAL3{
 	int m; 
 	double hres; 
 	double treeT; 
-	vec A0; 
+	arma::vec A0; 
 	double sumA; 
 public:
-	DQAL3( List Fs, List  Gs, List Ys, int m, double hres, double treeT, vec _xA0 ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),A0(_xA0) {
+	DQAL3( List Fs, List  Gs, List Ys, int m, double hres, double treeT, arma::vec _xA0 ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),A0(_xA0) {
 		sumA = sum(_xA0); 
 	};
 	
@@ -47,16 +47,16 @@ public:
 		//~ NOTE hres = length(times)
 		//~ NOTE treeT = max(times)
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
-		mat F = as<mat>(Fs[i]); 
-		mat G = as<mat>(Gs[i]); 
-		vec Y = clamp(as<vec>(Ys[i]), MIN_Y, INFINITY ); 
+		arma::mat F = as<arma::mat>(Fs[i]); 
+		arma::mat G = as<arma::mat>(Gs[i]); 
+		arma::vec Y = arma::clamp(as<arma::vec>(Ys[i]), MIN_Y, INFINITY ); 
 		
 		int k,l,z,w;
 		double pdot; 
 		
-		vec A = A_from_state( x ) ;
+		arma::vec A = A_from_state( x ) ;
 		//~ vec a = clamp( A / Y , 0., 1. ); 
-		vec a = A / Y ; 
+		arma::vec a = A / Y ; 
 		
 		//d logodds(Q)
 		for (z = 0; z < m; z++){ // col of Q
@@ -115,8 +115,8 @@ public:
 		return x; 
 	}
 
-	mat Q_from_state(  state_type xfin ){
-		mat Q = zeros(m,m); 
+	arma::mat Q_from_state(  state_type xfin ){
+		arma::mat Q = arma::zeros(m,m); 
 		int k =0 ;
 		for (int i = 0; i < m; i++){
 			for (int j = 0; j < m; j++){
@@ -130,9 +130,9 @@ public:
 		return Q;
 	}
 
-	vec A_from_state( state_type x)
+	arma::vec A_from_state( state_type x)
 	{
-		vec A =  Q_from_state( x ).t() * A0 ; 
+		arma::vec A =  Q_from_state( x ).t() * A0 ; 
 		A = sumA * A / sum(A) ;  
 		return A; 
 	}
@@ -177,15 +177,15 @@ private:
 
 
 //[[Rcpp::export()]]
-List solveQALboost1(vec times, List Fs, List Gs, List Ys
+List solveQALboost1(arma::vec times, List Fs, List Gs, List Ys
  , double h0
  , double h1
  , double L0
- , vec A0
+ , arma::vec A0
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
 	int m = A0.size();
-	mat Q0 = diagmat( ones( m )) ;
+	arma::mat Q0 = arma::diagmat( arma::ones( m )) ;
 	double hres = times.size();
 	
 	DQAL3 dqal(Fs, Gs, Ys, m, hres, treeT, A0 ); 
@@ -197,8 +197,8 @@ List solveQALboost1(vec times, List Fs, List Gs, List Ys
 	boost::numeric::odeint::runge_kutta4< state_type > stepper;
 	boost::numeric::odeint::integrate_const( stepper , dqal , x , h0, h1 ,  (h1-h0)/10. );
 	
-	mat Q = dqal.Q_from_state( x); 
-	vec A = dqal.A_from_state( x); 
+	arma::mat Q = dqal.Q_from_state( x); 
+	arma::vec A = dqal.A_from_state( x); 
 	double L = dqal.L_from_state(x); 
 	
 //~ cout << h0 << endl;

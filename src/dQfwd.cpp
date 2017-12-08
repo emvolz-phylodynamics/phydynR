@@ -9,7 +9,7 @@
 
 
 
-using namespace arma;
+//~ using namespace arma;
 using namespace Rcpp; 
 using namespace std; 
 
@@ -25,7 +25,7 @@ class DQfwd{
 	int m; 
 	double hres; 
 	double treeT; 
-	vec A0; 
+	arma::vec A0; 
 	double sumA; 
 public:
 	DQfwd( List Fs, List  Gs, List Ys, List deaths, int m, double hres, double treeT ) : Fs(Fs),Gs(Gs),Ys(Ys),deaths(deaths),m(m),hres(hres),treeT(treeT){ };
@@ -38,10 +38,10 @@ public:
 		//~ NOTE hres = length(times)
 		//~ NOTE treeT = max(times)
 		int i =  (int)std::max(0., std::min( hres * (treeT-t) / treeT , (double)(hres-1.))); 
-		mat F = as<mat>(Fs[i]); 
-		mat G = as<mat>(Gs[i]); 
-		vec Y = clamp(as<vec>(Ys[i]), MIN_Y, INFINITY ); 
-		vec death = as<vec>(deaths[i]); 
+		arma::mat F = as<arma::mat>(Fs[i]); 
+		arma::mat G = as<arma::mat>(Gs[i]); 
+		arma::vec Y = arma::clamp(as<arma::vec>(Ys[i]), MIN_Y, INFINITY ); 
+		arma::vec death = as<arma::vec>(deaths[i]); 
 		
 		int k,l,z,w;
 		
@@ -84,8 +84,8 @@ public:
 	}
 	
 	// note returns Q in col order
-	mat Q_from_state(  state_type xfin ){
-		mat QQ = zeros(m,m); 
+	arma::mat Q_from_state(  state_type xfin ){
+		arma::mat QQ = arma::zeros(m,m); 
 		int k =0 ;
 		for (int j = 0; j < m; j++){
 			for (int i = 0; i < m; i++){
@@ -111,13 +111,13 @@ private:
 
 
 //[[Rcpp::export()]]
-mat solveQfwd0(vec times, List Fs, List Gs, List Ys, List deaths
+arma::mat solveQfwd0(arma::vec times, List Fs, List Gs, List Ys, List deaths
  , int m
  , double h1
  , double h0
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
-	mat Q0 = diagmat( ones( m )) ;
+	arma::mat Q0 = arma::diagmat( arma::ones( m )) ;
 	double hres = times.size();//abs(times(1) - times(0)); 
 	
 	DQfwd dqfwd  (Fs, Gs, Ys, deaths, m, hres, treeT ); 
@@ -127,6 +127,6 @@ mat solveQfwd0(vec times, List Fs, List Gs, List Ys, List deaths
 	size_t steps = boost::numeric::odeint::integrate( dqfwd ,  x , t0 , t1 
 			  , (h1-h0)/100. );  
 	
-	mat Q = dqfwd.Q_from_state( x); 
+	arma::mat Q = dqfwd.Q_from_state( x); 
 	return Q; 
 }

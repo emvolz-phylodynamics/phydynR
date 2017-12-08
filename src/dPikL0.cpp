@@ -9,7 +9,7 @@
 
 
 
-using namespace arma;
+//~ using namespace arma;
 using namespace Rcpp; 
 using namespace std; 
 
@@ -24,7 +24,7 @@ class DPikL0{
 	int m; 
 	double hres; 
 	double treeT; 
-	vec A0; 
+	arma::vec A0; 
 	double sumA; 
 	int nextant; 
 public:
@@ -33,30 +33,30 @@ public:
 	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
     {
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
-		mat F = as<mat>(Fs[i]); 
-		mat G = as<mat>(Gs[i]); 
-		vec Y = clamp(as<vec>(Ys[i]), MIN_Y, INFINITY ); 
+		arma::mat F = as<arma::mat>(Fs[i]); 
+		arma::mat G = as<arma::mat>(Gs[i]); 
+		arma::vec Y = clamp(as<arma::vec>(Ys[i]), MIN_Y, INFINITY ); 
 		
 		int k,l,z,w;
 		
-		mat R = (F + G);
+		arma::mat R = (F + G);
 		R.each_row() /= Y.t()  ;
 		R.diag().zeros(); 
-		R.diag() = -sum( R, 0).t(); 
+		R.diag() = -arma::sum( R, 0).t(); 
 		
-		mat Pik = x2Pik( x ); 
-		mat dPik = zeros<mat>( m, nextant); 
+		arma::mat Pik = x2Pik( x ); 
+		arma::mat dPik = arma::zeros<arma::mat>( m, nextant); 
 		double dL = 0.; 
 		
-		vec A = sum(Pik, 1 );
-		vec Ampik = zeros(m); 
-		vec Ampik_Y = zeros(m); 
+		arma::vec A = arma::sum(Pik, 1 );
+		arma::vec Ampik = arma::zeros(m); 
+		arma::vec Ampik_Y = arma::zeros(m); 
 		for (z = 0; z < nextant; z++){
 			dPik.col(z) = R * Pik.col(z) ; 
 			
-			Ampik = clamp( A - Pik.col(z), 0., INFINITY);
+			Ampik = arma::clamp( A - Pik.col(z), 0., INFINITY);
 
-			Ampik_Y = clamp( A / Y , 0., 1e6 );
+			Ampik_Y = arma::clamp( A / Y , 0., 1e6 );
 			for (k = 0; k < m; k++){
 				for( l = 0; l < m; l++){
 					dPik(k,z) -= (Pik(k,z)/Y(k)) * F(k,l) * Ampik_Y(l) ; 
@@ -75,11 +75,11 @@ public:
 		dxdt[m*nextant+1-1] = dL; 
 	}
 	
-	mat x2Pik( state_type x ){
-		return mat( &x[0], m, nextant ); 
+	arma::mat x2Pik( state_type x ){
+		return arma::mat( &x[0], m, nextant ); 
 	}
 	
-	state_type generate_initial_conditions( mat pik0, int m, int nextant ){
+	state_type generate_initial_conditions( arma::mat pik0, int m, int nextant ){
 		state_type x( 1 + m * nextant , 0.); 
 		int w = 0; 
 		for (int z =0; z < nextant; z++){
@@ -93,10 +93,10 @@ public:
 };
 
 //[[Rcpp::export()]]
-List solvePikL0(vec times, List Fs, List Gs, List Ys
+List solvePikL0(arma::vec times, List Fs, List Gs, List Ys
  , double h0
  , double h1
- , mat pik0
+ , arma::mat pik0
  , double step_size_res
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
@@ -116,7 +116,7 @@ List solvePikL0(vec times, List Fs, List Gs, List Ys
 		double dt = std::abs( times(1) - times(0)); 
 		integrate_const( stepper, dpikl0, x, h0, h1,  std::min( dt/step_size_res, (h1-h0)/step_size_res) );
 	}
-	mat pik1 = dpikl0.x2Pik( x); 
+	arma::mat pik1 = dpikl0.x2Pik( x); 
 	double L = x[nextant*m + 1 - 1]; 
 	
 	List o; 

@@ -9,7 +9,7 @@
 
 
 
-using namespace arma;
+//~ using namespace arma;
 using namespace Rcpp; 
 using namespace std; 
 
@@ -34,9 +34,9 @@ public:
 		//~ NOTE hres = length(times)
 		//~ NOTE treeT = max(times)
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
-		mat F = as<mat>(Fs[i]); 
-		mat G = as<mat>(Gs[i]); 
-		vec Y = as<vec>(Ys[i]); 
+		arma::mat F = as<arma::mat>(Fs[i]); 
+		arma::mat G = as<arma::mat>(Gs[i]); 
+		arma::vec Y = as<arma::vec>(Ys[i]); 
 		
 		int k,l,z,w;
 		
@@ -114,7 +114,7 @@ public:
 		dxdt[Lind()] = dL; 
     }
     
-    state_type generate_initial_conditions( vec A){
+    state_type generate_initial_conditions( arma::vec A){
 		int m = A.size() ;
 		state_type x( (int)pow(m,2) + m + 1, 0. ); 
 		int k = 0; 
@@ -133,8 +133,8 @@ public:
 		return x; 
 	}
 
-	mat Q_from_state(  state_type xfin ){
-		mat Q = zeros(m,m); 
+	arma::mat Q_from_state(  state_type xfin ){
+		arma::mat Q = arma::zeros(m,m); 
 		int k =0 ;
 		for (int i = 0; i < m; i++){
 			for (int j = 0; j < m; j++){
@@ -143,14 +143,14 @@ public:
 			}
 		}
 		for (int i = 0; i < m; i++){
-			Q.row(i) = Q.row(i) / sum(Q.row(i)); 
+			Q.row(i) = Q.row(i) / arma::sum(Q.row(i)); 
 		}
 		return Q;
 		//~ Q = Q / arma::sum(Q, 1) ; 
 	}
 
-	vec  A_from_state( state_type xfin){
-		vec A = zeros(m); 
+	arma::vec  A_from_state( state_type xfin){
+		arma::vec A = arma::zeros(m); 
 		int k = 0; 
 		for ( int i = (int)pow(m,2); i < ((int)pow(m,2)+m); i++){
 			A(k) = xfin[i]; 
@@ -193,10 +193,10 @@ class DQAL2_2{
 	int m; 
 	double hres; 
 	double treeT; 
-	vec A0; 
+	arma::vec A0; 
 	double sumA; 
 public:
-	DQAL2_2( List Fs, List  Gs, List Ys, int m, double hres, double treeT, vec _xA0 ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),A0(_xA0) {
+	DQAL2_2( List Fs, List  Gs, List Ys, int m, double hres, double treeT, arma::vec _xA0 ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),A0(_xA0) {
 		sumA = sum(_xA0); 
 	};
 	
@@ -208,15 +208,15 @@ public:
 		//~ NOTE hres = length(times)
 		//~ NOTE treeT = max(times)
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
-		mat F = as<mat>(Fs[i]); 
-		mat G = as<mat>(Gs[i]); 
-		vec Y = clamp(as<vec>(Ys[i]), MIN_Y, INFINITY ); 
+		arma::mat F = as<arma::mat>(Fs[i]); 
+		arma::mat G = as<arma::mat>(Gs[i]); 
+		arma::vec Y = clamp(as<arma::vec>(Ys[i]), MIN_Y, INFINITY ); 
 		
 		int k,l,z,w;
 		
-		vec A = A_from_state( x ) ;
+		arma::vec A = A_from_state( x ) ;
 		//~ vec a = clamp( A / Y , 0., 1. ); 
-		vec a = A / Y ; 
+		arma::vec a = A / Y ; 
 				
 //~ cout << i << endl;
 //~ cout << Y << endl;
@@ -287,8 +287,8 @@ public:
 		return x; 
 	}
 
-	mat Q_from_state(  state_type xfin ){
-		mat Q = zeros(m,m); 
+	arma::mat Q_from_state(  state_type xfin ){
+		arma::mat Q = arma::zeros(m,m); 
 		int k =0 ;
 		for (int i = 0; i < m; i++){
 			for (int j = 0; j < m; j++){
@@ -302,9 +302,9 @@ public:
 		return Q;
 	}
 
-	vec A_from_state( state_type x)
+	arma::vec A_from_state( state_type x)
 	{
-		vec A =  Q_from_state( x ).t() * A0 ; 
+		arma::vec A =  Q_from_state( x ).t() * A0 ; 
 		A = sumA * A / sum(A) ;  
 		return A; 
 	}
@@ -333,16 +333,16 @@ private:
 
 
 //[[Rcpp::export()]]
-List solveQALboost0(vec times, List Fs, List Gs, List Ys
+List solveQALboost0(arma::vec times, List Fs, List Gs, List Ys
  , double h0
  , double h1
  , double L0
- , vec A0
+ , arma::vec A0
  //, double treeT
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
 	int m = A0.size();
-	mat Q0 = diagmat( ones( m )) ;
+	arma::mat Q0 = arma::diagmat( arma::ones( m )) ;
 	double hres = times.size();//abs(times(1) - times(0)); 
 	
 	//~ DQAL2 dqal(Fs, Gs, Ys, m, hres, treeT ); 
@@ -353,8 +353,8 @@ List solveQALboost0(vec times, List Fs, List Gs, List Ys
 	size_t steps = boost::numeric::odeint::integrate( dqal ,  x , h0 , h1 
 			  , (h1-h0)/100. );  
 	
-	mat Q = dqal.Q_from_state( x); 
-	vec A = dqal.A_from_state( x); 
+	arma::mat Q = dqal.Q_from_state( x); 
+	arma::vec A = dqal.A_from_state( x); 
 	double L = dqal.L_from_state(x); 
 	
 //~ cout << h0 << endl;
