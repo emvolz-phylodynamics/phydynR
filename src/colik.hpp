@@ -14,7 +14,7 @@ using namespace arma;
 //~ TODO should be dfined here 
 static const int SAMPLE  = 0; 
 static const int CO = 1; 
-typedef std::vector<double> state_type; 
+typedef std::vector<double> ode_state_type; 
 
 mat finite_size_correction2(const vec& p_a, const vec& A, const std::vector<bool> extant, mat P);
 
@@ -25,11 +25,11 @@ class DQAL{
 	double treeT; 
 public:
 	DQAL( List Fs, List  Gs, List Ys, int m, double hres, double treeT );
-	void operator() ( const state_type &x , state_type &dxdt , double t);
+	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t);
 private:
-	double Q( const state_type &x, int k, int l);
-	double A( const state_type &x, int k);
-	double L( const state_type &x );
+	double Q( const ode_state_type &x, int k, int l);
+	double A( const ode_state_type &x, int k);
+	double L( const ode_state_type &x );
 	
 	int Qind( int k, int l );
 	int Aind( int k );
@@ -37,13 +37,13 @@ private:
 }; 
 
 
-state_type generate_initial_conditions( vec A);
+ode_state_type generate_initial_conditions( vec A);
 
-void Q_from_state( mat &Q, state_type xfin );
+void Q_from_state( mat &Q, ode_state_type xfin );
 
-void A_from_state( vec &A, state_type xfin);
+void A_from_state( vec &A, ode_state_type xfin);
 
-double L_from_state( state_type xfin);
+double L_from_state( ode_state_type xfin);
 
 double colik2cpp(const NumericVector heights, const List Fs, const List Gs, const List Ys
   , const IntegerVector eventIndicator // sample or co
