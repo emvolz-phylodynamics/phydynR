@@ -39,28 +39,44 @@ public:
 		
 		int k,l,z,w;
 		
-		arma::mat R = (F + G);
-		R.each_row() /= Y.t()  ;
-		R.diag().zeros(); 
-		R.diag() = -arma::sum( R, 0).t(); 
-		
+		arma::mat R = arma::zeros<arma::mat>(m,m); 
 		arma::mat Pik = x2Pik( x ); 
 		arma::mat dPik = arma::zeros<arma::mat>( m, nextant); 
 		double dL = 0.; 
 		
-		arma::vec A = arma::sum(Pik, 1 );
-		arma::vec Ampik = arma::zeros(m); 
-		arma::vec Ampik_Y = arma::zeros(m); 
+		// normalised P_ik:
+		arma::vec colsumPik = arma::sum( Pik, 0).t(); 
+		arma::mat nPik = arma::zeros<arma::mat>( m, nextant); 
+		for (z = 0; z < Pik.n_cols; z++){
+			double s =  sum(Pik.col(z));
+			if (s > 0) 
+			  nPik.col(z) = Pik.col(z) / s ; 
+		}
+		
+		arma::vec nA = arma::sum(nPik, 1 );
+		arma::vec na = nA/Y; 
+		
+		arma::vec u = arma::zeros(m);
+		
+		arma::mat phi = arma::repmat(F,1,1); //
+		phi.each_row() /= Y.t(); 
+		phi.each_col() /= Y; 
+		
 		for (z = 0; z < nextant; z++){
+			u = arma::clamp( 1. - (na - nPik.col(z)/Y) , 0., INFINITY); 
+			R = arma::repmat(F,1,1); //
+			R.each_col() %= u; 
+			R += G; 
+			R.each_row() /= Y.t()  ;
+			R.diag().zeros(); 
+			R.diag() = -arma::sum( R, 0).t(); 
+			
 			dPik.col(z) = R * Pik.col(z) ; 
 			
-			Ampik = arma::clamp( A - Pik.col(z), 0., INFINITY);
-
-			Ampik_Y = arma::clamp( A / Y , 0., 1e6 );
 			for (k = 0; k < m; k++){
 				for( l = 0; l < m; l++){
-					dPik(k,z) -= (Pik(k,z)/Y(k)) * F(k,l) * Ampik_Y(l) ; 
-					dL += (Pik(k,z)/Y(k)) * F(k,l) * Ampik_Y(l) ; 
+					dPik(k,z) -= Pik(k,z) * (phi(k,l)+phi(l,k)) * (nA(l)- nPik(l,z)); 
+					dL += nPik(k,z) * (phi(k,l)+phi(l,k)) * (nA(l)- nPik(l,z))/ 2.;  // note normed pik(k,z) and /2
 				}
 			}
 		}
