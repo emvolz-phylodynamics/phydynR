@@ -119,6 +119,12 @@ solvePikL0 <- function( times, Fs, Gs, Ys, h0, h1, pik0, step_size_res = 10) {
 	.Call( 'sourceCpp_1_solvePikL0', PACKAGE='phydynR', times, Fs, Gs, Ys, h0, h1, pik0, step_size_res )
 }
 
+############################
+
+solvePikL1 <- function( times, Fs, Gs, Ys, h0, h1, pik0, step_size_res = 10) {
+	.Call( 'sourceCpp_1_solvePikL1', PACKAGE='phydynR', times, Fs, Gs, Ys, h0, h1, pik0, step_size_res )
+}
+
 
 ############################
 
