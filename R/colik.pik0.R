@@ -43,6 +43,7 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
 	  , AgtY_penalty
 	  , returnTree
 	  , step_size_res
+	  , test_likelihood = test_likelihood
 	)
 }
 
@@ -149,6 +150,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 		# <new code here>
 		pik0 <- cbind( tree$mstates[, extantLines ]  ,rep(0, tree$m ))
 		if (test_likelihood){
+#~ browser()
 			pik1L1 <- solvePikL1(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
 			 ,h0
 			 ,h1
