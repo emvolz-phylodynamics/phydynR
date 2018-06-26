@@ -63,7 +63,8 @@ public:
 		phi.each_col() /= Y; 
 		
 		for (z = 0; z < nextant; z++){
-			u = arma::clamp( 1. - (na - nPik.col(z)/Y) , 0., INFINITY); 
+			//~ u = arma::clamp( 1. - (na - nPik.col(z)/Y) , 0., INFINITY); 
+			u = arma::clamp( 1. - na , 0., INFINITY); 
 			R = arma::repmat(F,1,1); //
 			R.each_col() %= u; 
 			R += G; 
