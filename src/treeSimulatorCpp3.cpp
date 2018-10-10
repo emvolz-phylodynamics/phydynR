@@ -275,7 +275,8 @@ public://TODO after debugging make these private
 					// do the co
 					a = n + internalNodesAdded;
 					internalNodesAdded++;
-					heights(a) = h;
+					//~ heights(a) = h;
+					heights(a) = R::runif( h0, h1 );
 					
 					edge(edgesAdded, 0) = a;
 					edge(edgesAdded, 1) = u;
