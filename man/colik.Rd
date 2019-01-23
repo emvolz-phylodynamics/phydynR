@@ -20,6 +20,7 @@
 \item{forgiveAgtY}{If number of extant lineages exceeds simulated population size, return -Inf if this value is zero, or forgive the discrepancy if zero. If between zero and one, only forgive the discrepancy if this proportion of lineages is less than the given value. }
 \item{AgtY_penalty}{If number of extant lineages exceeds simulated population size, penalise likelihood with value L*AgtY_penalty where L is the cumulative coalescent rate within the given internode interval. 0<= AgtY_penalty <= Inf.}
 \item{returnTree}{If TRUE, a copy of the tree is also returned, which includes the inferred states of lineages and likelihood terms at each internal node.}
+\item{likelihood}{Toggle likelihood approximation to be used (QL fast/approximate, PL1 faster better approximation, PL2 slow/good approximation. See Volz & Siveroni 2018 for details.}
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric). 

@@ -26,25 +26,54 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
   , step_size_res = 10 # for adaptive ode solver, set to value < 1
-  , test_likelihood = FALSE
+  , likelihood = c( 'PL2', 'PL1', 'QL' )
+  , PL2 = FALSE
 ) {
  
 	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
 		warning('t0 occurs after root of tree. Results may be innacurate.')
 	}
+	
 	# NOTE tfgy needs to be in order of decreasing time, fist time point must correspond to most recent sample
 	tfgy <- demographic.process.model( theta, x0, t0, tree$maxSampleTime, res = res, integrationMethod=integrationMethod) 
 	
-	colik.pik.fgy(tree 
-	  , tfgy
-	  , timeOfOriginBoundaryCondition
-	  , maxHeight
-	  , forgiveAgtY 
-	  , AgtY_penalty
-	  , returnTree
-	  , step_size_res
-	  , test_likelihood = test_likelihood
-	)
+	likelihood = likelihood[1] 
+	if ( likelihood == 'PL2' ){
+		l = colik.pik.fgy(tree 
+		  , tfgy
+		  , timeOfOriginBoundaryCondition
+		  , maxHeight
+		  , forgiveAgtY 
+		  , AgtY_penalty
+		  , returnTree
+		  , step_size_res
+		  , PL2 = TRUE 
+		)
+	} else if (likelihood== 'PL1'){
+		l = colik.pik.fgy(tree 
+		  , tfgy
+		  , timeOfOriginBoundaryCondition
+		  , maxHeight
+		  , forgiveAgtY 
+		  , AgtY_penalty
+		  , returnTree
+		  , step_size_res
+		  , PL2 =FALSE 
+		)
+	} else if ( likelihood == 'QL'){
+		l = colik.fgy1(tfgy 
+		  , tree
+		  , integrationMethod = integrationMethod 
+		  , timeOfOriginBoundaryCondition = timeOfOriginBoundaryCondition
+		  , maxHeight = maxHeight 
+		  , forgiveAgtY  = forgiveAgtY
+		  , AgtY_penalty = AgtY_penalty
+		  , returnTree = returnTree
+		)
+	} else{
+		stop('Specify a valid likelihood method such as QL or PL2')
+	}
+	l
 }
 
 
@@ -57,7 +86,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
   , AgtY_penalty = 1 # penalises likelihood if A > Y
   , returnTree = FALSE
   , step_size_res = 10
-  , test_likelihood = FALSE
+  , PL2 = FALSE
 ) {
 	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
 	t0 <- tail( tfgy[[1]], 1)
@@ -149,8 +178,7 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
 		## update mstates, L 
 		# <new code here>
 		pik0 <- cbind( tree$mstates[, extantLines ]  ,rep(0, tree$m ))
-		if (test_likelihood){
-#~ browser()
+		if (PL2){
 			pik1L1 <- solvePikL1(tfgy[[1]], tfgy[[2]], tfgy[[3]], tfgy[[4]]
 			 ,h0
 			 ,h1

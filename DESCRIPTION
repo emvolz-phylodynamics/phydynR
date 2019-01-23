@@ -1,11 +1,11 @@
 Package: phydynR.r0.1.2
 Type: Package
-Title: Phylogenetic dating and phylodynamic inference by sequential Monte Carlo
-Version: 0.1
-Date: 2017-09-17
+Title: Model-based coalescent simulation and likelihood for phylodynamic inference
+Version: 0.2.0
+Date: 2019-01-17
 Author: Erik Volz
 Maintainer: Erik Volz <erik@erikvolz.info>
-Description: Coalescent simulation and likelihood for phylodynamic inference
+Description: This package provides functions for defining infectious diseae models or ecological process models in terms of ODEs or SDEs; functions for simulating trees conditional on process models; and functions for computing likelihoods of trees conditional on a process model.
 License: GPL
 Imports: Rcpp (>= 0.12.0)
 LinkingTo: 
