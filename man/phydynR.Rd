@@ -1,12 +1,12 @@
-\name{phydynR.r0.1.2-package}
-\alias{phydynR.r0.1.2-package}
-\alias{phydynR.r0.1.2}
+\name{phydynR-package}
+\alias{phydynR-package}
+\alias{phydynR}
 \docType{package}
 \title{
-\packageTitle{phydynR.r0.1.2}
+\packageTitle{phydynR}
 }
 \description{
-\packageDescription{phydynR.r0.1.2}
+\packageDescription{phydynR}
 Phylodynamic inference and simulation in R.
 }
 \details{
@@ -14,14 +14,16 @@ Phylodynamic inference and simulation in R.
 This package provides an interface to building demographic process models (ODEs or SDEs) and simulating genealogies based on these models. Low level functions can be used to construct more complex models. A structured coalescent likelihood allows for inference of model parameters provided a time-scaled genealogy. 
 }
 \author{
-\packageAuthor{phydynR.r0.1.2}
+\packageAuthor{phydynR}
 
-Maintainer: \packageMaintainer{phydynR.r0.1.2}
+Maintainer: \packageMaintainer{phydynR}
 }
 \references{
 1. Volz, Erik M. Complex population dynamics and the coalescent under neutrality. Genetics 190.1 (2012): 187-201.
 
 2. Volz, Erik M., Katia Koelle, and Trevor Bedford. Viral phylodynamics. PLoS Comput Biol 9.3 (2013): e1002947.
+
+3. Volz, Erik and Siveroni, I, PLoS Comput Biol (2019)
 }
 
 \keyword{ package }

@@ -1,4 +1,4 @@
-Package: phydynR.r0.1.2
+Package: phydynR
 Type: Package
 Title: Model-based coalescent simulation and likelihood for phylodynamic inference
 Version: 0.2.0
