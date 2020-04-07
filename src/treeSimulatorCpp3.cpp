@@ -379,14 +379,14 @@ public://TODO after debugging make these private
 
 
 //[[Rcpp::export]]
-List simulateTreeCpp3x0(const vec times
+List simulateTreeCpp3x0(const arma::vec times
 	  , const List Fs, const List Gs, const List Ys
-	  , const vec sortedSampleHeights
-	  , const mat sortedSampleStates // m X n 
+	  , const arma::vec sortedSampleHeights
+	  , const arma::mat sortedSampleStates // m X n 
 	  , double maxSampleTime 
 	  , const int m
 	  , bool finiteSizeCorrection
-	  , vec substitutionRates
+	  , arma::vec substitutionRates
 	  , int sequenceLength)
 {
 	CoSim cosim(times, Fs, Gs, Ys, sortedSampleHeights, sortedSampleStates, maxSampleTime, m, finiteSizeCorrection

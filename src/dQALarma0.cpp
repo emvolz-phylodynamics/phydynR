@@ -44,17 +44,17 @@ double Q( const vec &x, int k, int l, int m) {
 }
 
 //[[Rcpp::export()]]
-vec dQL( vec x , mat F , mat G, vec Y, vec A0){
+arma::vec dQL( arma::vec x , arma::mat F , arma::mat G, arma::vec Y, arma::vec A0){
 	int m = Y.size();
 	Y = clamp(Y, MIN_Y, INFINITY);
-	vec dx = zeros<vec>(m*m+1); 
+	arma::vec dx = zeros<vec>(m*m+1); 
 	// mat Q = Q_from_state(x, m );  -- use Q(..) instead
 	//vec A = Q.t() * A0;
 	
-        vec A =  Q_from_state( x,m ).t() * A0 ; 
+        arma::vec A =  Q_from_state( x,m ).t() * A0 ; 
 	A = sum(A0) * A / sum(A);  // as done in A_from_state
 	
-	vec a = A / Y ;
+	arma::vec a = A / Y ;
 	
 	int Lind = x.size();
 	int z, k, l ;

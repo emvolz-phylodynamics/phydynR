@@ -29,8 +29,9 @@ class DPikL0{
 	int nextant; 
 public:
 	DPikL0( const List Fs, const List  Gs, const List Ys, const int m, const double hres, const double treeT, const int nextant) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT),nextant(nextant) { };
-	
-	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	// FFN comment: void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	//FFN comment: line below was written as line above
+	void operator() ( const state_type &x , state_type &dxdt , double t)
     {
 		int i =  (int)std::max(0., std::min( hres * t / treeT , (double)(hres-1.))); 
 		arma::mat F = as<arma::mat>(Fs[i]); 

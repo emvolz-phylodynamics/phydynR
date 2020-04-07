@@ -14,15 +14,15 @@ using namespace Rcpp;
 using namespace std; 
 
 //[[Rcpp::export]]
-void rco_finite_size_correction2(const int a, const vec& p_a, const vec& A, const uvec& extantLines, mat& mstates)
+void rco_finite_size_correction2(const int a, const arma::vec& p_a, const arma::vec& A, const arma::uvec& extantLines, arma::mat& mstates)
 {
 	// NOTE mstates m X n 
 	int u; 
-	vec rho; 
-	vec rterm; 
+  arma::vec rho; 
+  arma::vec rterm; 
 	//~ vec lterm; 
 	double lterm; 
-	vec p_u; 
+	arma::vec p_u; 
 	for (int iu = 0; iu < extantLines.size(); iu++){
 		u = extantLines(iu); 
 		if (u!=a){
@@ -41,7 +41,7 @@ void rco_finite_size_correction2(const int a, const vec& p_a, const vec& A, cons
 
 
 //[[Rcpp::export()]]
-List eventTimes2extant( vec eventTimes, vec nodeheights, vec parentheights )
+List eventTimes2extant( arma::vec eventTimes, arma::vec nodeheights, arma::vec parentheights )
 {
 	List o(eventTimes.size());
 	List nodesAtHeight( eventTimes.size());  
@@ -80,19 +80,19 @@ List eventTimes2extant( vec eventTimes, vec nodeheights, vec parentheights )
 
 // NOTE also tallies rate and survival likelihood terms
 //[[Rcpp::export()]]
-List update_alpha0(vec pu
-  , vec pv
-  , mat F
-  , vec Y
-  , vec A
+List update_alpha0(arma::vec pu
+  , arma::vec pv
+  , arma::mat F
+  , arma::vec Y
+  , arma::vec A
 ){
 	int m = Y.size(); 
 	Y = max( A, clamp(Y, MINY, INFINITY)); //NOTE this line is very important! 
 	//~ vec pu__Y = clamp( pu/Y , 0., 1.);
 	//~ vec pv__Y = clamp( pv/Y , 0., 1.);
-	vec pu__Y =pu/Y ;
-	vec pv__Y =pv/Y ;
-	vec pa = pu__Y % (F * pv__Y) + pv__Y % (F*pu__Y); 
+	arma::vec pu__Y =pu/Y ;
+	arma::vec pv__Y =pv/Y ;
+	arma::vec pa = pu__Y % (F * pv__Y) + pv__Y % (F*pu__Y); 
 	double corate = sum(pa); 
 	//~ double corate =  F(0,0)   / Y(0) / Y(0) / 2.; 
 	pa = normalise( pa, 1.);
@@ -104,7 +104,7 @@ List update_alpha0(vec pu
 
 
 //[[Rcpp::export()]]
-void update_states0( mat& mstates , mat Q)
+void update_states0( arma::mat& mstates , arma::mat Q)
 {
 	// mstates m x (n+Nnode)
 	mstates = Q.t() * mstates; 
@@ -112,7 +112,7 @@ void update_states0( mat& mstates , mat Q)
 }
 
 //[[Rcpp::export()]]
-mat update_states1( mat& mstates, mat Q , vec extantLines){
+arma::mat update_states1( arma::mat& mstates, arma::mat Q , arma::vec extantLines){
 	int u; 
 	for (int iu = 0; iu < extantLines.size(); iu++){
 		u = extantLines(iu)-1; // R -> c indexing

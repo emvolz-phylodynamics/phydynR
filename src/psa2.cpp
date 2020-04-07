@@ -260,7 +260,9 @@ class DQpsiA{
 	double treeT; 
 public:
 	DQpsiA( List Fs, List  Gs, List Ys, int m, double hres, double treeT ) : Fs(Fs),Gs(Gs),Ys(Ys),m(m),hres(hres),treeT(treeT) {};
-	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)//, const double /* t */ )
+  // FFN comment: void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)//, const double /* t */ )
+  // FFN comment: line below was written as line above
+	void operator() ( const ode_state_type &x , ode_state_type &dxdt , double t)
     {
 		// time index
 		//~ NOTE hres = length(times)
@@ -401,7 +403,7 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights
-  , const mat sampleStates  
+  , const arma::mat sampleStates  
   , const IntegerMatrix daughters // daughters of each node
   , const int n
   , const int Nnode
@@ -410,8 +412,8 @@ List sourceAttribMultiDemeCpp( const NumericVector heights, const List Fs, const
   , const double maxHeight // terminate computation at this height
 ){
 	double loglik = 0.;
-	mat P(m, n + Nnode, fill::zeros); 
-	mat rho(m, n , fill::zeros); 
+	arma::mat P(m, n + Nnode, fill::zeros); 
+	arma::mat rho(m, n , fill::zeros); 
 	int nextant = 0; 
 	int u,v,w,z,a, k, l; 
 	int samplesAdded = 0;

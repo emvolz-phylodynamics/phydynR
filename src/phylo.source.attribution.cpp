@@ -172,7 +172,7 @@ List sourceAttribMultiDemeCpp2( const NumericVector heights, const List Fs, cons
   , const IntegerVector eventIndicator // sample or co
   , const IntegerVector eventIndicatorNode // node involved at each event
   , const NumericVector eventHeights
-  , const mat sampleStates  
+  , const arma::mat sampleStates  
   , const IntegerMatrix daughters // daughters of each node
   , const int n
   , const int Nnode
@@ -182,29 +182,29 @@ List sourceAttribMultiDemeCpp2( const NumericVector heights, const List Fs, cons
   , const int step_size_res 
 ){
 	double loglik = 0.;
-	mat P(m, n + Nnode, fill::zeros); 
-	mat rho(m, n , fill::zeros); 
+  arma::mat P(m, n + Nnode, fill::zeros); 
+  arma::mat rho(m, n , fill::zeros); 
 	int u,v,w,z,a, k, l; 
 	int samplesAdded = 0;
-	vec psi = zeros(m) ; // corresponding to each state over each interval
-	vec psi_time = zeros(n); // for each tip, varies over time 
+	arma::vec psi = zeros(m) ; // corresponding to each state over each interval
+	arma::vec psi_time = zeros(n); // for each tip, varies over time 
 	
-	vec A_Y;
-	vec Y ;
-	vec A = zeros(m);
-	mat F(m,m, fill::zeros);
-	mat G(m,m, fill::zeros); 
-	vec puY, pvY, pa;
-	vec m_rs_R; 
+	arma::vec A_Y;
+	arma::vec Y ;
+	arma::vec A = zeros(m);
+	arma::mat F(m,m, fill::zeros);
+	arma::mat G(m,m, fill::zeros); 
+	arma::vec puY, pvY, pa;
+	arma::vec m_rs_R; 
 	//~ std::vector<bool> extant(n + Nnode, false); 
-	uvec extant = zeros<uvec>(n+Nnode);
-	uvec extant_tip = zeros<uvec>(n); 
-	uvec extant_indices;
-	uvec extant_tip_indices;
+	arma::uvec extant = zeros<uvec>(n+Nnode);
+	arma::uvec extant_tip = zeros<uvec>(n); 
+	arma::uvec extant_indices;
+	arma::uvec extant_tip_indices;
 	int nextant = 0;  
 	int nextant_tip = 0;
 	
-	umat tipsDescendedFrom(n+Nnode, n, fill::zeros);
+	arma::umat tipsDescendedFrom(n+Nnode, n, fill::zeros);
 	for (u = 0; u < n; u++){
 		tipsDescendedFrom.at(u,u) = 1; 
 	} 

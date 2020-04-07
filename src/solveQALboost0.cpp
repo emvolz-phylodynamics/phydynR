@@ -330,7 +330,17 @@ private:
 }; 
 
 
-
+// FFN comment: Somehow lines below were given a problem to install R package using R studio
+// it was mainly because of a commented line (line 340). This line I removed in the
+// final version. Mainly I was getting an error message when generating the RcppExports.cpp
+//List solveQALboost0(arma::vec times, List Fs, List Gs, List Ys
+//, double h0
+//, double h1
+//, double L0
+//, arma::vec A0
+//, double treeT // FFN comment: I removed this commented line because it was 
+// giving problens to intall package in R locally
+//  )
 
 //[[Rcpp::export()]]
 List solveQALboost0(arma::vec times, List Fs, List Gs, List Ys
@@ -338,7 +348,6 @@ List solveQALboost0(arma::vec times, List Fs, List Gs, List Ys
  , double h1
  , double L0
  , arma::vec A0
- //, double treeT
 ){
 	double treeT = std::abs( times(0) - times(times.size()-1)); 
 	int m = A0.size();

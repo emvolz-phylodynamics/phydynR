@@ -29,9 +29,11 @@ class DQfwd{
 	double sumA; 
 public:
 	DQfwd( List Fs, List  Gs, List Ys, List deaths, int m, double hres, double treeT ) : Fs(Fs),Gs(Gs),Ys(Ys),deaths(deaths),m(m),hres(hres),treeT(treeT){ };
+  
+  //FFN comment: void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+  // FFN comment: the line below was written as above
 	
-	
-	void operator() ( const state_type &x , state_type &dxdt , double t)//, const double /* t */ )
+	void operator() ( const state_type &x , state_type &dxdt , double t)
     {
 		// time index-- NOTE time is on forward axis
 		// FGYdeaths is on reverse axis
