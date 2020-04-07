@@ -7,8 +7,57 @@ require(inline)
 
 
 
-#' Generate a demographic model from input strings, optionally compiling as Cpp using Rcpp and optionally solving as SDEs
+# Generate a demographic model from input strings, optionally compiling as Cpp
+# using Rcpp and optionally solving as SDEs
 # should return func(theta,  t0, t1, res=1e3) -> list(times, F, G, Y)
+
+#' Build a demographic process model (ODE or SDE)
+#'
+#' A model is constructed by supplying birth rates, migration rates, and death rates.
+#' The model can be used to simulate demographic histories or as an input to coalescent
+#' simulation or likelihood calculation.
+#'
+#' @param births A named character vector or matrix of mathematical expressions
+#'   that describe model birth rates. Names correspond to each deme. If there is
+#'   more than one deme, a matrix must be supplied describing birth rates between
+#'   each pair of demes. Either R or C code can be supplied (see rcpp option).
+#' @param nonDemeDynamics A named character vector of mathematical expressions
+#'   that describe rate of change for dynamic variables which are not demes;
+#'   for example: an equation for the number susceptible in an SIR model.
+#' @param migrations A named character vector or matrix of mathematical expressions
+#'   that describe model migration rates. Names correspond to each deme. If there
+#'   is more than one deme, a matrix must be supplied describing migration rates
+#'   between each pair of demes. Either R or C code can be supplied
+#'   (see rcpp option).
+#' @param deaths A named character vector of mathematical expressions that
+#'   describe death rates in each deme.
+#' @param parameterNames A character vector providing the names of static
+#'   parameters used in the model.
+#' @param rcpp If TRUE, the expressions are interpreted as C code using the Rcpp
+#'   package.
+#' @param sde If TRUE, a stochastic differential equation model is constructed;
+#'   if FALSE, an ordinary differential equation model is constructed.
+#'
+#' @return An object of class \code{demographic.process}, which is a function
+#'   that can be used to simulate the model. The model can also be used as an
+#'   input to tree simulation or likelihood calculation.
+#' @author Erik Volz
+#' @export
+#'
+#' @examples
+#' # A simple exponential growth model with birth rates beta and death rates gamma:
+#' # I is the number of infected individuals.
+#' dm <- build.demographic.process(births=c(I = 'parms$beta * I'),
+#'                                 deaths = c(I = 'parms$gamma * I'),
+#'                                 parameterNames=c('beta', 'gamma'),
+#'                                 rcpp=FALSE,
+#'                                 sde = TRUE)
+#' # Do a simulation and plot the trajectory:
+#' show.demographic.process(dm,
+#'                          theta = list(beta = 1.5, gamma = 1),
+#'                          x0  = c(I = 1),
+#'                          t0 = 0,
+#'                          t1 = 10)
 build.demographic.process <- function( births,  nonDemeDynamics=NA,  migrations=NA, deaths=NA,  parameterNames = c(), rcpp = TRUE, sde=FALSE)
 {
 	if (is.vector(births) & length(births) > 1) stop('there must be exactly one expr for births or a square matrix of expressions for births')
@@ -531,6 +580,26 @@ deaths.attr("names") = rcnames;
 
 
 ##################################################################################
+##################################################################################
+#' DatedTree function 
+#' 
+#' Create a DatedTree class object; it includes heights for each node and other 
+#'   helper variables
+#'
+#' @param phylo A phylogenetic tree of class ape::phylo
+#' @inheritParams sim.co.tree
+#' @param sampleStatesAnnotations Vector of possible discrete character states 
+#'   for taxa. If inferring taxon state from label, this provides the possible 
+#'   matches for taxon annotations.
+#' @param tol to do
+#' @param minEdgeLength to do 
+#'
+#' @return to do
+#' @author Erik Volz
+#' @export
+#'
+#' @examples to do
+#' #write example
 DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6
  , minEdgeLength = 0
  ){
@@ -622,7 +691,50 @@ DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnota
 	phylo
 }
 
-
+#' Simulate a coalescent genealogy based on a demographic process.
+#' 
+#' A tree is simulated based on a demographic process and user-supplied parameters 
+#'   and initial conditions. The times and types of samples must also be supplied.
+#'
+#' @param theta A named vector of parameter values required by the model
+#' @param demographic.process.model An object of class demographic.process. 
+#'  See \code{\link[phydynR]{build.demographic.process}}
+#' @inheritParams colik
+#' @param t0 The time of origin of the process
+#' @param sampleTimes A numeric vector providing the times of samples. If named, 
+#'   taxon labels will be based on names of the corresponding sample times
+#' @param sampleStates For models with more than one deme, a matrix must be 
+#'  supplied describing the probability of sampling from each deme. Each row 
+#'  corresponds to a sample in the same order as sampleTimes. Each column 
+#'  corresponds to probability of sampling each deme. Column names should be 
+#'  defined which correspond to deme names in the model. Rows should sum to one.
+#' @param finiteSizeCorrections to do
+#' @param substitutionRates to do
+#' @param sequenceLength to do
+#'
+#' @return An object of class DatedTree, which subclasses ape::phylo. 
+#'  The $heights attribute provides the time of each node in the tree. 
+#'  The $maxHeight attribute provides the time of the root.
+#' @author Erik Volz
+#' @export
+#'
+#' @examples
+#' # A simple exponential growth model with birth rates beta, and death rates gamma: 
+#' # I is the number of infected individuals
+#'dm <- build.demographic.process(births = c(I = 'parms$beta * I'),
+#'                                deaths = c(I = 'parms$gamma * I'),
+#'                                parameterNames = c('beta', 'gamma'),
+#'                                rcpp = FALSE,
+#'                                sde = FALSE)
+#' # simulate a tree based on the model: 
+#'tre <- sim.co.tree(list(beta = 1.5, gamma = 1),
+#'                        dm,
+#'                        x0  = c(I = 1),
+#'                        t0 = 0,
+#'                        sampleTimes = seq(10, 15, length.out = 50),
+#'                        res = 1000)
+#' # plot the tree 
+#'plot(tre)
 sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes
   , sampleStates=NULL
   , res = 1e3
@@ -749,7 +861,39 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	}
 }
 
-
+#' Show demographic process
+#' 
+#' Shows a graphical representation of the demographic process given values 
+#' for each parameter of interest, and initial population sizes. The user should
+#' also provide the initial size for the population of interest in the their model.
+#' 
+#' @param demo.model An object of class \code{demographic.process}, which is a function
+#'   that can be used to simulate the model. 
+#' @inheritParams colik
+#' @param t0 Initial time for the simulation (to show the demographic process)
+#' @param t1 Final time for tge simulation (to show the demographic process)
+#' @param legend_position String for position of legend in final plot. Default
+#'   is set to "bottomright"
+#' @param ... Additional arguments that can be passed to the function, 
+#'   such as graphical parameters.
+#' @seealso \code{\link[phydynR]{build.demographic.process}}
+#' 
+#' @export
+#'
+#' @examples
+#' # A simple exponential growth model with birth rates beta and death rates gamma:
+#' # I is the number of infected individuals.
+#' dm <- build.demographic.process(births=c(I = 'parms$beta * I'),
+#'                                 deaths = c(I = 'parms$gamma * I'),
+#'                                 parameterNames=c('beta', 'gamma'),
+#'                                 rcpp=FALSE,
+#'                                 sde = TRUE)
+#'# Do a simulation and plot the trajectory:
+#' show.demographic.process(dm,
+#'                          theta = list(beta = 1.5, gamma = 1),
+#'                          x0  = c(I = 1),
+#'                          t0 = 0,
+#'                          t1 = 10)
 show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda', ...)
 {
 	tfgy <- demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod=integrationMethod)
