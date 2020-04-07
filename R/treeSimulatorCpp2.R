@@ -894,7 +894,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 #'                          x0  = c(I = 1),
 #'                          t0 = 0,
 #'                          t1 = 10)
-show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda', ...)
+show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, integrationMethod='lsoda', legend_position = "bottomright", ...)
 {
 	tfgy <- demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod=integrationMethod)
 	o <- tfgy[[5]] 
@@ -904,6 +904,7 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 		plot( t, o[, 2], type = 'l', xlab = 'Time' , ylab = colnames(o)[2], ...)
 	} else{
 		matplot( t, o[, 2:ncol(o)], type = 'l' , xlab = 'Time', ylab = '', ...)
-		legend("bottomright", inset=.05, legend=colnames(o)[2:ncol(o)], pch=1, col=c(2,4), horiz=TRUE)
+	  legend(legend_position, inset = 0.05, legend = colnames(o)[2:ncol(o)], 
+	         pch = 1, col = c(2:ncol(o)), horiz = TRUE)
 	}
 }
