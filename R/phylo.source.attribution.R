@@ -3,6 +3,7 @@
 require(deSolve)
 require(Rcpp)
 
+#' @export
 phylo.source.attribution <- function( trees, sampleTimes, f.t, Y.t, maxTMRCA = NULL, res = 1e3, treeErrorTol = 1e-3)
 {
 	if (is.null( maxTMRCA )) maxTMRCA <- Inf
@@ -101,7 +102,7 @@ phylo.source.attribution <- function( trees, sampleTimes, f.t, Y.t, maxTMRCA = N
 
 
 
-
+#' @export
 phylo.source.attribution.multiDeme.model <- function( tree
   , sampleTimes
   , sampleStates
@@ -126,7 +127,7 @@ phylo.source.attribution.multiDeme.model <- function( tree
 }
 
 
-
+#' @export
 phylo.source.attribution.multiDeme.fgy <- function( dated_tree
   , maxHeight
   , tfgy
@@ -253,6 +254,7 @@ print(date())
 
 
 # this variant of the SA function is tailored to clustering of HIV sequences (1 per host)
+#' @export
 .cd42stage <- function(cd4)
 {
 	# from cori paper
@@ -266,6 +268,7 @@ print(date())
 	if (cd4 >= 200 ) return(4)
 	return(5)
 }
+#' @export
 phylo.source.attribution.hiv.msm <- function( tree
   , sampleTimes # must use years
   , cd4s # named numeric vector, cd4 at time of sampling 
@@ -358,6 +361,7 @@ print("NOTE : sample times must be in units of years")
 	)
 }
 
+#' @export
 phylo.source.attribution.hiv.het <- function( tree
   , sampleTimes # must use years
   , sex # m or f for each sample, no NA allowed

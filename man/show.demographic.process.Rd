@@ -12,6 +12,7 @@ show.demographic.process(
   t1,
   res = 1000,
   integrationMethod = "lsoda",
+  legend_position = "bottomright",
   ...
 )
 }
@@ -34,11 +35,11 @@ includes demes and any other dynamic variables.}
 \item{integrationMethod}{If simulating an ODE model, this provides the
 integration routine corresponding to options in deSolve.}
 
-\item{...}{Additional arguments that can be passed to the function, 
-such as graphical parameters.}
-
 \item{legend_position}{String for position of legend in final plot. Default
 is set to "bottomright"}
+
+\item{...}{Additional arguments that can be passed to the function, 
+such as graphical parameters.}
 }
 \description{
 Shows a graphical representation of the demographic process given values 

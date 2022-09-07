@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // rco_finite_size_correction2
 void rco_finite_size_correction2(const int a, const arma::vec& p_a, const arma::vec& A, const arma::uvec& extantLines, arma::mat& mstates);
 RcppExport SEXP _phydynR_rco_finite_size_correction2(SEXP aSEXP, SEXP p_aSEXP, SEXP ASEXP, SEXP extantLinesSEXP, SEXP mstatesSEXP) {

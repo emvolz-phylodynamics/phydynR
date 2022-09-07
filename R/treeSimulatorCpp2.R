@@ -752,6 +752,8 @@ sim.co.tree <- function(theta, demographic.process.model, x0, t0, sampleTimes
 	  , sequenceLength = sequenceLength
 	)
 }
+
+#' @export
 sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multiplier= NA, finiteSizeCorrections=TRUE
   , substitutionRates = NULL
   , sequenceLength = 0
@@ -905,6 +907,6 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 	} else{
 		matplot( t, o[, 2:ncol(o)], type = 'l' , xlab = 'Time', ylab = '', ...)
 	  legend(legend_position, inset = 0.05, legend = colnames(o)[2:ncol(o)], 
-	         pch = 1, col = c(2:ncol(o)), horiz = TRUE)
+	         pch = 1, col = c(1:ncol(o)), horiz = TRUE)
 	}
 }
