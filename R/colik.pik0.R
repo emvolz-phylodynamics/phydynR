@@ -142,9 +142,10 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
 	l
 }
 
-
-
-colik.pik.fgy = colik.pik0.fgy <- function(tree
+#' Compute a structured coalescent likelihood given a dated genealogy and a demographic history in FGY format
+#'
+#' @export 
+colik.pik.fgy <- function(tree
   , tfgy
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
@@ -154,7 +155,13 @@ colik.pik.fgy = colik.pik0.fgy <- function(tree
   , step_size_res = 10
   , PL2 = FALSE
 ) {
-	if (tfgy[[1]][1] < tfgy[[1]][2] ) stop('tfgy must be in order of decreasing time.')
+	if (tfgy[[1]][1] < tfgy[[1]][2] ){
+		or <- order( tfgy[[1]] , decreasing=TRUE )
+		tfgy[[1]] <- tfgy[[1]][or]
+		tfgy[[2]] <- tfgy[[2]][or]
+		tfgy[[3]] <- tfgy[[3]][or]
+		tfgy[[4]] <- tfgy[[4]][or]
+	}
 	t0 <- tail( tfgy[[1]], 1)
 	if ( min(tree$maxHeight, maxHeight) >  (tree$maxSampleTime- t0) ){
 		warning('t0 occurs after root of tree. Results may be innacurate.')

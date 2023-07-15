@@ -842,8 +842,8 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	obdt <- NULL
 	obdt <- tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
-		(  DatedTree( read.tree(text=write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
-	}, error = function(e) {cat('Error: sim.co.tree.fgy:DatedTree\n'); NULL} )
+		(  DatedTree( ape::read.tree(text=ape::write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
+	}, error = function(e) e )
 	
 	if (sequenceLength > 0){
 		#also return evo distance tree
@@ -855,8 +855,8 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 		class(oo) <- 'phylo'
 		otree <- NULL
 		otree <- tryCatch({
-			read.tree(text=write.tree(oo)) 
-		}, error = function(e) {cat('Error: sim.co.tree.fgy:evo tree\n'); NULL} )
+			ape::read.tree(text=ape::write.tree(oo)) 
+		}, error = function(e) e )
 		return( list( obdt, otree ))
 	} else{
 		return (obdt)
