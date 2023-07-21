@@ -828,8 +828,6 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	 , substitutionRates
 	 , sequenceLength
 	)
-#~ plot( o$edge.length, o$edge.length.sps )
-#~ print( cor( o$edge.length, o$edge.length.sps[1:198] ) )
 	# clean up edge, edge.length and Nnode
 	iedge <- which(!is.na(o$edge[,1]))
 	o$edge <- o$edge[iedge, ]
@@ -840,6 +838,7 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
 	obdt <- NULL
+	# TODO broken with change from ape 5.6 to 5.7
 	obdt <- tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
 		(  DatedTree( ape::read.tree(text=ape::write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
@@ -910,3 +909,45 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 	         pch = 1, col = c(1:ncol(o)), horiz = TRUE)
 	}
 }
+
+
+
+.phylostructure2newick <- function(o)
+{
+	n <- length( o$tip.label )
+	nnode <- o$Nnode 
+	nwks <- rep('', n+nnode )
+	nwks[ 1:n ] <- sapply( 1:n, function(u) glue::glue( '{o$tip.label[u]}:{o$edge.length[o$edge[,2]==u]}' ))
+	queue <- 1:n 
+	repeat{
+		.queue <- queue
+		for (u in .queue )
+		{
+			a <- o$edge[o$edge[,2]==u,1]
+			if ( length(a) > 0 ){
+				dgtrs <- o$edge[ o$edge[,1]==a, 2]
+				if ( all(nchar(nwks[dgtrs])>0 ) ){
+					nwks[a] <- paste(collapse=',', nwks[dgtrs])
+					edle <- ifelse(a %in% o$edge[,2]
+						, o$edge.length[o$edge[,2]==a]
+						, 0
+						)
+					nwks[a] <- glue::glue( '({nwks[a]}):{edle}' )
+					queue <- setdiff( queue, dgtrs )
+					if ( !(a %in% queue) )
+						queue <- c( queue, a )
+					.queue <- c() 
+				}
+			} else{
+				queue <- setdiff( queue, u )
+			}
+		}
+		if ( length( queue ) == 0 )
+			break 	
+	}
+	nwk <- nwks [ which.max( nchar(nwks) ) ]
+	nwk <- paste( nwk, ';', sep = '' )
+	nwk
+}
+
+
