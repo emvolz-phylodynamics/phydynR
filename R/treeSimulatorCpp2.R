@@ -838,10 +838,10 @@ sim.co.tree.fgy <- function(tfgy,  sampleTimes, sampleStates, step_size_multipli
 	o$edge <- o$edge + 1
 	class(o) <- 'phylo'
 	obdt <- NULL
-	# TODO broken with change from ape 5.6 to 5.7
+	# NOTE read.tree(text=0): broken with change from ape 5.6 to 5.7
 	obdt <- tryCatch({
 		rownames(sortedSampleStates) <- names(sortedSampleTimes )
-		(  DatedTree( ape::read.tree(text=ape::write.tree(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
+		(  DatedTree( ape::read.tree(text=.phylostructure2newick(o)) , sortedSampleTimes, sortedSampleStates, tol = Inf) )
 	}, error = function(e) e )
 	
 	if (sequenceLength > 0){
@@ -910,44 +910,58 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 	}
 }
 
-
-
-.phylostructure2newick <- function(o)
-{
+#' Write a newick string for an ape::phylo structure regardless of internal node order
+#' 
+#' Ideally this would be the behavior of ape::write.tree, however that function fails for 
+#' internal node orderings that do not follow an undocumented standard. 
+#' 
+#' @examples 
+#' print( system.time( ( tr0 <- rcoal( 10000 ) )))
+#' st0 <- Sys.time() 
+#' tr <- .phylostructure2newick ( tr0 )
+#' st1 <- Sys.time() 
+#' tr1 <- read.tree(text = tr )
+#' print( st1 - st0 )
+#' ape::ltt.plot( tr0 )
+#' ape::ltt.lines( tr1, col = 'red', lty = 2 )
+.phylostructure2newick <- function(o){
 	n <- length( o$tip.label )
 	nnode <- o$Nnode 
 	nwks <- rep('', n+nnode )
 	nwks[ 1:n ] <- sapply( 1:n, function(u) glue::glue( '{o$tip.label[u]}:{o$edge.length[o$edge[,2]==u]}' ))
 	queue <- 1:n 
+
+	# compute max distance to tip 
+	mdt <- rep(-Inf, n + nnode ) 
+	mdt[1:n] <- 0 
+	edge0 <- o$edge[ order( o$edge[,2] ), ]
+	queue <- 1:n #edge0[1:n,1] 
+	anc <- rep(NA, n+nnode )
+	anc[ edge0[,2] ] <- edge0[,1]
 	repeat{
-		.queue <- queue
-		for (u in .queue )
-		{
-			a <- o$edge[o$edge[,2]==u,1]
-			if ( length(a) > 0 ){
-				dgtrs <- o$edge[ o$edge[,1]==a, 2]
-				if ( all(nchar(nwks[dgtrs])>0 ) ){
-					nwks[a] <- paste(collapse=',', nwks[dgtrs])
-					edle <- ifelse(a %in% o$edge[,2]
-						, o$edge.length[o$edge[,2]==a]
-						, 0
-						)
-					nwks[a] <- glue::glue( '({nwks[a]}):{edle}' )
-					queue <- setdiff( queue, dgtrs )
-					if ( !(a %in% queue) )
-						queue <- c( queue, a )
-					.queue <- c() 
-				}
-			} else{
-				queue <- setdiff( queue, u )
+		for ( u in queue ){
+			a <- anc[u] 
+			if (!is.na( a )){
+				mdt[a] <- max( mdt[a], mdt[u]+1 ) 
 			}
 		}
+		queue <- na.omit( anc[ queue] )
 		if ( length( queue ) == 0 )
-			break 	
+			break 
 	}
-	nwk <- nwks [ which.max( nchar(nwks) ) ]
-	nwk <- paste( nwk, ';', sep = '' )
+
+	ord <- order( mdt ) |> setdiff( 1:n )
+	for (a in ord){
+		dgtrs <- o$edge[ o$edge[,1]==a, 2]
+		nwks[a] <- paste(collapse=',', nwks[dgtrs])
+		edle <- ifelse(a %in% o$edge[,2]
+			, o$edge.length[o$edge[,2]==a]
+			, 0
+			)
+		nwks[a] <- glue::glue( '({nwks[a]}):{edle}' )
+		NWK <- nwks[a] 
+	}
+	nwk <- paste(NWK, ';', sep = '' )
 	nwk
 }
-
 

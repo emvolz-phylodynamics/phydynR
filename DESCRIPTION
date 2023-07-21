@@ -1,8 +1,8 @@
 Package: phydynR
 Type: Package
 Title: Model-based coalescent simulation and likelihood for phylodynamic inference
-Version: 0.2.1
-Date: 2023-07-15
+Version: 0.2.2
+Date: 2023-07-22
 Author: Erik Volz
 Maintainer: Erik Volz <erik@erikvolz.info>
 Description: This package provides functions for defining infectious diseae models or ecological process models in terms of ODEs or SDEs; functions for simulating trees conditional on process models; and functions for computing likelihoods of trees conditional on a process model.
