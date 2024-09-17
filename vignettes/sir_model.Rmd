@@ -1,0 +1,208 @@
+---
+title: "Estimating HIV transmission rates with phydynR"
+author: "Erik Volz"
+date: "`r Sys.Date()`"
+output:
+    rmarkdown::html_vignette:
+    toc: TRUE
+    fig_caption: true
+    df_print: kable
+    highlight: pygments
+    citation_package: biblatex
+    keep_tex: true
+bibliography: bib/tutorials.bib
+fontsize: 12pt
+vignette: >
+  %\VignetteIndexEntry{sir_model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette will demonstrate how to use coalescent models as described
+in [@Volz2012] to estimate transmission rate parameters given a pathogen genealogy.
+
+# Basic requirements
+This vignette assumes that you have the following packages already installed:
+
+* ape: R package to work with phylogenetic trees.
+* rjason: Converts R objects into JSON objects and vice-versa.
+* [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the coalescent simulation and likelihood function for phylodynamics analysis
+
+## Load the necessary packages:
+```{r message = FALSE}
+  library(ape)
+  library(phydynR)
+```
+
+
+Suppose an epidemic occurs according to a density-dependent susceptible-
+infected-recovered (SIR) process, and a given infected individual generates a 
+new infection at the rate $\beta SI$, where $S$ is the number susceptible and $\beta$
+is the transmission rate. Furthermore, infected individuals will be removed from 
+the population at per capita rate $\gamma$. At a single point in time, 
+a random sample of $n = 75$ infected individuals is taken and the genealogy is 
+reconstructed from the history of transmissions. We have simulated such a dataset 
+using MASTER 1.10 [@Vaughan2013], which can be loaded by
+
+
+```{r}
+tree <- read.tree(system.file("extdata/sirModel0.nwk", package = "phydynR"))
+```
+
+And, the epidemic trajectory information can be loaded by
+
+```{r}
+library(rjson)
+
+epidata <- fromJSON(file=system.file("extdata/sirModel0.json", package = "phydynR"))
+```
+
+The true parameter values are given in table 1. The file used to simulate the data
+can be viewed by 
+
+```{r}
+file.show( system.file("extdata/sirModel0.xml", package = "phydynR")) 
+```
+
+We will fit a simple ordinary differential equation (ODE) model to the genealogy:
+
+$\dot{S} = -\beta SI$
+$\dot{I} = \beta SI -\gamma I$
+
+Relevant parameters of the system are the transmission rate $\beta$, 
+recovery rate $\gamma$, initial population size $S(0)$ and initial number 
+infected $I(0)$. Not all parameters are identifiable from these data, so we will
+assume prior knowledge of $S(0)$ and $\gamma$ and focus on estimating $\beta$
+and the nuisance parameter $I(0)$. Note that an imprecise estimate of $S(0)$
+is also possible.
+
+Create a list to store the true parameter values:
+
+```{r}
+
+parms_truth <- list( beta = 0.00020002, 
+                     gamma = 1, 
+                     S = 9999, 
+                     t0 = 0 )
+
+```
+
+Note that the true value of R0 is $\beta S(0)/\gamma = 2$.
+
+And, create a tree with dated tips and internal nodes:
+
+```{r}
+
+sampleTimes <- rep(12, 75)
+names(sampleTimes) <- tree$tip.label
+
+bdt <- DatedTree( phylo = tree, sampleTimes = sampleTimes)
+bdt
+```
+
+Note that the vector of sample times must have names corresponding to the
+taxon labels in tree.
+
+In order to fit this model, we need to express the equations in a canonical
+format:
+
+```{r}
+births <- c( I = "parms_truth$beta * S * I" )
+deaths <- c( I = "parms_truth$gamma * I" )
+nonDemeDynamics <- c("S = -parms_truth$beta * S * I")
+```
+
+The births vector gives the total rate that all infected generate new infections
+and deaths gives the rate that lineages are terminated. 
+The nonDemeDynamics vector gives the equations for state variables that are not
+directly involved in the genealogy (e.g. because a pathogen never occupies a 
+susceptible host by definition).
+Each element of the vectors is a string that will be parsed as R code and 
+evaluated, so it is important to write it exactly as you would if you were 
+solving the equations in R. 
+Also note that the object parms is accessible to these equations, which is a 
+list of parameters - this may include parameters to be estimated. Also
+note that we must give names to the vectors, and these names must correspond
+to the names of the demes.
+
+We will use these initial conditions
+
+```{r}
+# initial number of I and S
+x0 <- c(I = 1, S = unname(parms_truth$S) )
+
+# initial t0 (time of origin of the process)
+t0 <- bdt$maxSampleTime - max(bdt$heights) - 1
+```
+
+The time of origin t0 is chosen somewhat arbitrarily, but should occur before
+the root of the tree.
+
+
+## The demographic model
+
+After setting up all the components of the mathematical model, we can build the demographic process using the function `build.demographic.process` from the `phydynR` package. The `dm` output can be used as input to coalescent models for the 
+calculation of the likelihood.
+
+```{r}
+dm <- build.demographic.process(births = births,
+                                deaths = deaths,
+                                parameterNames = names(parms_truth),
+                                rcpp = FALSE,
+                                sde = FALSE)
+```
+
+
+Now we can calculate the likelihood of the tree and assess how long it takes:
+
+```{r}
+print(system.time(print(phydynR::colik(tree = bdt,
+                                       theta = parms_truth,
+                                       demographic.process.model = dm,
+                                       x0 = x0,
+                                       t0 = t0,
+                                       res = 1000,
+                                       integrationMethod = "rk4")
+                        )))
+```
+
+
+Note that changing the integrationMethod (choose "euler"), maxHeight
+(only fitt to part of the tree) and res (set to a smaller value) options
+can dramatically speed up the calculation at the cost of some accuracy.
+
+We can fit the model using maximum likelihood with the bbmle or stats4
+R packages.
+
+```{r}
+obj_fun <- function(lnbeta, lnI0){
+  
+  beta <- exp(lnbeta)
+  I0 <- exp(lnI0)
+  parms <- parms_truth
+  parms$beta <- beta
+  x0 <- c(I=unname(I0), S = unname(parms$S0) )
+  
+  mll <- -phydynR::colik(tree = bdt,
+                         theta = parms_truth,
+                         demographic.process.model = dm,
+                         x0 = x0,
+                         t0 = t0,
+                         res = 1000,
+                         integrationMethod = "rk4")
+  
+  print(paste(mll, beta, I0))
+  mll
+}
+```
+
+

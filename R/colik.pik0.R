@@ -18,9 +18,9 @@
 
 
 ################################################################################
-#' Compute a coalescent log likelihood.
+#' Compute the coalescent log-likelihood.
 #'
-#' Computes the log likelihood using a coalescent (or structured coalescent)
+#' Computes the log-likelihood using a coalescent (or structured coalescent)
 #' genealogical model based on a user-supplied demographic process.
 #'
 #' @param tree A DatedTree object
@@ -31,11 +31,12 @@
 #'   includes demes and any other dynamic variables.
 #' @param t0 The time of origin of the process. Should predate the root of the tree.
 #' @param res Integer number of time steps to use when simulating model.
-#' @param integrationMethod If simulating an ODE model, this provides the
-#'   integration routine corresponding to options in deSolve.
+#' @param integrationMethod If simulating an ODE (ordinary differential equation)
+#'    model, this provides the integration routine corresponding to options in
+#'    deSolve.
 #' @param timeOfOriginBoundaryCondition If TRUE, will return -Inf if the root of
 #'   the tree precedes the time of origin.
-#' @param maxHeight Will only count internode intervals in the likelihood that
+#' @param maxHeight It will only count internode intervals in the likelihood that
 #'   occur after maxHeight years before present. Useful for large trees and when
 #'   you don't want to model the entire demographic history.
 #' @param forgiveAgtY If number of extant lineages exceeds simulated population

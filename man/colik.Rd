@@ -2,7 +2,7 @@
 % Please edit documentation in R/colik.pik0.R
 \name{colik}
 \alias{colik}
-\title{Compute a coalescent log likelihood.}
+\title{Compute the coalescent log-likelihood.}
 \usage{
 colik(
   tree,
@@ -37,13 +37,14 @@ includes demes and any other dynamic variables.}
 
 \item{res}{Integer number of time steps to use when simulating model.}
 
-\item{integrationMethod}{If simulating an ODE model, this provides the
-integration routine corresponding to options in deSolve.}
+\item{integrationMethod}{If simulating an ODE (ordinary differential equation)
+model, this provides the integration routine corresponding to options in
+deSolve.}
 
 \item{timeOfOriginBoundaryCondition}{If TRUE, will return -Inf if the root of
 the tree precedes the time of origin.}
 
-\item{maxHeight}{Will only count internode intervals in the likelihood that
+\item{maxHeight}{It will only count internode intervals in the likelihood that
 occur after maxHeight years before present. Useful for large trees and when
 you don't want to model the entire demographic history.}
 
@@ -72,7 +73,7 @@ for details.}
 The coalescent (or structured coalescent) log likelihood (numeric).
 }
 \description{
-Computes the log likelihood using a coalescent (or structured coalescent)
+Computes the log-likelihood using a coalescent (or structured coalescent)
 genealogical model based on a user-supplied demographic process.
 }
 \examples{

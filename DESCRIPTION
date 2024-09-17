@@ -5,7 +5,12 @@ Version: 0.2.2
 Date: 2023-07-22
 Author: Erik Volz
 Maintainer: Erik Volz <erik@erikvolz.info>
-Description: This package provides functions for defining infectious diseae models or ecological process models in terms of ODEs or SDEs; functions for simulating trees conditional on process models; and functions for computing likelihoods of trees conditional on a process model.
+Description: This package provides functions for defining infectious disease 
+    models or ecological process models in terms of 
+    ODEs (ordinary differential equations) or SDEs (stochastic differential equations); 
+    functions for simulating trees conditional on process models; 
+    and functions for computing likelihoods of trees conditional on a process 
+    model.
 License: GPL
 Imports: Rcpp (>= 0.12.0)
 LinkingTo: 
@@ -13,6 +18,11 @@ LinkingTo:
   RcppArmadillo,
   BH
 Depends: ape, deSolve, BH, inline, Rcpp, RcppArmadillo
-Suggests: testthat, ggplot2
+Suggests: 
+    testthat,
+    ggplot2,
+    knitr,
+    rmarkdown
 Encoding: UTF-8
-RoxygenNote: 7.2.2
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr

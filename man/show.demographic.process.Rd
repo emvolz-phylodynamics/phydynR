@@ -32,8 +32,9 @@ includes demes and any other dynamic variables.}
 
 \item{res}{Integer number of time steps to use when simulating model.}
 
-\item{integrationMethod}{If simulating an ODE model, this provides the
-integration routine corresponding to options in deSolve.}
+\item{integrationMethod}{If simulating an ODE (ordinary differential equation)
+model, this provides the integration routine corresponding to options in
+deSolve.}
 
 \item{legend_position}{String for position of legend in final plot. Default
 is set to "bottomright"}

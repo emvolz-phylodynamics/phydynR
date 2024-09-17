@@ -4,7 +4,7 @@
 #' @useDynLib phydynR
 #' @importFrom Rcpp sourceCpp
 #' @importFrom Rcpp evalCpp
-#' @description \packageDescription{phydynR}. Phylodynamic inference and 
+#' @description \packageDescription{phydynR} Phylodynamic inference and 
 #'    simulation in R.
 #' @details This package provides an interface to building demographic process 
 #'    models (ODEs or SDEs) and simulating genealogies based on these models. 
@@ -21,4 +21,4 @@
 #'   PLoS Comput Biol 9.3 (2013): e1002947.
 #' @examples 
 #' See the README for common usage and examples.
-NULL
+"_PACKAGE"

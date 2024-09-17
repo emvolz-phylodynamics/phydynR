@@ -1,0 +1,52 @@
+<!-- 
+sampfrac approx 50pc, but highly variable
+R0 = 2
+sample size = 100-->
+
+<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+	<run spec='InheritanceTrajectory'
+	   samplePopulationSizes="true"
+	   simulationTime="16">
+
+	<model spec='Model' id='model'>
+	  <population spec='Population' id='S' populationName='S'/>
+	  <population spec='Population' id='I' populationName='I'/>
+	  <population spec='Population' id='R' populationName='R'/>
+
+	  <reaction spec='Reaction' reactionName="Infection" rate="0.00020002">
+			S + I -> 2I
+	  </reaction>
+	  <reaction spec='Reaction' reactionName="Recovery" rate="1">
+			I -> R
+	  </reaction>
+	</model>
+
+	<initialState spec='InitState'>
+	  <populationSize spec='PopulationSize' population='@S' size='9999'/>
+	  <lineageSeed spec='Individual' population='@I'/>
+	</initialState>
+	
+	<populationEndCondition spec='PopulationEndCondition'
+                            threshold='0'
+                            exceedCondition='false'
+                            isRejection='true'
+                            population='@I'/>
+	
+	<inheritancePostProcessor spec='LineageSampler' samplingTime="12" reverseTime="false" nSamples="75">
+			<populationSize spec='PopulationSize'  population='@I' size="100" />
+	</inheritancePostProcessor>
+
+	<output spec='NewickOutput' fileName='sirModel0.nwk'/>
+	<output spec='JsonOutput' fileName='sirModel0.json'/>
+	</run>
+</beast>
+<!--
+
+
+require(rjson)
+d <- fromJSON(file='sirModel0.json')
+plot(d$t, d$I, type='line')
+
+
+
+-->

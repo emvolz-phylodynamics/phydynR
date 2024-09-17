@@ -40,8 +40,9 @@ defined which correspond to deme names in the model. Rows should sum to one.}
 
 \item{res}{Integer number of time steps to use when simulating model.}
 
-\item{integrationMethod}{If simulating an ODE model, this provides the
-integration routine corresponding to options in deSolve.}
+\item{integrationMethod}{If simulating an ODE (ordinary differential equation)
+model, this provides the integration routine corresponding to options in
+deSolve.}
 
 \item{finiteSizeCorrections}{to do}
 
