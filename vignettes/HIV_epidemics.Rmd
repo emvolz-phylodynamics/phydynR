@@ -1,0 +1,155 @@
+---
+title: "Estimating HIV transmission rates with phydynR"
+output:
+    rmarkdown::html_vignette:
+    toc: TRUE
+    fig_caption: true
+    df_print: kable
+    highlight: pygments
+    citation_package: biblatex
+    keep_tex: true
+bibliography: bib/tutorials.bib
+fontsize: 12pt
+vignette: >
+  %\VignetteIndexEntry{simulate_genelogies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette will demonstrate how to use structured coalescent models [@Volz2012] 
+to estimate epidemiological parameters given a pathogen genealogy and discrete
+trait information about sampled individuals. We will focus on the problem of
+estimating HIV transmission rates by stage of infection and assuming we know
+the stage of infection when patients are sampled and virus is sequenced.
+We will fit a very simple model of an HIV epidemic using ordinary differential
+equations (ODEs). 
+In this model, the infectious period will be broken into three stages
+of different average duration and with different transmission rates. The first
+stage, early HIV infection (EHI) is short (average duration $1/\gamma_0 = 1$ year), 
+but has high transmission rate $\beta_0$. The second stage, chronic HIV infection, 
+is long (average duration $1/\gamma_1 = 7$ years), and has small transmission rate. 
+The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
+transmission rate. There are births into the susceptible state at rate $bN$ where
+$N = S + I0 + I1 + I2$. And there is mortality due to natural causes from all states
+at rate $\mu$. The parameter values are listed in table 1. The model equations are
+as follows:
+
+
+$\dot{S} = bN − \mu S − (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N$
+$\dot{I_0} = (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N − (\mu + \gamma_0)I_0$
+$\dot{I_1} = \gamma_0I_0 − (\mu + \gamma_1)I_1$
+$\dot{I_2} = \gamma_1I_1 − (\mu + \gamma_2)I_2$
+
+The model is also illustrated in figure 1.
+
+The package is loaded by
+
+```{r}
+library(phydynR)
+```
+
+
+Create a list of the true parameter values:
+
+```{r}
+ parms_truth <- list(gamma0 = 1,
+                     gamma1 = 1/7,
+                     gamma2 = 1/2,
+                     mu = 1/30,
+                     b=.036,
+                     beta0 = 12./10,
+                     beta1 = 3./100,
+                     beta2 = 9./100,
+                     S_0 = 3000,
+                     I0_0 = 1, 
+                     I1_0 = 0.01, 
+                     I2_0 = 0.01,
+                     m = 3,
+                     mm = 1)
+```
+
+In order to fit this model, we need to express the equations in a canonical
+format. According to this format, we will tally birth and migration events
+between demes. In our example, the deme corresponds to the stage of infection
+that an infected host can be in, so we will refer the demes with the following
+names:
+
+```{r}
+INFECTEDNAMES <- c('I0', 'I1', 'I2')
+```
+
+There are $m = 3$ demes in this model, so the birth events between demes
+needs to be expressed with a $3 × 3$ matrix F. The element $F_kl$ represents the
+rate of transmissions by a host in deme $k$ to a host in deme $l$. 
+In our example, this is the following:
+
+```{r}
+births <- rbind(c('parms$beta0 * S * I0 / (S + I0 + I1 + I2)', '0', '0'),
+                c('parms$beta1 * S * I1 / (S + I0 + I1 + I2)', '0', '0'),
+                c('parms$beta2 * S * I2 / (S + I0 + I1 + I2)', '0', '0'))
+
+rownames(births)=colnames(births)<- INFECTEDNAMES
+```
+
+Each element of the matrix is a string that will be parsed as R code and evaluated, 
+so it is important to write it exactly as you would if you were solving
+the equations outside of phydynR. Also note that the object parms is accessible
+to these equations, which is a list of parameters - this may include parameters
+to be estimated. Note that there are zero rates in the 2nd and third columns,
+since all new infected hosts start out in the first stage of infection (EHI). 
+Also note that we must give row and column names to the matrix, and these names
+must correspond to the names of the demes. 
+
+Similarly, we must create a matrix of migrations:
+
+```{r}
+ migrations <- rbind(c('0', 'parms$gamma0 * I0', '0'),
+                     c('0', '0', 'parms$gamma1 * I1'),
+                     c('0', '0', '0'))
+
+rownames(migrations) = colnames(migrations) <- INFECTEDNAMES
+```
+
+Note that this matrix tallys the stage progression from EHI to chronic and from
+chronic to AIDS.
+We must also write a vector of expressions for events that terminate a
+lineage – In this model, this occurs due to natural or AIDS related mortality:
+
+```{r}
+deaths <- c('parms$mu*I0',
+            'parms$mu*I1',
+            'parms$mu*I2 + parms$gamma2 * I2')
+
+names(deaths) <- INFECTEDNAMES
+```
+
+Finally, we must write a vector of ODEs for state variables that do not
+correspond to demes in the coalescent model. In our example, there is only one
+such variable- the number of susceptibles:
+
+```{r}
+nonDemeDynamics <- paste(sep = '',
+                         '-parms$mu*S + parms$mu*(S + I0 + I1 + I2)',
+                         '- S * (parms$beta0*I0+parms$beta1*I1+parms$beta2*I2) / (S + I0 + I1 + I2)')
+
+names(nonDemeDynamics) <- 'S'
+```
+
+Note well that in all cases, the expression or equation must have the 
+corresponding name of the state variable.
+The model can be fitted to a binary tree with dated tips. We will use a
+simulated tree such that we know the true parameter values and population size
+through time. We load this by:
+
+```{r}
+# read the tree
+tree <- read.tree(system.file('extdata/hivSimulation.nwk', package='phydynR'))
+#~ the sample times are the same, because it is a homochronous sample at 50 years
+sampleTimes <- rep(50, length(tree$tip.label))
+names(sampleTimes) <- tree$tip.label
+# create a tree with dated tips and internal nodes,
+# will infer the sample states from tip labels
+bdt <- DatedTree(phylo = tree, 
+                 sampleTimes = sampleTimes)
+bdt
+```

@@ -5,4 +5,7 @@
 #'   
 #' 2. Volz, Erik M., Katia Koelle, and Trevor Bedford. Viral phylodynamics. 
 #'   PLoS Comput Biol 9.3 (2013): e1002947.
+#' @useDynLib phydynR
+#' @importFrom Rcpp sourceCpp
+#' @importFrom Rcpp evalCpp
 "_PACKAGE"
