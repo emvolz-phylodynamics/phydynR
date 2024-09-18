@@ -150,6 +150,11 @@ names(sampleTimes) <- tree$tip.label
 # create a tree with dated tips and internal nodes,
 # will infer the sample states from tip labels
 bdt <- DatedTree(phylo = tree, 
-                 sampleTimes = sampleTimes)
+                 sampleTimes = sampleTimes,
+                 minEdgeLength = 0.001)
 bdt
 ```
+
+Note well that the vector of sample times must have the names of each taxon. Ifthe state of each taxon (the stage of infection of each sample unit) is encoded at the end of taxon name, it can be loaded automatically by passing the argument sampleStatesAnnotations. Alternatively, that information can be passed as a
+matrix with row names corresponding to the tip labels of the tree.
+Now we can calculate the likelihood of the tree and see how long it takes:
