@@ -22,7 +22,8 @@ Suggests:
     testthat,
     ggplot2,
     knitr,
-    rmarkdown
+    rmarkdown,
+    kableExtra
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

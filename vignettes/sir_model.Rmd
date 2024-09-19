@@ -150,7 +150,9 @@ the root of the tree.
 
 ## The demographic model
 
-After setting up all the components of the mathematical model, we can build the demographic process using the function `build.demographic.process` from the `phydynR` package. The `dm` output can be used as input to coalescent models for the 
+After setting up all the components of the mathematical model, we can build the 
+demographic process using the function `build.demographic.process` from the `phydynR` 
+package. The `dm` output can be used as input to coalescent models for the 
 calculation of the likelihood.
 
 ```{r}

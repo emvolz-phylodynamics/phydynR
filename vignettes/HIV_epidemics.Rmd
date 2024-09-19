@@ -1,7 +1,9 @@
 ---
 title: "Estimating HIV transmission rates with phydynR"
+author: "Erik Volz"
+date: "`r Sys.Date()`"
 output:
-    rmarkdown::html_vignette:
+  rmarkdown::html_vignette:
     toc: TRUE
     fig_caption: true
     df_print: kable
@@ -11,18 +13,50 @@ output:
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{simulate_genelogies}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{transmission_rates}
+  %\VignetteEngine{rmarkdown::render}
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include = FALSE}
+library(kableExtra)
+library(magrittr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_current()
+options(knitr.table.format = "latex")
+
+```
+
+# Introduction
+
 This vignette will demonstrate how to use structured coalescent models [@Volz2012] 
 to estimate epidemiological parameters given a pathogen genealogy and discrete
-trait information about sampled individuals. We will focus on the problem of
-estimating HIV transmission rates by stage of infection and assuming we know
-the stage of infection when patients are sampled and virus is sequenced.
-We will fit a very simple model of an HIV epidemic using ordinary differential
-equations (ODEs). 
+trait information about sampled individuals.
+
+# Requirements
+
+This tutorial assumes you have the following R packages already installed in
+your computer.
+
+* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses
+* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation
+
+## Load the R packages
+
+```{r message = FALSE}
+  library(phydynR)
+  library(bbmle)
+```
+
+# The epidemiological model
+
+We will focus on the problem of estimating HIV transmission rates by stage of 
+infection and assuming we know the stage of infection when patients are sampled 
+and virus is sequenced. We will fit a very simple model of an HIV epidemic using 
+ordinary differential equations (ODEs).
 In this model, the infectious period will be broken into three stages
 of different average duration and with different transmission rates. The first
 stage, early HIV infection (EHI) is short (average duration $1/\gamma_0 = 1$ year), 
@@ -30,22 +64,43 @@ but has high transmission rate $\beta_0$. The second stage, chronic HIV infectio
 is long (average duration $1/\gamma_1 = 7$ years), and has small transmission rate. 
 The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
 transmission rate. There are births into the susceptible state at rate $bN$ where
-$N = S + I0 + I1 + I2$. And there is mortality due to natural causes from all states
+$N = S + I_0 + I_1 + I_2$. And there is mortality due to natural causes from all states
 at rate $\mu$. The parameter values are listed in table 1. The model equations are
-as follows:
+as follows and is also illustrated in Figure 1:
 
 
 $\dot{S} = bN − \mu S − (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N$
+
 $\dot{I_0} = (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N − (\mu + \gamma_0)I_0$
+
 $\dot{I_1} = \gamma_0I_0 − (\mu + \gamma_1)I_1$
+
 $\dot{I_2} = \gamma_1I_1 − (\mu + \gamma_2)I_2$
 
-The model is also illustrated in figure 1.
+```{r echo = FALSE}
+Parameter = c("Duration infection",
+              "Transmission rate",
+              "Population size",
+              "Initial num infected",
+              "Time of sampling") 
+Symbol = c("1/gamma",
+           "beta",
+           "S(0)",
+           "I(0)",
+           "T") 
+Values = c("1",
+           "2.0002e-4",
+           "9999",
+           "1",
+           "12") 
+data_list = data.frame(Parameter, Symbol, Values) 
+#data_list <- as.matrix(data_list)
+#colnames(data_list)<-c("Parameter","Symbol", "Values")
 
-The package is loaded by
 
-```{r}
-library(phydynR)
+kbl(data_list, booktabs = T, caption = "Parameter symbols and values") %>%
+  kable_styling(bootstrap_options = "striped", position = "center")
+
 ```
 
 
@@ -88,7 +143,7 @@ births <- rbind(c('parms$beta0 * S * I0 / (S + I0 + I1 + I2)', '0', '0'),
                 c('parms$beta1 * S * I1 / (S + I0 + I1 + I2)', '0', '0'),
                 c('parms$beta2 * S * I2 / (S + I0 + I1 + I2)', '0', '0'))
 
-rownames(births)=colnames(births)<- INFECTEDNAMES
+rownames(births) = colnames(births) <- INFECTEDNAMES
 ```
 
 Each element of the matrix is a string that will be parsed as R code and evaluated, 
@@ -103,7 +158,7 @@ must correspond to the names of the demes.
 Similarly, we must create a matrix of migrations:
 
 ```{r}
- migrations <- rbind(c('0', 'parms$gamma0 * I0', '0'),
+migrations <- rbind(c('0', 'parms$gamma0 * I0', '0'),
                      c('0', '0', 'parms$gamma1 * I1'),
                      c('0', '0', '0'))
 
@@ -141,12 +196,14 @@ The model can be fitted to a binary tree with dated tips. We will use a
 simulated tree such that we know the true parameter values and population size
 through time. We load this by:
 
-```{r}
+```{r echo = FALSE}
 # read the tree
 tree <- read.tree(system.file('extdata/hivSimulation.nwk', package='phydynR'))
-#~ the sample times are the same, because it is a homochronous sample at 50 years
+
+# the sample times are the same, because it is a homochronous sample at 50 years
 sampleTimes <- rep(50, length(tree$tip.label))
 names(sampleTimes) <- tree$tip.label
+
 # create a tree with dated tips and internal nodes,
 # will infer the sample states from tip labels
 bdt <- DatedTree(phylo = tree, 
@@ -155,6 +212,139 @@ bdt <- DatedTree(phylo = tree,
 bdt
 ```
 
-Note well that the vector of sample times must have the names of each taxon. Ifthe state of each taxon (the stage of infection of each sample unit) is encoded at the end of taxon name, it can be loaded automatically by passing the argument sampleStatesAnnotations. Alternatively, that information can be passed as a
+Note well that the vector of sample times must have the names of each taxon. 
+If the state of each taxon (the stage of infection of each sample unit) is encoded 
+at the end of taxon name, it can be loaded automatically by passing the argument 
+sampleStatesAnnotations. Alternatively, that information can be passed as a
 matrix with row names corresponding to the tip labels of the tree.
+
+After setting up all the components of the mathematical model, we can build the 
+demographic process using the function `build.demographic.process` from the `phydynR` 
+package. The `dm` output can be used as input to coalescent models for the 
+calculation of the likelihood.
+
+```{r}
+dm <- build.demographic.process(births = births,
+                                nonDemeDynamics = nonDemeDynamics,
+                                migrations = migrations,
+                                deaths = deaths,
+                                parameterNames = names(parms_truth),
+                                rcpp = FALSE,
+                                sde = FALSE)
+```
+
 Now we can calculate the likelihood of the tree and see how long it takes:
+
+```{r eval = FALSE}
+print(system.time(print(
+  colik(bdt,
+        theta = parms_truth,
+        dm,
+        x0=c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
+        t0 = 0,
+        res = 1000,
+        integrationMethod = 'euler')
+  )))
+```
+
+It is a bit slow, so note that there is an alternative low-level interface that 
+can be a bit faster (`colik.pik.fgy`). Also note that changing
+the _integrationMethod_ (choose ‘euler’), _maxHeight_ (only fit to part of
+the tree) and _res_ (set to a smaller value) options can dramatically
+speed up the calculation at the cost of some accuracy.
+We can fit the model by using the `bbmle` or `stats4` package.
+
+We will focus on estimating the three transmission rates of the system along with
+a nuisance parameter that controls initial conditions, $t_0$, which is the time of
+origin of the epidemic. We will assume prior knowledge of the stage progression
+rates $\gamma_i$ mortality rates $\mu$, and susceptible population size $S(0)$.
+
+First, create the objective function to be minimized:
+
+```{r}
+obj_fun <- function(lnbeta0, lnbeta1, lnbeta2, t0){
+  
+  parms <- parms_truth
+  parms$beta0 <- exp(lnbeta0)
+  parms$beta1 <- exp(lnbeta1)
+  parms$beta2 <- exp(lnbeta2)
+  
+  mll <- -colik(bdt,
+                theta = parms,
+                dm,
+                x0=c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
+                t0 = 0,
+                res = 1000,
+                integrationMethod = 'rk4')
+
+    # track progress:
+  print(c(mll, exp(c(lnbeta0, lnbeta1, lnbeta2) ), t0) )
+  mll
+}
+```
+
+Note that this uses log-transformation for variables that must be positive (like
+rates).
+
+We can then fit the model by running
+
+```{r eval = FALSE}
+fit <- mle2(obj_fun,
+            start = list(lnbeta0 = log(0.6), 
+                         lnbeta1 = log(0.2), 
+                         lnbeta2 = log(0.05), 
+                         t0 = 0),
+            method='Nelder-Mead', 
+            optimizer='optim',
+            control = list(trace = 6, reltol = 1e-8))
+```
+
+Note that we are starting the optimizer far from the true parameter values. If
+fitting a model to real data, it is recommended to try many different starting
+conditions over a large range of values. The optimizer would take about 10
+minutes to run, so instead we will load the results:
+
+```{r}
+load( system.file('extdata/hivModel0-fit.RData', package='phydynR') )
+
+AIC(fit)
+logLik(fit)
+coef(fit)
+exp(coef(fit))
+```
+
+We can compare the fitted model to the true number of infected through
+time, which is shown in figure 2
+We can calculate a confidence interval for the transmission rates using likelihood 
+profiles:
+
+```{r eval = FALSE}
+profbeta <- profile(fit, 
+                    which = 1, 
+                    alpha = 0.05, 
+                    std.err = 0.5, 
+                    trace = TRUE, 
+                    tol.newmin = 1 )
+```
+
+This takes a long time, so we will load the results:
+
+```{r}
+load( system.file('extdata/hivModel0-profbeta.RData', package='phydynR') )
+```
+
+We see that the confidence interval covers the true value:
+
+```{r warning = TRUE}
+ c(exp(confint(profbeta )), TrueVal = parms_truth$beta0)
+```
+
+And, we can visualize the profile (Figure 3).
+
+```{r}
+plot(profbeta)
+abline( v = log( parms_truth$beta0) , col='red')
+```
+
+
+
