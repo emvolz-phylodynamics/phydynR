@@ -3,7 +3,7 @@ title: "Estimating HIV transmission rates with phydynR"
 author: "Erik Volz"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette:
+  bookdown::html_vignette2:
     toc: TRUE
     fig_caption: true
     df_print: kable
@@ -25,7 +25,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-knitr::opts_current()
 options(knitr.table.format = "latex")
 
 ```
@@ -65,7 +64,7 @@ is long (average duration $1/\gamma_1 = 7$ years), and has small transmission ra
 The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
 transmission rate. There are births into the susceptible state at rate $bN$ where
 $N = S + I_0 + I_1 + I_2$. And there is mortality due to natural causes from all states
-at rate $\mu$. The parameter values are listed in table 1. The model equations are
+at rate $\mu$. The parameter values are listed in table \@ref(tab:table1). The model equations are
 as follows and is also illustrated in Figure 1:
 
 
@@ -77,7 +76,7 @@ $\dot{I_1} = \gamma_0I_0 − (\mu + \gamma_1)I_1$
 
 $\dot{I_2} = \gamma_1I_1 − (\mu + \gamma_2)I_2$
 
-```{r echo = FALSE}
+```{r table1, echo = FALSE}
 Parameter = c("Duration infection",
               "Transmission rate",
               "Population size",
