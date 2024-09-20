@@ -1,9 +1,9 @@
 ---
-title: "Estimating HIV transmission rates with phydynR"
+title: "Estimating transmission rate using the SIR model and phydynR"
 author: "Erik Volz"
 date: "`r Sys.Date()`"
 output:
-    rmarkdown::html_vignette:
+  bookdown::html_vignette2:
     toc: TRUE
     fig_caption: true
     df_print: kable
@@ -72,6 +72,31 @@ can be viewed by
 ```{r}
 file.show( system.file("extdata/sirModel0.xml", package = "phydynR")) 
 ```
+
+```{r table1, echo = FALSE}
+Parameter = c("Duration infection",
+              "Transmission rate",
+              "Population size",
+              "Initial num infected",
+              "Time of sampling") 
+Symbol = c("$1/\\gamma$",
+           "$\\beta$",
+           "$S(0)$",
+           "$I(0)$",
+           "$T$") 
+Values = c("1",
+           "2.0002e-4",
+           "9999",
+           "1",
+           "12") 
+data_list = data.frame(Parameter, Symbol, Values) 
+
+
+kbl(data_list, booktabs = TRUE, escape = FALSE, 
+    caption = "Parameter symbols and values")
+
+```
+
 
 We will fit a simple ordinary differential equation (ODE) model to the genealogy:
 

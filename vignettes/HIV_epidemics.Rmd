@@ -26,7 +26,6 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 options(knitr.table.format = "latex")
-
 ```
 
 # Introduction
@@ -64,8 +63,7 @@ is long (average duration $1/\gamma_1 = 7$ years), and has small transmission ra
 The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
 transmission rate. There are births into the susceptible state at rate $bN$ where
 $N = S + I_0 + I_1 + I_2$. And there is mortality due to natural causes from all states
-at rate $\mu$. The parameter values are listed in table \@ref(tab:table1). The model equations are
-as follows and is also illustrated in Figure 1:
+at rate $\mu$. The parameter values are listed in table \@ref(tab:table1). The model equations are:
 
 
 $\dot{S} = bN − \mu S − (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N$
@@ -76,41 +74,54 @@ $\dot{I_1} = \gamma_0I_0 − (\mu + \gamma_1)I_1$
 
 $\dot{I_2} = \gamma_1I_1 − (\mu + \gamma_2)I_2$
 
+
 ```{r table1, echo = FALSE}
-Parameter = c("Duration infection",
-              "Transmission rate",
-              "Population size",
-              "Initial num infected",
-              "Time of sampling") 
-Symbol = c("1/gamma",
-           "beta",
-           "S(0)",
-           "I(0)",
-           "T") 
-Values = c("1",
-           "2.0002e-4",
-           "9999",
-           "1",
-           "12") 
+Parameter = c("Duration EHI",
+              "Duration chronic",
+              "Duration AIDS",
+              "Birth rate",
+              "Natural death rate",
+              "EHI transmission rate",
+              "Chronic transmission rate",
+              "AIDS transmission rate",
+              "Initial number of susceptibles") 
+Symbol = c("$1/\\gamma_0$",
+           "$1/\\gamma_1$",
+           "$1/\\gamma_2$",
+           "$b$",
+           "$\\mu$",
+           "$\\beta_0$",
+           "$\\beta_1$",
+           "$\\beta_2$",
+           "$S(0)$") 
+Values = c("1 year",
+           "7 years",
+           "2 years",
+           "0.036",
+           "$1/30$",
+           "1.2",
+           "0.03",
+           "0.09",
+           "3000") 
 data_list = data.frame(Parameter, Symbol, Values) 
-#data_list <- as.matrix(data_list)
-#colnames(data_list)<-c("Parameter","Symbol", "Values")
 
 
-kbl(data_list, booktabs = T, caption = "Parameter symbols and values") %>%
-  kable_styling(bootstrap_options = "striped", position = "center")
+kbl(data_list, booktabs = TRUE, escape = FALSE, 
+    caption = "Parameter symbols and values")
 
 ```
 
 
 Create a list of the true parameter values:
 
+
+
 ```{r}
  parms_truth <- list(gamma0 = 1,
                      gamma1 = 1/7,
                      gamma2 = 1/2,
                      mu = 1/30,
-                     b=.036,
+                     b = 0.036,
                      beta0 = 12./10,
                      beta1 = 3./100,
                      beta2 = 9./100,
@@ -154,6 +165,7 @@ since all new infected hosts start out in the first stage of infection (EHI).
 Also note that we must give row and column names to the matrix, and these names
 must correspond to the names of the demes. 
 
+
 Similarly, we must create a matrix of migrations:
 
 ```{r}
@@ -166,6 +178,7 @@ rownames(migrations) = colnames(migrations) <- INFECTEDNAMES
 
 Note that this matrix tallys the stage progression from EHI to chronic and from
 chronic to AIDS.
+
 We must also write a vector of expressions for events that terminate a
 lineage – In this model, this occurs due to natural or AIDS related mortality:
 
@@ -207,14 +220,14 @@ names(sampleTimes) <- tree$tip.label
 # will infer the sample states from tip labels
 bdt <- DatedTree(phylo = tree, 
                  sampleTimes = sampleTimes,
-                 minEdgeLength = 0.001)
+                 minEdgeLength = 0.01)
 bdt
 ```
 
 Note well that the vector of sample times must have the names of each taxon. 
 If the state of each taxon (the stage of infection of each sample unit) is encoded 
 at the end of taxon name, it can be loaded automatically by passing the argument 
-sampleStatesAnnotations. Alternatively, that information can be passed as a
+_sampleStatesAnnotations_. Alternatively, that information can be passed as a
 matrix with row names corresponding to the tip labels of the tree.
 
 After setting up all the components of the mathematical model, we can build the 
@@ -232,7 +245,8 @@ dm <- build.demographic.process(births = births,
                                 sde = FALSE)
 ```
 
-Now we can calculate the likelihood of the tree and see how long it takes:
+Now we can calculate the likelihood of the tree and see how long it takes
+by using the `system.time` function:
 
 ```{r eval = FALSE}
 print(system.time(print(
@@ -313,7 +327,26 @@ exp(coef(fit))
 ```
 
 We can compare the fitted model to the true number of infected through
-time, which is shown in figure 2
+time, which is shown in \@ref(fig:figure1)
+
+```{r figure1, fig.cap = "The actual (points) and estimated (lines) number of infections through time. Black: EHI, Red: chronic, Green: AIDS", echo = TRUE}
+parms <- parms_truth
+parms[c('beta0', 'beta1', 'beta2', 't0')] <- unname(exp(coef(fit)))
+parms$t0 <- log(parms$t0)
+ox <- solve.model(t0 = coef(fit)['t0'], 
+                  t1 = bdt$maxSampleTime, 
+                  x0 = c(I0 = 1, I1 =0.01, I2 = 0.01, S = parms_truth$S_0), 
+                  births,  
+                  deaths, 
+                  nonDemeDynamics, 
+                  parms, migrations=migrations, integrationMethod = 'rk4')
+matplot( rtimes, rY, xlab='Time', ylab='Number infected by stage')
+lines(ox[,1] , ox[, 'I0'], col='black')
+lines(ox[,1] , ox[, 'I1'], col='red')
+lines(ox[,1] , ox[, 'I2'], col='green')
+```
+
+
 We can calculate a confidence interval for the transmission rates using likelihood 
 profiles:
 
@@ -334,16 +367,21 @@ load( system.file('extdata/hivModel0-profbeta.RData', package='phydynR') )
 
 We see that the confidence interval covers the true value:
 
-```{r warning = TRUE}
+```{r}
  c(exp(confint(profbeta )), TrueVal = parms_truth$beta0)
 ```
 
-And, we can visualize the profile (Figure 3).
+And, we can visualize the profile (\@ref(fig:figure2)).
 
-```{r}
+```{r eval = FALSE}
 plot(profbeta)
 abline( v = log( parms_truth$beta0) , col='red')
 ```
 
 
+
+```{r out.height = "460px", fig.align = "center", fig.cap = "Likelihood profile for the transmission rate $\\beta_0$ with confidence levels. The true parameter value is indicated by the vertical red line.", echo = FALSE}
+
+knitr::include_graphics("figures/sir_vignette-proffigure.pdf")
+```
 
