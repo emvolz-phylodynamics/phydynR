@@ -4,16 +4,16 @@ author: "Erik Volz"
 date: "`r Sys.Date()`"
 output:
   bookdown::html_vignette2:
+  #bookdown::pdf_book:
     toc: TRUE
-    fig_caption: true
-    df_print: kable
-    highlight: pygments
+    fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: true
+    keep_tex: TRUE
+    latex_engine: xelatex
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{transmission_rates}
+  %\VignetteIndexEntry{Estimating HIV transmission rates with phydynR}
   %\VignetteEngine{rmarkdown::render}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,6 +21,9 @@ vignette: >
 ```{r setup, include = FALSE}
 library(kableExtra)
 library(magrittr)
+library(ggplot2)
+library(tidyr)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -63,7 +66,10 @@ is long (average duration $1/\gamma_1 = 7$ years), and has small transmission ra
 The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
 transmission rate. There are births into the susceptible state at rate $bN$ where
 $N = S + I_0 + I_1 + I_2$. And there is mortality due to natural causes from all states
-at rate $\mu$. The parameter values are listed in table \@ref(tab:table1). The model equations are:
+at rate $\mu$. The parameter values are listed in table \@ref(tab:table1). 
+
+The model equations are:
+
 
 
 $\dot{S} = bN − \mu S − (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N$
@@ -267,6 +273,8 @@ the tree) and _res_ (set to a smaller value) options can dramatically
 speed up the calculation at the cost of some accuracy.
 We can fit the model by using the `bbmle` or `stats4` package.
 
+# Fitting the model using maximum likelihood
+
 We will focus on estimating the three transmission rates of the system along with
 a nuisance parameter that controls initial conditions, $t_0$, which is the time of
 origin of the epidemic. We will assume prior knowledge of the stage progression
@@ -327,23 +335,36 @@ exp(coef(fit))
 ```
 
 We can compare the fitted model to the true number of infected through
-time, which is shown in \@ref(fig:figure1)
+time, which is shown in Figure \@ref(fig:figure1)
 
-```{r figure1, fig.cap = "The actual (points) and estimated (lines) number of infections through time. Black: EHI, Red: chronic, Green: AIDS", echo = TRUE}
+```{r figure1, fig.asp = 0.8, fig.width = 6, fig.cap = "The actual (points) and estimated (lines) number of infections through time. Black: EHI, Red: chronic, Green: AIDS", echo = TRUE}
 parms <- parms_truth
 parms[c('beta0', 'beta1', 'beta2', 't0')] <- unname(exp(coef(fit)))
 parms$t0 <- log(parms$t0)
-ox <- solve.model(t0 = coef(fit)['t0'], 
-                  t1 = bdt$maxSampleTime, 
-                  x0 = c(I0 = 1, I1 =0.01, I2 = 0.01, S = parms_truth$S_0), 
-                  births,  
-                  deaths, 
-                  nonDemeDynamics, 
-                  parms, migrations=migrations, integrationMethod = 'rk4')
-matplot( rtimes, rY, xlab='Time', ylab='Number infected by stage')
-lines(ox[,1] , ox[, 'I0'], col='black')
-lines(ox[,1] , ox[, 'I1'], col='red')
-lines(ox[,1] , ox[, 'I2'], col='green')
+ox <- dm(theta = parms, 
+         x0 = c(I0 = 1, I1 =0.01, I2 = 0.01, S = parms_truth$S_0), 
+         t0 = exp(coef(fit)['t0']),
+         t1 = bdt$maxSampleTime, 
+         res = 1e3, 
+         integrationMethod='rk4')
+o <- ox[[5]] 
+times <- o[,1]
+
+real_data <- cbind(rtimes, rY)
+rdata <- gather(real_data, "Demes", "I", I0:I2, factor_key=TRUE)
+
+#matplot( rtimes, rY, xlab='Time', ylab='Number infected by stage')
+ggplot(rdata, aes(x = rtimes, y = I)) +
+  geom_point(aes(col = Demes)) + 
+  scale_colour_manual(values=c("black", "red", "green")) +
+  geom_line(data = o, aes(x = time, y = I0), col='black') +
+  geom_line(data = o, aes(x = time, y = I1), col='red') +
+  geom_line(data = o, aes(x = time, y = I2), col='green') +
+  theme_bw() +
+  theme(element_text(size = 12)) +
+  xlab("Time") +
+  ylab("Number infected by stage")
+
 ```
 
 
@@ -367,21 +388,18 @@ load( system.file('extdata/hivModel0-profbeta.RData', package='phydynR') )
 
 We see that the confidence interval covers the true value:
 
-```{r}
+```{r echo = TRUE}
  c(exp(confint(profbeta )), TrueVal = parms_truth$beta0)
+
 ```
 
-And, we can visualize the profile (\@ref(fig:figure2)).
+And, we can visualize the profile (Figure \@ref(fig:figure2)).
 
-```{r eval = FALSE}
+```{r figure2, fig.asp = 0.9, fig.width = 5, fig.cap = "Likelihood profile for the transmission rate $\\beta_0$ with confidence levels. The true parameter value is indicated by the vertical red line.", echo = TRUE}
+#fig.asp sets the height-to-width ratio of the figure
+
 plot(profbeta)
 abline( v = log( parms_truth$beta0) , col='red')
 ```
 
-
-
-```{r out.height = "460px", fig.align = "center", fig.cap = "Likelihood profile for the transmission rate $\\beta_0$ with confidence levels. The true parameter value is indicated by the vertical red line.", echo = FALSE}
-
-knitr::include_graphics("figures/sir_vignette-proffigure.pdf")
-```
-
+# References

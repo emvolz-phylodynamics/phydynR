@@ -4,21 +4,24 @@ author: "Erik Volz"
 date: "`r Sys.Date()`"
 output:
   bookdown::html_vignette2:
+  #bookdown::pdf_book:
     toc: TRUE
-    fig_caption: true
-    df_print: kable
-    highlight: pygments
+    fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: true
+    keep_tex: TRUE
+    latex_engine: xelatextex
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{sir_model}
+  %\VignetteIndexEntry{Estimating transmission rate using the SIR model and phydynR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
+library(kableExtra)
+library(magrittr)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -39,8 +42,8 @@ This vignette assumes that you have the following packages already installed:
 
 ## Load the necessary packages:
 ```{r message = FALSE}
-  library(ape)
   library(phydynR)
+  library(rjson)
 ```
 
 
@@ -61,8 +64,6 @@ tree <- read.tree(system.file("extdata/sirModel0.nwk", package = "phydynR"))
 And, the epidemic trajectory information can be loaded by
 
 ```{r}
-library(rjson)
-
 epidata <- fromJSON(file=system.file("extdata/sirModel0.json", package = "phydynR"))
 ```
 
@@ -116,7 +117,7 @@ Create a list to store the true parameter values:
 
 parms_truth <- list( beta = 0.00020002, 
                      gamma = 1, 
-                     S = 9999, 
+                     S0 = 9999, 
                      t0 = 0 )
 
 ```
@@ -130,7 +131,8 @@ And, create a tree with dated tips and internal nodes:
 sampleTimes <- rep(12, 75)
 names(sampleTimes) <- tree$tip.label
 
-bdt <- DatedTree( phylo = tree, sampleTimes = sampleTimes)
+bdt <- DatedTree( phylo = tree, 
+                  sampleTimes = sampleTimes)
 bdt
 ```
 
@@ -141,9 +143,9 @@ In order to fit this model, we need to express the equations in a canonical
 format:
 
 ```{r}
-births <- c( I = "parms_truth$beta * S * I" )
-deaths <- c( I = "parms_truth$gamma * I" )
-nonDemeDynamics <- c("S = -parms_truth$beta * S * I")
+births <- c( I = "beta * S * I" )
+deaths <- c( I = "gamma * I" )
+nonDemeDynamics <- c(S = "-beta * S * I")
 ```
 
 The births vector gives the total rate that all infected generate new infections
@@ -163,7 +165,7 @@ We will use these initial conditions
 
 ```{r}
 # initial number of I and S
-x0 <- c(I = 1, S = unname(parms_truth$S) )
+x0 <- c(I = 1, S = unname(parms_truth$S0))
 
 # initial t0 (time of origin of the process)
 t0 <- bdt$maxSampleTime - max(bdt$heights) - 1
@@ -182,9 +184,10 @@ calculation of the likelihood.
 
 ```{r}
 dm <- build.demographic.process(births = births,
+                                nonDemeDynamics = nonDemeDynamics,
                                 deaths = deaths,
                                 parameterNames = names(parms_truth),
-                                rcpp = FALSE,
+                                rcpp = TRUE,
                                 sde = FALSE)
 ```
 
@@ -217,7 +220,7 @@ obj_fun <- function(lnbeta, lnI0){
   I0 <- exp(lnI0)
   parms <- parms_truth
   parms$beta <- beta
-  x0 <- c(I=unname(I0), S = unname(parms$S0) )
+  x0 <- list(I=unname(I0), S = unname(parms$S0) )
   
   mll <- -phydynR::colik(tree = bdt,
                          theta = parms_truth,

@@ -1,22 +1,25 @@
 ---
 title: "Simulating genealogies with an epidemiological coalescent model using phydynR"
 output:
-    rmarkdown::html_vignette:
+  bookdown::html_vignette2:
+  #bookdown::pdf_book:
     toc: TRUE
-    fig_caption: true
-    df_print: kable
-    highlight: pygments
+    fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: true
+    keep_tex: TRUE
+    latex_engine: xelatex
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{simulate_genelogies}
+  %\VignetteIndexEntry{Simulating genealogies with an epidemiological coalescent model using phydynR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
+library(kableExtra)
+library(magrittr)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -34,7 +37,7 @@ year), but has high transmission rate $\beta_0$. The second stage, chronic HIV i
 The last stage, AIDS, lasts $1/\gamma_2 = 2$ years on average and has an intermediate
 transmission rate. There are births into the susceptible state at rate $bN$ where
 $N = S+I_0+I_1+I_2$. And there is mortality due to natural causes from all states
-at rate $\mu$. The parameter values are listed in table 1. The model equations are
+at rate $\mu$. The parameter values are listed in Table \@ref(tab:table1). The model equations are
 as follows:
 
 $\dot{S} = bN − \mu S − (\beta_0I_0 + \beta_1I_1 + \beta_2I_2)S/N$
@@ -45,10 +48,46 @@ $\dot{I_1} = \gamma_0I_0 − (\mu + \gamma_1)I_1$
 
 $\dot{I_2} = \gamma_1I_1 − (\mu + \gamma_2)I_2$
 
-The model is also illustrated in figure 1.
+```{r table1, echo = FALSE}
+Parameter = c("Duration EHI",
+              "Duration chronic",
+              "Duration AIDS",
+              "Birth rate",
+              "Natural death rate",
+              "EHI transmission rate",
+              "Chronic transmission rate",
+              "AIDS transmission rate",
+              "Initial number of susceptibles") 
+Symbol = c("$1/\\gamma_0$",
+           "$1/\\gamma_1$",
+           "$1/\\gamma_2$",
+           "$b$",
+           "$\\mu$",
+           "$\\beta_0$",
+           "$\\beta_1$",
+           "$\\beta_2$",
+           "$S(0)$") 
+Values = c("1 year",
+           "7 years",
+           "2 years",
+           "0.036",
+           "$1/30$",
+           "1.2",
+           "0.03",
+           "0.09",
+           "3000") 
+data_list = data.frame(Parameter, Symbol, Values) 
+
+
+kbl(data_list, booktabs = TRUE, escape = FALSE, 
+    caption = "Parameter symbols and values")
+```
+
+
+
 The package is loaded by
 
-```{r}
+```{r message = FALSE}
 library(phydynR)
 ```
 
@@ -88,8 +127,8 @@ For example:
 
 ```{r}
 # births <- rbind(c('parms$beta0 * S * I0 / (S + I0 + I1 + I2)', '0', '0'),
-# c('parms$beta1 * S * I1 / (S + I0 + I1 + I2)', '0', '0'),
-# c('parms$beta2 * S * I2 / (S + I0 + I1 + I2)', '0', '0'))
+#                 c('parms$beta1 * S * I1 / (S + I0 + I1 + I2)', '0', '0'),
+#                 c('parms$beta2 * S * I2 / (S + I0 + I1 + I2)', '0', '0'))
 ```
 
 Note that there are zero rates in the 2nd and third columns, since all new infected
@@ -210,8 +249,8 @@ Note that the first stage of infection has a much higher transmission rate than
 subsequent stages.
 We can easily visualise the model:
 
-```{r}
-show.demographic.process(demo.model, theta, x0, t0, t1)
+```{r fig.asp = 0.8, fig.width = 6}
+show.demographic.process(demo.model, theta, x0, t0, t1, legend_position = "topright")
 ```
 
 Additional graphical parameters may be passed to the plot function.
@@ -253,7 +292,7 @@ tree
 The return value is a "DatedTree" object, which is derived from "ape::phylo".
 Consequently, all of the convenience functions for "ape::phylo" also work:
 
-```{r}
+```{r fig.asp = 0.8, fig.width = 6}
 plot.phylo(tree)
 
 ltt.plot(tree)

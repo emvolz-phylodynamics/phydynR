@@ -130,7 +130,6 @@ optim.colik <- function(tre
   , parm_lowerBounds = c()
   , parm_upperBounds = c()
   , timeOfOriginBoundaryCondition = FALSE
-  , AgtYboundaryCondition = TRUE
   , control = list()
   ,  ... )
 {
@@ -160,7 +159,6 @@ optim.colik <- function(tre
 		  , t0 = t0
 		  , res = 1e3
 		  , timeOfOriginBoundaryCondition = timeOfOriginBoundaryCondition
-		  , AgtYboundaryCondition = AgtYboundaryCondition # important/necessary
 		)
 	}
 	of_theta <- start[est_pars] 
