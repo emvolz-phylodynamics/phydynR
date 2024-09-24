@@ -15,4 +15,11 @@ This package provides functions for defining infectious disease models or ecolog
 2. Volz, Erik M., Katia Koelle, and Trevor Bedford. Viral phylodynamics. 
   PLoS Comput Biol 9.3 (2013): e1002947.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{http://emvolz-phylodynamics.github.io/phydynR/}
+}
+
+}
 \keyword{internal}

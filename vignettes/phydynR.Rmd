@@ -181,11 +181,13 @@ $I$. We will assume prior knowledge the death rate $\gamma$.
 First, create the objective function to be minimized:
 
 ```{r echo = FALSE}
-obj_fun <- function(beta, iniI){
- 
+obj_fun <- function(lnbeta, lniniI){
+  
+  beta <- exp(lnbeta)
+  I0 <- exp(lniniI)
   
   parms <- list(beta = beta, 
-                I = iniI, 
+                I = I0, 
                 gamma = 1, 
                 t0 = -1)
   
@@ -198,17 +200,21 @@ obj_fun <- function(beta, iniI){
                 res = 1000)
   
   # track progress:
-  print(c(mll, c(beta, I)))
+  print(paste(mll, beta, I0))
   mll
 }
 ```
+
+
+Note that this uses log-transformation for variables that must be positive (like
+rates and population sizes).
 
 We can then fit the model by running
 
 ```{r eval = FALSE}
 
 fit <- mle2(obj_fun,
-            start = list(beta = 2, iniI = 1),
+            start = list(lnbeta = log(2), lniniI = log(1)),
             method='Nelder-Mead', 
             optimizer='optim',
             control = list(trace = 6, reltol = 1e-8))
@@ -234,4 +240,5 @@ logLik(fit)
 
 #contains the parameter estimates
 coef(fit)
+exp(coef(fit))
 ```

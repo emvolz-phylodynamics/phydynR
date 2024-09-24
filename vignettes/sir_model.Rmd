@@ -21,6 +21,7 @@ vignette: >
 ```{r, include = FALSE}
 library(kableExtra)
 library(magrittr)
+library(ggplot2)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -36,7 +37,6 @@ in [@Volz2012] to estimate transmission rate parameters given a pathogen genealo
 # Basic requirements
 This vignette assumes that you have the following packages already installed:
 
-* ape: R package to work with phylogenetic trees.
 * rjason: Converts R objects into JSON objects and vice-versa.
 * [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the coalescent simulation and likelihood function for phylodynamics analysis
 
@@ -44,6 +44,7 @@ This vignette assumes that you have the following packages already installed:
 ```{r message = FALSE}
   library(phydynR)
   library(rjson)
+  library(bbmle)
 ```
 
 
@@ -206,11 +207,14 @@ print(system.time(print(phydynR::colik(tree = bdt,
 ```
 
 
-Note that changing the integrationMethod (choose "euler"), maxHeight
-(only fitt to part of the tree) and res (set to a smaller value) options
+Note that changing the _integrationMethod_ (choose "euler"), _maxHeight_
+(only fit to part of the tree) and _res_ (set to a smaller value) options
 can dramatically speed up the calculation at the cost of some accuracy.
 
-We can fit the model using maximum likelihood with the bbmle or stats4
+
+# Fitting the model
+
+We can fit the model using maximum likelihood with the `bbmle` or `stats4`
 R packages.
 
 ```{r}
@@ -220,7 +224,7 @@ obj_fun <- function(lnbeta, lnI0){
   I0 <- exp(lnI0)
   parms <- parms_truth
   parms$beta <- beta
-  x0 <- list(I=unname(I0), S = unname(parms$S0) )
+  x0 <- c(I = unname(I0), S = unname(parms$S0) )
   
   mll <- -phydynR::colik(tree = bdt,
                          theta = parms_truth,
@@ -235,4 +239,109 @@ obj_fun <- function(lnbeta, lnI0){
 }
 ```
 
+Note that this uses log-transformation for variables that must be positive (like
+rates and population sizes).
+We can then fit the model by running
+
+```{r. eval = FALSE}
+fit <- mle2(obj_fun,
+            start = list(lnbeta = log(parms_truth$beta * 0.75), lnI0 = log(1)),
+            method = "Nelder-Mead",
+            optimizer = "optim",
+            control = list(trace=6, reltol=1e-8))
+```
+
+
+Note that we are starting the optimizer far from the true parameter values. If
+fitting a model to real data, it is recommended to try many different starting
+conditions over a large range of values. The optimizer would take a few minutes
+to run, so instead we will load the results:
+
+```{r}
+load( system.file("extdata/sirModel0-fit.RData", package="phydynR") )
+
+AIC(fit)
+logLik(fit)
+coef(fit)
+exp(coef(fit))
+exp(coef(fit)["lnbeta"]) - parms_truth$beta
+
+# how biased is the estimate?
+exp(coef(fit)["lnbeta"]) - parms_truth$beta
+
+```
+
+We can compare the fitted model to the true number of infected through
+time, which is shown in Fgure \@ref(fig:figure1).
+
+```{r figure1, fig.asp = 0.8, fig.width = 6, fig.cap = "The actual (black) and estimated (red) number of infections through time. The blue line shows the SIR model prediction under the true parameter values.", echo = TRUE}
+
+beta <- exp(coef(fit)["lnbeta"])
+I0 <- exp(coef(fit)["lnI0"])
+parms <- parms_truth
+parms$beta <- beta
+x0 <- c(I = unname(I0), S = unname(parms$S0) )
+
+o <- dm(parms,
+        x0,
+        t0,
+        t1 = bdt$maxSampleTime,
+        res = 1e3, 
+        integrationMethod='rk4')
+o <- o[[5]]
+
+otruth <- dm(parms_truth,
+             x0,
+             t0, 
+             t1 = bdt$maxSampleTime,
+             res = 1e3, 
+             integrationMethod='rk4')
+otruth <- otruth[[5]]
+
+rdata <- data.frame(time = epidata$t, I = epidata$I)
+
+ggplot(rdata, aes(x = time, y = I)) +
+  geom_point() +
+  geom_line(data = o, aes(x = time, y = I), col='blue') +
+  geom_line(data = otruth, aes(x = time, y = I), col='red') +
+  theme_bw() +
+  theme(element_text(size = 12)) +
+  xlab("Time") +
+  ylab("Number of infected")
+```
+
+We can calculate a confidence interval for the transmission rate using likelihood 
+profiles:
+
+```{r eval = FALSE}
+profbeta <- profile(fit, 
+                    which = 1, 
+                    alpha = 0.05,
+                    std.err = 1, 
+                    trace = TRUE,
+                    tol.newmin = 1)
+```
+
+This takes a few minutes, so we will load the results:
+
+```{r}
+
+load( system.file("extdata/sirModel0-profbeta.RData", package = "phydynR"))
+```
+
+We can see that the confidence interval covers the true value:
+
+```{r}
+
+c( exp( confint( profbeta ) ), TrueVal = parms_truth$beta )
+```
+
+And, we can visualize the profile (Figure 2).
+
+```{r figure2, fig.asp = 0.9, fig.width = 5, fig.cap = "Likelihood profile for the transmission rate $\\beta$ with confidence levels. The true parameter value is indicated by the vertical red line.", echo = TRUE}
+plot(profbeta)
+abline( v = log( parms_truth$beta) , col = "red")
+```
+
+# References
 

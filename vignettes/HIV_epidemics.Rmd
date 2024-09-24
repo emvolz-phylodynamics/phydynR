@@ -353,7 +353,6 @@ times <- o[,1]
 real_data <- cbind(rtimes, rY)
 rdata <- gather(real_data, "Demes", "I", I0:I2, factor_key=TRUE)
 
-#matplot( rtimes, rY, xlab='Time', ylab='Number infected by stage')
 ggplot(rdata, aes(x = rtimes, y = I)) +
   geom_point(aes(col = Demes)) + 
   scale_colour_manual(values=c("black", "red", "green")) +
@@ -363,7 +362,7 @@ ggplot(rdata, aes(x = rtimes, y = I)) +
   theme_bw() +
   theme(element_text(size = 12)) +
   xlab("Time") +
-  ylab("Number infected by stage")
+  ylab("Number of infected by stage")
 
 ```
 
