@@ -1,0 +1,46 @@
+template:
+  bootstrap: 5
+  light-switch: true
+  math-rendering: katex
+navbar:
+  structure:
+    left:
+    - intro
+    - reference
+    - articles
+    - tutorials
+    - news
+    right:
+    - search
+    - github
+    - lightswitch
+  components:
+    reference:
+      text: Pkg Functions
+      href: reference/index.html
+    intro:
+      text: Get started
+      href: articles/phydynR.html
+    articles:
+      text: Tutorials
+      menu:
+      - text: Estimating transmission rate using the SIR model
+        href: articles/sir_model.html
+      - text: Estimating HIV transmission rates
+        href: articles/HIV_epidemics.html
+      - text: Simulating genealogies with an epidemiological coalescent model
+        href: articles/simulate_genealogies.html
+      - text: HIV Senegal Model
+        href: articles/SenegalHIVmodel.html
+
+reference:
+- title: All functions
+  contents:
+  - DatedTree
+  - build.demographic.process
+  - show.demographic.process
+  - colik
+  - colik.pik.fgy
+  - sim.co.tree
+  - .phylostructure2newick
+url: http://emvolz-phylodynamics.github.io/phydynR/

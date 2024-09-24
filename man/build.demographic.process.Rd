@@ -51,9 +51,11 @@ An object of class \code{demographic.process}, which is a function
 A model is constructed by supplying birth rates, migration rates, and death rates.
 The model can be used to simulate demographic histories or as an input to coalescent
 simulation or likelihood calculation.
+The demographic model can be created using ordinary differential equations (ODEs)
+or stochastic differential equations (SDEs)
 }
 \examples{
-# A simple exponential growth model with birth rates beta and death rates gamma:
+# A simple exponential growth model with birth rates beta, and death rates gamma:
 # I is the number of infected individuals.
 dm <- build.demographic.process(births=c(I = 'parms$beta * I'),
                                 deaths = c(I = 'parms$gamma * I'),

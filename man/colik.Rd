@@ -46,7 +46,7 @@ the tree precedes the time of origin.}
 
 \item{maxHeight}{It will only count internode intervals in the likelihood that
 occur after maxHeight years before present. Useful for large trees and when
-you don't want to model the entire demographic history.}
+you do not want to model the entire demographic history.}
 
 \item{forgiveAgtY}{If number of extant lineages exceeds simulated population
 size, return -Inf if this value is zero, or forgive the discrepancy if zero.
@@ -54,7 +54,7 @@ If between zero and one, only forgive the discrepancy if this proportion of
 lineages is less than the given value.}
 
 \item{AgtY_penalty}{If number of extant lineages exceeds simulated population
-size, penalise likelihood with value L*AgtY_penalty where L is the cumulative
+size, penalize likelihood with value L*AgtY_penalty where L is the cumulative
 coalescent rate within the given internode interval. 0<= AgtY_penalty <= Inf.}
 
 \item{returnTree}{If TRUE, a copy of the tree is also returned, which includes
@@ -78,11 +78,11 @@ genealogical model based on a user-supplied demographic process.
 }
 \examples{
 # A simple exponential growth model with birth rates beta and death rates gamma:
-dm <- build.demographic.process(births=c(I = 'parms$beta * I'),
+dm <- build.demographic.process(births = c(I = 'parms$beta * I'),
                                 deaths = c(I = 'parms$gamma * I'),
-                                parameterNames=c('beta', 'gamma'),
-                                rcpp=FALSE,
-                                sde=FALSE)
+                                parameterNames = c('beta', 'gamma'),
+                                rcpp = FALSE,
+                                sde = FALSE)
 
 # simulate a tree based on the model:
 tre <- sim.co.tree(list(beta = 1.5, gamma = 1),

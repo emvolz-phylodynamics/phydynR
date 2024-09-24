@@ -16,6 +16,40 @@ colik.pik.fgy(
   PL2 = FALSE
 )
 }
+\arguments{
+\item{tree}{A DatedTree object}
+
+\item{tfgy}{TO DO}
+
+\item{timeOfOriginBoundaryCondition}{If TRUE, will return -Inf if the root of
+the tree precedes the time of origin.}
+
+\item{maxHeight}{It will only count internode intervals in the likelihood that
+occur after maxHeight years before present. Useful for large trees and when
+you do not want to model the entire demographic history.}
+
+\item{forgiveAgtY}{If number of extant lineages exceeds simulated population
+size, return -Inf if this value is zero, or forgive the discrepancy if zero.
+If between zero and one, only forgive the discrepancy if this proportion of
+lineages is less than the given value.}
+
+\item{AgtY_penalty}{If number of extant lineages exceeds simulated population
+size, penalize likelihood with value L*AgtY_penalty where L is the cumulative
+coalescent rate within the given internode interval. 0<= AgtY_penalty <= Inf.}
+
+\item{returnTree}{If TRUE, a copy of the tree is also returned, which includes
+the inferred states of lineages and likelihood terms at each internal node.}
+
+\item{step_size_res}{Parameter for the ODE solver; it is the default number 
+of timesteps to use when solving coalescent equations in each internode 
+interval}
+}
+\value{
+The coalescent (or structured coalescent) log likelihood (numeric).
+}
 \description{
 Compute a structured coalescent likelihood given a dated genealogy and a demographic history in FGY format
+}
+\author{
+Erik Volz
 }

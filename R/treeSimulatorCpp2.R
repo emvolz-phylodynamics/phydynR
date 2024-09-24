@@ -16,6 +16,8 @@ require(inline)
 #' A model is constructed by supplying birth rates, migration rates, and death rates.
 #' The model can be used to simulate demographic histories or as an input to coalescent
 #' simulation or likelihood calculation.
+#' The demographic model can be created using ordinary differential equations (ODEs)
+#' or stochastic differential equations (SDEs) 
 #'
 #' @param births A named character vector or matrix of mathematical expressions
 #'   that describe model birth rates. Names correspond to each deme. If there is
@@ -45,7 +47,7 @@ require(inline)
 #' @export
 #'
 #' @examples
-#' # A simple exponential growth model with birth rates beta and death rates gamma:
+#' # A simple exponential growth model with birth rates beta, and death rates gamma:
 #' # I is the number of infected individuals.
 #' dm <- build.demographic.process(births=c(I = 'parms$beta * I'),
 #'                                 deaths = c(I = 'parms$gamma * I'),

@@ -1,5 +1,5 @@
 ---
-title: "Simulate genealogies using exponential growth and phydynR"
+title: "Simulate genealogies using exponential growth"
 output:
   bookdown::html_vignette2:
   #bookdown::pdf_book:
@@ -11,7 +11,7 @@ output:
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{Simulate genealogies using exponential growth and phydynR}
+  %\VignetteIndexEntry{Simulate genealogies using exponential growth}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

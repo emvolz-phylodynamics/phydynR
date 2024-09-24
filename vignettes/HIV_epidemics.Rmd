@@ -1,5 +1,5 @@
 ---
-title: "Estimating HIV transmission rates with phydynR"
+title: "Estimating HIV transmission rates"
 author: "Erik Volz"
 date: "`r Sys.Date()`"
 output:
@@ -13,7 +13,7 @@ output:
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{Estimating HIV transmission rates with phydynR}
+  %\VignetteIndexEntry{Estimating HIV transmission rates}
   %\VignetteEngine{rmarkdown::render}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Simulating genealogies with an epidemiological coalescent model using phydynR"
+title: "Simulating genealogies with an epidemiological coalescent model"
 output:
   bookdown::html_vignette2:
   #bookdown::pdf_book:
@@ -11,7 +11,7 @@ output:
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{Simulating genealogies with an epidemiological coalescent model using phydynR}
+  %\VignetteIndexEntry{Simulating genealogies with an epidemiological coalescent model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

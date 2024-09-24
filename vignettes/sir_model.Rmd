@@ -1,7 +1,8 @@
 ---
-title: "Estimating transmission rate using the SIR model and phydynR"
+title: "Estimating transmission rate using the SIR model"
 author: "Erik Volz"
 date: "`r Sys.Date()`"
+description: "What does this tutorial do?"
 output:
   bookdown::html_vignette2:
   #bookdown::pdf_book:
@@ -13,7 +14,7 @@ output:
 bibliography: bib/tutorials.bib
 fontsize: 12pt
 vignette: >
-  %\VignetteIndexEntry{Estimating transmission rate using the SIR model and phydynR}
+  %\VignetteIndexEntry{Estimating transmission rate using the SIR model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
