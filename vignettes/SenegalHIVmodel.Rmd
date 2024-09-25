@@ -99,7 +99,7 @@ $p_{gpf2gpm}$
 * An infected $gpf$ ($I_{gpf}$) could transmit to a $msm$ with probability 
 $(1 - p_{gpf2gpm})$
 * An infected $gpm$ could also transmit to a $gpf$. For this event, we used the 
-risk ratio of a male to transmit to a female, and fixed it to $2.0$. This is the 
+risk ratio of a male to transmit to a female, and fixed it to $1.02$. This is the 
 parameter $male_{x}$ of our model.
 
 See Figure \@ref(fig:figure1) for a schematic representation of the transmission 
@@ -183,7 +183,7 @@ THETA <- list(gpsp0 = 6/10,
               msmsp1 = 4/10,
               msmsp2 = 2/10,
               msmsploc = 1995,
-              maleX = 2.0,
+              maleX = 1.02,
               import = 1/20,
               srcNe = 1/10,
               gpspline = function(t, parms){
@@ -252,7 +252,7 @@ Parameter = c("Spline shape gp0",
                    "4/10",
                    "2/10",
                    "1995",
-                   "2.0",
+                   "1.2",
                    "1.20",
                    "1.10",
                    "0.85",
@@ -512,7 +512,7 @@ phydynR::colik(tree = dated.tree,
                res = 1e3,
                timeOfOriginBoundaryCondition = FALSE,
                AgtY_penalty = 1,
-               maxHeight = 41)
+               maxHeight = 35)
 ```
 
 Note that for the calculation of the likelihood you can provide a value for 
@@ -523,8 +523,8 @@ whole tree for the calculation of the likelihood can make it slower than
 when using just a portion back in time.
 
 
-For the Senegal data, we used a `maxHeight` = 41. This means that it will go back 
-in time in the tree at approximately 1973. This was merely chosen to put the 
+For the Senegal data, we used a `maxHeight` = 35. This means that it will go back 
+in time in the tree at approximately 1979. This was merely chosen to put the 
 HIV epidemics in Senegal around this time, for estimation of the parameters in 
 our model. 
 
@@ -607,7 +607,7 @@ obj_fun <- function(parameters){
                        res = 1e3,
                        timeOfOriginBoundaryCondition = FALSE,
                        AgtY_penalty = 1,
-                       maxHeight = 41)
+                       maxHeight = 35)
 
   return(mll)
 
@@ -655,16 +655,16 @@ Now, we can provide a sampler, which is optional, as described in the `BayesianT
 # The MCMCs can automatically generate starting
 # conditions if a sampler is provided
 sampler <-  function(n=1){
-  d1 = rgamma(n, shape = 3, rate = 3/1.1) #gpsp0
-  d2 = rgamma(n, shape = 3, rate = 3/1.1) #gpsp1
-  d3 = rgamma(n, shape = 3, rate = 3/1.1) #gpsp2
-  d4 = runif(n, min = 1978, max = 2014) #gpsploc
-  d5 = rgamma(n, shape = 3, rate = 3/1.1) #msmsp0
-  d6 = rgamma(n, shape = 3, rate = 3/1.1) #msmsp1
-  d7 = rgamma(n, shape = 3, rate = 3/1.1) #msmsp2
-  d8 = runif(n, min = 1978, max = 2014) #msmsploc
-  d9 = rexp(n, rate = 30) #import
-  d10 = rexp(n, rate = 20) #srcNe
+  d1 = rgamma(n, shape = 4, rate = 4/0.6) #gpsp0
+  d2 = rgamma(n, shape = 4, rate = 4/0.4) #gpsp1
+  d3 = rgamma(n, shape = 4, rate = 4/0.1) #gpsp2
+  d4 = runif(n, min = 1985, max = 2000) #gpsploc
+  d5 = rgamma(n, shape = 4, rate = 4/0.4) #msmsp0
+  d6 = rgamma(n, shape = 4, rate = 4/0.4) #msmsp1
+  d7 = rgamma(n, shape = 4, rate = 4/0.2) #msmsp2
+  d8 = runif(n, min = 1985, max = 2005) #msmsploc
+  d9 = runif(n, 1/40, 1/5) #import
+  d10 = runif(n, 5, 1000) #srcNe
   d11 = rbeta(n, shape1 = 16, shape2 = 4) #pmsm2msm
   d12 = rbeta(n, shape1 = 16, shape2 = 4) #pgpf2gpm
 
@@ -679,14 +679,14 @@ by using the following:
 # Create prior (necessary for the BayesianTools package)
 prior <- createPrior(density = densities, 
                      sampler = sampler, 
-                     lower = c(0.01, 0.01, 0.01, 
-                               1978, 0.01, 0.01, 
-                               0.01, 1978, 0, 
-                               0.0001, 0.3, 0.3), 
-                     upper = c(3, 3, 3, 
-                               2014, 3, 3, 
-                               3, 2014, 0.15, 
-                               0.15, 1, 1))
+                     lower = c(0.05, 0.05, 0.05, 
+                               1978, 0.05, 0.05, 
+                               0.05, 1978, 0, 
+                               1, 0, 0), 
+                     upper = c(1, 1, 1, 
+                               2014, 1, 1, 
+                               1, 2014, 0.30, 
+                               5000, 1, 1))
 ```
 
 We are now ready to estimate the parameter values using MCMC. We chose the 
