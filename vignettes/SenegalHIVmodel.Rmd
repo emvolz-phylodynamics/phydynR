@@ -8,7 +8,6 @@ output:
     toc: TRUE
     fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: TRUE
     latex_engine: xelatex
 bibliography: bib/tutorials.bib
 fontsize: 12pt
@@ -19,28 +18,40 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
+library(magrittr)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-options(knitr.table.format = "latex")
+
+options(kableExtra.html.bsTable = T)
 ```
 
 # Introduction
 
-This vignette will demonstrate how we estimated HIV transmission rates using DNA 
-sequences from Senegal. This also provides a guidance on how analysis described in [Nascimento _et al_. 2020](https://www.sciencedirect.com/science/article/pii/S1755436519300660) was carried out. 
-We analysed HIV-1 sequences from subtypes B, C and 02_AG.
+This vignette will demonstrate how we estimated transmission rates using 
+HIV genetic sequences from Senegal. This also provides a guidance on how analysis 
+described in [Nascimento _et al_. 2020](https://www.sciencedirect.com/science/article/pii/S1755436519300660) was 
+carried out.We analysed HIV-1 sequences from subtypes B, C and 02_AG.
+
+Here we will provide a snapshot of these analyses.
 
 # Basic requirements
-This vignette assumes that you know the basics of R and have the following packages already installed:
+This vignette assumes that you know the basics of R and have the following packages 
+already installed:
 
-* ape: for phylogenetic trees
-* akima: necessary for interpolation of data (used for the calculation of the likelihood by the phydynR package)
-* [BayesianTools]("https://github.com/florianhartig/BayesianTools"): package for Bayesian inference
-* devtools: useful for installing packages directly from github repository, for example. 
-* [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the coalescent simulation and likelihood function for phylodynamics analysis
-* [treedater]("https://github.com/emvolz/treedater"): fits a molecular clock to a phylogenetic tree.
+* ape: for phylogenetic trees;
+* akima: necessary for interpolation of data (used for the calculation of the 
+likelihood by the phydynR package);
+* [BayesianTools]("https://github.com/florianhartig/BayesianTools"): package for 
+Bayesian inference;
+* devtools: useful for installing packages directly from github repository;
+* [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the 
+coalescent simulation and likelihood function for phylodynamic analysis;
+* [treedater]("https://github.com/emvolz/treedater"): fits a molecular clock to 
+a phylogenetic tree.
+* [senegalHIVmodel](https://github.com/thednainus/senegalHIVmodel/tree/master): contains the example data to run the analysis described in this tutorial.
 
 
 ## Load the necessary packages:
@@ -50,47 +61,75 @@ This vignette assumes that you know the basics of R and have the following packa
   library(BayesianTools)
   library(phydynR)
   library(treedater)
+  library(senegalHIVmodel)
 ```
 
 # The Model
-The model we fit is based on the structured coalescent models [@Volz2012]. These models are used to estimate epidemiological parameters using a phylogenetic tree and information on states of each tip of the tree. These states are discrete-trait information representing each sequences.
+The model we fit is based on the structured coalescent models [@Volz2012]. These 
+models are used to estimate epidemiological parameters using a phylogenetic tree 
+and information on states of each tip of the tree. These states are discrete-trait 
+information representing each sequences.
 
-In our mathematical model we have 4 different discrete-traits associated to each DNA sequence:
+In our mathematical model we have 4 different discrete-traits associated to each 
+genetic sequence:
 
 * $gpf$ = HIV sample from the general population -- females;
 * $gpm$ = HIV sample from the general population -- males;
 * $msm$ = HIV sample from men that have sex with other men;
-* $src$ = source sample, which are HIV samples from individuals that are from other countries and not from Senegal. 
+* $src$ = source sample, which are HIV samples from individuals who are from 
+other countries and not from Senegal. 
 
 ## Stage of infection
 
-We fit the HIV epidemic in Senegal using ordinary differential equations (ODE) and only 1 stage of infection. This means that infected individuals would die and not recover from the infection. In our model we represented it as $\gamma$ rate. We used 1 stage of infection, because the metadata available for the Senegal sequences did not have information that we could use to determine the stage of HIV infection at the time the samples were collected. 
+We fit the HIV epidemic in Senegal using ordinary differential equations (ODE) 
+and only 1 stage of infection. This means that infected individuals would die 
+and not recover from the infection. In our model we represented it as $\gamma$ 
+rate. We used 1 stage of infection, because the metadata available for the 
+Senegal sequences did not have information that we could use to determine the 
+stage of HIV infection at the time the samples were collected. 
 
 ## How transmissions were modelled?
 
-* An infected $msm$ ($I_{msm}$) could transmite to another $msm$ with probability $p_{msm2msm}$
-* An infected $msm$ ($I_{msm}$) could transmit to a $gpf$ with probability  $(1 - p_{msm2msm})$
-* An infected $gpf$ ($I_{gpf}$) could transmit to a $gpm$ with probability $p_{gpf2gpm}$
-* An infected $gpf$ ($I_{gpf}$) could transmit to a $msm$ with probability $(1 - p_{gpf2gpm})$
-* An infected $gpm$ could also transmit to a $gpf$. For this event, we used the risk ratio of a male to transmite to a female, and fixed it to $2.0$. This is the parameter $male_{x}$ of our model.
+* An infected $msm$ ($I_{msm}$) could transmit to another $msm$ with 
+probability $p_{msm2msm}$
+* An infected $msm$ ($I_{msm}$) could transmit to a $gpf$ with probability 
+$(1 - p_{msm2msm})$
+* An infected $gpf$ ($I_{gpf}$) could transmit to a $gpm$ with probability 
+$p_{gpf2gpm}$
+* An infected $gpf$ ($I_{gpf}$) could transmit to a $msm$ with probability 
+$(1 - p_{gpf2gpm})$
+* An infected $gpm$ could also transmit to a $gpf$. For this event, we used the 
+risk ratio of a male to transmit to a female, and fixed it to $2.0$. This is the 
+parameter $male_{x}$ of our model.
 
-See Figure 1 for a schematic representation of the transmission model for HIV in Senegal. In this figure $gpf$, $gpm$ and $msm$ represent the infected individuals.
+See Figure \@ref(fig:figure1) for a schematic representation of the transmission 
+model for HIV in Senegal. In this figure $gpf$, $gpm$ and $msm$ represent the 
+infected individuals.
 
-```{r out.width = "100%", fig.align="center", fig.cap="Transmission model for HIV in Senegal. $gpf$, $gpm$ and $msm$ represent infected individuals.", echo = FALSE}
+```{r figure1, out.width = "100%", fig.align="center", fig.cap="Transmission model for HIV in Senegal. $gpf$, $gpm$ and $msm$ represent infected individuals.", echo = FALSE}
 knitr::include_graphics("figures/SN_model_v2.png")
 ```
 
 ## How about HIV incidence rate?
 
-We also modelled the HIV incidence rate as a funtion of time ($t$) in $msm$ and the $gp$ (general population) as different spline functions [@Eilers1996], that in our ODEs are represented by $\lambda(t)$ and $\mu(t)$, respectively.
+We also modeled the HIV incidence rate as a function of time ($t$) in $msm$ and 
+the $gp$ (general population) as different spline functions [@Eilers1996], that 
+in our ODEs are represented by $\lambda(t)$ and $\mu(t)$, respectively.
 
 ## The $source$ compartment
 
-Finally, to model the HIV epidemic in Senegal, we also added an additional compartment named "source" ($src$), that represents the rate in which HIV lineages are imported to Senegal from other countries. We modelled this as a constant efective population size rate with two parameters to be estimeted -- $srcNe$: the effective source population size; and the $import$ rate. Because the number of imported HIV balances the number of exported HIV, the infected $src$ individuals along time are not represented in the ODEs. 
+Finally, to model the HIV epidemic in Senegal, we also added an additional 
+compartment named "source" ($src$), that represents the rate in which HIV lineages 
+are imported to Senegal from other countries. We modeled this as a constant 
+effective population size rate with two parameters to be estimated -- $srcNe$: 
+the effective source population size; and the $import$ rate. Because the number 
+of imported HIV balances the number of exported HIV, the infected $src$ 
+individuals along time are not represented in the ODEs. 
 
 ## The ODEs or mathematical model equations
-
-Based on **Figure 1** and the parameters we would like to estimate, the ordinary differential equations (ODEs) of our model are:
+ 
+Based on **Figure \@ref(fig:figure1)** and the parameters we would like to estimate, 
+the ordinary differential equations (ODEs) of our model are:
 
 $\dot{I}_{gpf} = male_x \mu(t) I_{gpm} + (1 - p_{msm2msm}) \lambda(t) I_{msm} - \gamma I_{gpf}$
 
@@ -98,30 +137,42 @@ $\dot{I}_{gpm} = p_{gpf2gpm} \mu(t) I_{gpf} - \gamma I_{gpm}$
 
 $\dot{I}_{msm} = (1 - p_{gpf2gpm}) \mu(t) I_{gpf} + p_{msm2msm} \lambda(t) I_{msm} - \gamma I_{msm}$
 
-
+For a publication, you should choose mathematical symbols such as $\phi$, or $p$,
+etc to make your equations nicer. However, for simplicity and to make it easier 
+to understand the meaning of the parameters, we will keep the values as it is, 
+such as $p_{gpf2gpm}$, etc.
 
 ## How to express the mathematical model in R?
 
-In our model, we are interested in HIV transmissions in the $gp$ and in the $msm$ risk group. But also remember that we have to consider the imported HIV, which is in the $src$ compartment. Based on that, $gpf$, $gpm$, $msm$, and $src$ are the demes of our model, and are represented as a vector in R as:
+In our model, we are interested in HIV transmissions in the $gp$ and in the $msm$ 
+risk group. But also remember that we have to consider the imported HIV, which 
+is in the $src$ compartment. Based on that, $gpf$, $gpm$, $msm$, and $src$ are 
+the demes of our model, and are represented as a vector in R as:
 
 ```{r}
 demes <- c("gpm", "gpf", "msm", "src")
 ```
 
-Because we use spline functions to determine the shape of the curve for the transmission rates in $gp$ and $msm$, we should provide the initial `T0` and final `T1` times for our simulations.
+Because we use spline functions to determine the shape of the curve for the 
+transmission rates in $gp$ and $msm$, we should provide the initial `T0` and 
+final `T1` times for our simulations.
 
 ```{r}
 T0 <- 1978
 T1 <- 2014
 ```
 
-We can also go ahead and set the value for the stage of infection, that in our model is just one stage. We assume we know this value.
+We can also go ahead and set the value for the stage of infection, that in our 
+model is just one stage. We assume we know this value.
 
 ```{r}
 GAMMA <- 1/10
 ```
 
-We should also create a list to set up a template for the parameter values of our model. You can set this to values that you think are appropriate. Remember that the majority of parameter values in this list will be estimated. In R, this can be created following:
+We should also create a list to set up a template for the parameter values of 
+our model. You can set this to values that you think are appropriate. Remember 
+that the majority of parameter values in this list will be estimated. 
+In R, this list of parameter values can be created as below:
 
 ```{r}
 THETA <- list(gpsp0 = 6/10,
@@ -155,9 +206,14 @@ THETA <- list(gpsp0 = 6/10,
              initgp = 1)
 ```
 
-Note that parameters $gpsp0$, $gpsp1$, $gpsp2$, and $gpsploc$ are necessary to estimate the spline function for the $gp$ ($gpspline$ in R or $\mu(t)$ in the ODE). And parameters $msmsp0$, $msmsp1$, $msmsp2$, $msmsploc$ are necessary to estimate the spline function for the $msm$ risk group ($msmspline$ in R or $\lambda(t)$ in the ODE).
+Note that parameters $gpsp0$, $gpsp1$, $gpsp2$, and $gpsploc$ are necessary to 
+estimate the spline function for the $gp$ ($gpspline$ in R or $\mu(t)$ in the ODEs). 
+And parameters $msmsp0$, $msmsp1$, $msmsp2$, $msmsploc$ are necessary to 
+estimate the spline function for the $msm$ risk group ($msmspline$ in R 
+or $\lambda(t)$ in the ODEs).
 
 ```{r echo = FALSE}
+
 Parameter = c("Spline shape gp0",
               "Spline shape gp1",
               "Spline shape gp2",
@@ -204,20 +260,20 @@ Parameter = c("Spline shape gp0",
                    "1.0",
                    "1.0") 
 data_list = data.frame(Parameter, `Symbol in R`, `Initial values`) 
-data_list <- as.matrix(data_list)
 colnames(data_list)<-c("Parameter","Symbol in R",
                     "Initial values")
 
-kable_table <- knitr::kable(data_list, booktabs = T, caption =  "Parameter definition, values and symbols used in the R script")
-kableExtra::kable_styling(kable_input = kable_table,
-                          latex_options = "striped",
-                          full_width = FALSE, position = "center",
-                           )
+kableExtra::kbl(data_list, booktabs = TRUE,
+    caption = "Parameter definition, values and symbols used in the R script.") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")
+                            )
 
 ```
 
 
-We also need to setup some initial conditions of our model. We should set an arbitrary large number for the $src$ population, 
+We also need to setup some initial conditions of our model. We should set an 
+arbitrary large number for the $src$ population.
+
 ```{r}
 SRCSIZE <<- 1e5
 X0 <- c(gpm = unname(THETA$initgp/2),
@@ -229,7 +285,9 @@ X0 <- c(gpm = unname(THETA$initgp/2),
 
 ### Setting up the birth, migration and death rates
 
-The calculation of births and migrations of our model are expressed as 4 $\times$ 4 matrices, which represent a transmission or movement from one deme to another deme. Lineages also die at a same rate.
+The calculation of births and migrations of our model are expressed as 
+4 $\times$ 4 matrices, which represent a transmission or movement from one deme 
+to another deme. Lineages also die at a same rate.
 
 First, we have to setup the components of the model. This can be done using the `setup.model.equations` function in this research compendium. 
 
@@ -241,7 +299,8 @@ attach(eqns)
 
 ### Setting up the birth matrix
 
-We should set up the birth matrix to allow transmissions from one deme to another deme as in __Figure 1__.
+We should set up the birth matrix to allow transmissions from one deme to 
+another deme as in __Figure \@ref(fig:figure1) __.
 
 ```{r, echo=FALSE}
 births['msm', 'msm'] <- "$msm \\to msm$"
@@ -254,21 +313,17 @@ births['gpf', 'msm'] <- "$gpf \\to msm$"
 # f = (1/2)*(Y^2)/Ne
 births['src', 'src'] <- "$src \\to src$"
 
-kable_table <- knitr::kable(births, booktabs = T, escape = F, caption = "Illustration of allowed transmissions between demes.")
+kableExtra::kbl(births, booktabs = TRUE, escape = FALSE,
+    caption = "Illustration of allowed transmissions between demes.") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 
-out <- kableExtra::kable_styling(kable_input = kable_table,
-                                 latex_options = "striped",
-                                 full_width = FALSE,
-                                 position = "center",
-                                 )
-
-kableExtra::column_spec(kable_input = out, 1, bold = TRUE)
 ```
 
 
-To set up these transmissions between demes, each element in the matrix is a string that will be passed as R code.
+To set up these transmissions between demes, each element in the matrix is a 
+string that will be passed as R code.
 
-```{r}
+```{r message = FALSE}
 births['msm', 'msm'] <- "parms$msmspline(t, parms) * msm * parms$pmsm2msm"
 births['msm', 'gpf'] <- "parms$msmspline(t, parms) * msm * (1-parms$pmsm2msm)"
 
@@ -283,7 +338,9 @@ births['src', 'src'] <- "0.5 * SRCSIZE^2 / parms$srcNe"
 
 ### Setting up the migration matrix
 
-Similar to the birth matrix, we also allow migrations from $gpf$, $gpm$, or $msm$ to the $src$; and from $src$ to $gpf$, $gpm$, or $msm$. This is modelled as a constant effective population size.
+Similar to the birth matrix, we also allow migrations from $gpf$, $gpm$, or $msm$ 
+to the $src$; and from $src$ to $gpf$, $gpm$, or $msm$. This is modelled as 
+a constant effective population size.
 
 ```{r echo=FALSE}
 migs['src', 'gpm'] <- "$src \\to gpm$"
@@ -294,20 +351,15 @@ migs['gpm', 'src'] <- "$gpm \\to src$"
 migs['gpf', 'src'] <- "$gpf \\to src$"
 migs['msm', 'src'] <- "$msm \\to src$"
 
+kableExtra::kbl(migs, booktabs = TRUE, escape = FALSE,
+    caption = "Illustration of allowed migrations between demes.") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 
-kable_table <- knitr::kable(migs, booktabs = T, escape = F, caption = "Illustration of allowed migrations between demes.")
-
-out <- kableExtra::kable_styling(kable_input = kable_table,
-                                 latex_options = c("striped", "hold_position"),
-                                 full_width = FALSE,
-                                 position = "center",
-                                 )
-
-kableExtra::column_spec(kable_input = out, 1, bold = TRUE)
 ```
 
 
-We also set up migrations between demes where each element in the matrix is a string that will be passed as R code.
+We also set up migrations between demes where each element in the matrix is a 
+string that will be passed as R code.
 
 ```{r}
 migs['src', 'gpm'] <- "parms$import * gpm"
@@ -321,7 +373,8 @@ migs['msm', 'src'] <- "parms$import * msm"
 
 ### Setting up the vector for the death rates
 
-Similarly to the birth and migration matrices, we also set up death rates where each element is a string that will be passed as R code.
+Similarly to the birth and migration matrices, we also set up death rates where 
+each element is a string that will be passed as R code.
 
 ```{r}
 deaths['msm'] <- "GAMMA * msm"
@@ -332,7 +385,11 @@ deaths['src'] <- "0.5 * SRCSIZE^2 / parms$srcNe"
 
 ### The demographic model
 
-After setting up all the components of the mathematical model, we can build the demographic process using the function `build.demographic.process` from the `phydynR` pachage. The `dm` output can be used as imput to coalescent models for the calculation of the likelihood, when fitting the model using a Markov chain Monte Carlo (MCMC), for example.
+After setting up all the components of the mathematical model, we can build the 
+demographic process using the function `build.demographic.process` from the 
+`phydynR` package. The `dm` output can be used as input to coalescent models 
+for the calculation of the likelihood, when fitting the model using a 
+Markov chain Monte Carlo (MCMC), for example.
 
 ```{r}
 dm <- build.demographic.process(births = births,
@@ -343,13 +400,21 @@ dm <- build.demographic.process(births = births,
                                 sde = FALSE)
 ```
 
-For more information on the the input data for the `build.demographic.process` funtion, you should see its R documentaion.
+For more information on the the input data for the `build.demographic.process` 
+function, you should see its R documentation using the command 
+`?phydynR::build.demographic.process`.
 
 ## Load additional data
 
-After setting up all the equations of the model in a way that R can understand, the model can now be fitted to a binary and dated phylogenetic tree. In our specific case, we estimated a phylogenetic tree using [RAxML-NG](https://github.com/amkozlov/raxml-ng) for each subtype, as we are analysing HIV-1 subtypes B, C and 02_AG.
+After setting up all the equations of the model in a way that R can understand, 
+the model can now be fitted to a binary and dated phylogenetic tree. In our 
+specific case, we estimated a maximum likelihood trees using 
+[RAxML-NG](https://github.com/amkozlov/raxml-ng) for each subtype, as we analyzed 
+HIV-1 subtypes B, C and 02_AG.
 
-Each tree had a relaxed clock fitted using the R package [treedater](https://github.com/emvolz/treedater). And after that, the trees were merged into a single tree using the R script _merge_trees.R_ (it can be found in the directory `analysis/scripts`). The final tree did not contain sequences from children, and from which risk group or sex was NA. 
+Each tree had a relaxed clock fitted using the R package [treedater](https://github.com/emvolz/treedater). After that, the trees were merged 
+into a single tree using the R script [_merge_trees.R_] (https://github.com/thednainus/senegalHIVmodel/blob/master/analyses/scripts/R-scripts/Processing/merge_trees.R). The final tree did not contain sequences from children, 
+and from which risk group or sex was NA (not available). 
 
 We load the binary dated tree in R using the following:
 
@@ -360,7 +425,8 @@ tree.all <- read.tree(
 ```
 
 
-After, we should load all the information for the metadata. This aims to create a discrete-trait data for all tips in the phylogenetic tree. Remember that our discrete-trait data in this model are the _gpf_, _gpm_, _msm_, and _src_.
+After, we should load all the information for the metadata. This aims to create 
+a discrete-trait data for all tips in the phylogenetic tree. Remember that our discrete-trait data in this model are the _gpf_, _gpm_, _msm_, and _src_.
 
 First we need to read in R all metadata as below:
 
@@ -368,6 +434,7 @@ First we need to read in R all metadata as below:
 # Reads metadata for the CGR (close global reference) sequences
 # CGRs are referred in the mathematical model as src (source) data
 # src are HIV sequences that are from other countries and not from Senegal
+
 all.data.cgr <- read.csv(
   system.file("data/HIV_subtypes_summary_CGR.csv", 
   package = "senegalHIVmodel"))
@@ -379,13 +446,13 @@ all.data.SN <- read.csv(
 
 # organize metadata in 2 columns.
 # the 1st column is the sequence names
-# the 2nd colum is the state (gpf, gpm, msm, or src) of each sequence
+# the 2nd column is the state (gpf, gpm, msm, or src) of each sequence
 # metadata from children, or risk group or sex = NA will also be removed. 
 all_data <- senegalHIVmodel::organize_metadata(all.data.cgr, all.data.SN)
 ```
 
 
-After organing all metadata, we further organize it in a way that the R package `phydynR` will understand it.
+After organizing all metadata, we further organize it in a way that the R package `phydynR` will understand it.
 For that, we create a matrix to receive the information on states (discrete-traits) for each tip of the tree
 
 
@@ -402,7 +469,8 @@ sampleStates <- cbind(gpm, gpf, msm, src)
 rownames(sampleStates) <- all_data$tip.name
 ```
 
-Now, we need to read the estimated times (in calendar units) for each sequence in the phylogenetic tree
+Now, we need to read the estimated times (in calendar units) for each sequence 
+in the phylogenetic tree
 
 ```{r}
 times <- readRDS(
@@ -411,8 +479,9 @@ times <- readRDS(
 ```
 
 
-Finaly, we create an an object of `DatedTree` [phydynR package]. This is the tree that should be used in the calculation of the likelihood
-to estimate parameter values using `phydynR`
+Finally, we can create an an object of `DatedTree` [phydynR package]. This is 
+the tree that should be used in the calculation of the likelihood to estimate 
+parameter values using `phydynR`
 
 ```{r}
 dated.tree <- phydynR::DatedTree(phylo = tree.all,
@@ -431,7 +500,8 @@ After setting up the mathematical model and the data, we have the following:
 * `dm` = the demographic process
 * `X0` = initial conditions
 
-The above objects will be used in the calculation of the likelihoood using the `colik` function in the phydynR package.
+The above objects will be used in the calculation of the likelihood using the 
+`phydynR::colik` function.
 
 ```{r, eval=FALSE}
 phydynR::colik(tree = dated.tree,
@@ -445,20 +515,30 @@ phydynR::colik(tree = dated.tree,
                maxHeight = 41)
 ```
 
-Note that for the calculation of the likelihood you can provide a value for maximum height `maxHeight`. This parameter "tells" the function up to which point back in time the calculation of the likelihood should be done. If computer resources are not a problem, you can leave this as the default. Using the whole tree for the calculation of the likelihood can make it slower than when using just a portion back in time.
+Note that for the calculation of the likelihood you can provide a value for 
+maximum height `maxHeight`. This parameter "tells" the function up to which point 
+back in time the calculation of the likelihood should be done. If computer 
+resources are not a problem, you can leave this as the default. Using the 
+whole tree for the calculation of the likelihood can make it slower than 
+when using just a portion back in time.
 
 
-For the Senegal data, we used a `maxHeight` = 41. This means that it will go back in time in the tree at approximatelly 1973. This was merely chosen to put the HIV epidemics in Senegal around this time, for estimation of the parameters in our model. 
+For the Senegal data, we used a `maxHeight` = 41. This means that it will go back 
+in time in the tree at approximately 1973. This was merely chosen to put the 
+HIV epidemics in Senegal around this time, for estimation of the parameters in 
+our model. 
 
 # Estimation of epidemiological parameters
 
-Now that we are happy with everything, we are ready to estimate the parameters of our model. For the Senegal HIV model, we chose to estimate the parameters using a Markov chain Monte Carlo (MCMC) as implemented in the R package [BayesianTools]("https://github.com/florianhartig/BayesianTools").
+Now that we are happy with everything, we are ready to estimate the parameters of
+our model. For the Senegal HIV model, we chose to estimate the parameters using a 
+Markov chain Monte Carlo (MCMC) as implemented in the R package [BayesianTools]("https://github.com/florianhartig/BayesianTools").
 
 ## Which parameters to estimate?
 
 For this example, we decided to estimate the following parameters:
 
-**Paramters for estimating the spline function for the _gp_:**
+**Parameters for estimating the spline function for the _gp_:**
 
 * _gpsp0_ 
 * _gpsp1_ 
@@ -477,13 +557,19 @@ For this example, we decided to estimate the following parameters:
 * _import_
 * _srcNe_
 
-**Probability of certain events to occour:** 
+**Probability of certain events to occur:** 
 
 * _pmsm2msm_ 
 * _pgpf2gpm_
 
-To estimate these parameters we should set up an object function. This object function will receive the proposals of the MCMC. The reason of using an object function is to make it easier to change the
- values of the parameters to be estimated in THETA (our parameter template as explained before). Note that not all parameters listed in THETA will be estimated.
+## Estimating the parameters
+
+To estimate these parameters we should set up an object function. This object 
+function will receive the proposals of the MCMC. The reason of using an object 
+function is to make it easier to change the values of the parameters to be estimated 
+in THETA (our parameter template as explained before). Note that not all 
+parameters listed in THETA will be estimated; some will stay fixed to the 
+predifined values.
 
 ```{r}
 obj_fun <- function(parameters){
@@ -513,33 +599,35 @@ obj_fun <- function(parameters){
   # calculated with the funtion colik.
   # Note that this function uses several global variables, such as, 
   # dated.tree, dm, and X0
-  mll <- phydyn::colik(tree = dated.tree,
-               theta = THETA.new,
-               demographic.process.model = dm,
-               x0 = X0,
-               t0 = 1978,
-               res = 1e3,
-               timeOfOriginBoundaryCondition = FALSE,
-               AgtY_penalty = 1,
-               maxHeight = 41)
+  mll <- phydynR::colik(tree = dated.tree,
+                       theta = THETA.new,
+                       demographic.process.model = dm,
+                       x0 = X0,
+                       t0 = 1978,
+                       res = 1e3,
+                       timeOfOriginBoundaryCondition = FALSE,
+                       AgtY_penalty = 1,
+                       maxHeight = 41)
 
   return(mll)
 
 }
 ```
 
-We can now estimate these parameters using the MCMC. For that we need to decide the priors -- our best knowledge on the parameter value before the data is analysed -- on each parameter that will be estimated.
+We can now estimate these parameters using the MCMC. For that we need to decide 
+the priors -- our best knowledge on the parameter value before the data is 
+analysed -- on each parameter that will be estimated.
 
-Because we are using the BayesianTools R package, we need to specify the density function (that represent our prior) for each parameter as below:
+Because we are using the `BayesianTools` R package, we need to specify the density function (that represents our prior) for each parameter as below:
 
 ```{r}
 # Specify a density function to be used in the 
-# prior especification (see below)
+# prior specification (see below)
 densities <-  function(par){
   # d1 to d3 and d5 to d7 I am using a gamma distribution with 
   #    mean = R0 = 1.1 and sigma = 1
   # d4, d8 uniform distribution between the start time and 
-  # the final time of our simualtions (t0 = 1978, and t1 = 2014)
+  # the final time of our simulations (t0 = 1978, and t1 = 2014)
   # d9 exponential distribution with mean around 1/30
   # d10 exponential distribution with mean around 1/20
   d1 = dgamma(par[1], shape = 3, rate = 3/1.1, log = TRUE) #gpsp0
@@ -560,11 +648,11 @@ densities <-  function(par){
 ```
 
 
-Now, we can provide a sampler, which is optional as described in the BayesianTools package, as below:
+Now, we can provide a sampler, which is optional, as described in the `BayesianTools` package, as below:
 
 ```{r}
 # Create sampling, this is optional. 
-#The MCMCs can automatically generate starting
+# The MCMCs can automatically generate starting
 # conditions if a sampler is provided
 sampler <-  function(n=1){
   d1 = rgamma(n, shape = 3, rate = 3/1.1) #gpsp0
@@ -584,7 +672,9 @@ sampler <-  function(n=1){
 }
 ```
 
-After setting up the densities and sampler funtions we can now set up our prior by using the following:
+After setting up the densities and sampler funtions we can now set up our prior 
+by using the following:
+
 ```{r}
 # Create prior (necessary for the BayesianTools package)
 prior <- createPrior(density = densities, 
@@ -599,15 +689,27 @@ prior <- createPrior(density = densities,
                                0.15, 1, 1))
 ```
 
-We now ready to estimating the parameter values using the MCMC. We chose the DEzs sampler. DEzs stands for Differential-Evolution MCMC zs and this is beyoud what will cover in this vingnette. However, if you can check Ter Braak and Vrugt [-@TerBraak2008] for more information.
+We are now ready to estimate the parameter values using MCMC. We chose the 
+DEzs sampler. DEzs stands for Differential-Evolution MCMC zs and this is beyond 
+what will cover in this vignette. However, if you can check Ter Braak and Vrugt [-@TerBraak2008] for more information.
+
+In our paper, we have also extended this analysis by providing a z-matrix. 
+First we run a MCMC as above, and after having checking the traces and they are ok, we used that run to provided a z-matrix as explained [here]("https://github.com/florianhartig/BayesianTools/issues/79"). For details on how this was done, you can see our [script](https://github.com/thednainus/senegalHIVmodel/blob/master/analyses/scripts/R-scripts/Models/Subtypes_Combined/Model2/4.mcmc_zMatrix.v2.R) for an example.
+
+Note that that the iterations parameter will take a long time to run.
 
 ```{r eval=FALSE}
 settings = list(iterations = 18000, nrChains = 1, thin = 1)
-out <- runMCMC(bayesianSetup = bayesianSetup, 
-               sampler = "DEzs", 
-               settings = settings)
+# Create bayesianSetup
+bayesianSetup <- createBayesianSetup(likelihood = obj_fun , prior = prior)
+out <- BayesianTools::runMCMC(bayesianSetup = bayesianSetup, 
+                              sampler = "DEzs", 
+                              settings = settings)
 ```
 
-In our paper, we have also extended this analysis by providing a z-matrix. First we run a MCMC as above, and after having an ok run, we used that run to provided a z-matrix as explained [here]("https://github.com/florianhartig/BayesianTools/issues/79"). For details on how this was done, you can see our script _mcmc.R_ in the directory `analysis/scripts`.
+Here we will load a example of the analysis and check for the estimate parameter
+value for one of the parameters we are interested in.
+
+
 
 # References

@@ -273,7 +273,7 @@ exp(coef(fit)["lnbeta"]) - parms_truth$beta
 ```
 
 We can compare the fitted model to the true number of infected through
-time, which is shown in Fgure \@ref(fig:figure1).
+time, which is shown in Figure \@ref(fig:figure1).
 
 ```{r figure1, fig.asp = 0.8, fig.width = 6, fig.cap = "The actual (black) and estimated (red) number of infections through time. The blue line shows the SIR model prediction under the true parameter values.", echo = TRUE}
 
