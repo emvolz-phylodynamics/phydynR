@@ -19,6 +19,17 @@ This package provides functions for defining infectious disease models or ecolog
 Useful links:
 \itemize{
   \item \url{http://emvolz-phylodynamics.github.io/phydynR/}
+  \item \url{https://github.com/emvolz-phylodynamics/phydynR}
+  \item Report bugs at \url{https://github.com/emvolz-phylodynamics/phydynR/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Erik Volz \email{erik@erikvolz.info} (\href{https://orcid.org/0000-0001-6268-8937}{ORCID})
+
+Other contributors:
+\itemize{
+  \item Fabricia F. Nascimento \email{thednainus@yahoo.com} (\href{https://orcid.org/0000-0001-9426-6835}{ORCID}) [contributor]
 }
 
 }

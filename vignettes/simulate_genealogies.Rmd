@@ -17,13 +17,14 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-library(kableExtra)
 library(magrittr)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+options(kableExtra.html.bsTable = T)
 ```
 
 This vignette will demonstrate how to build models with phydynR and simulate genealogies using the structured coalescent. We will use simple deterministic
@@ -79,8 +80,9 @@ Values = c("1 year",
 data_list = data.frame(Parameter, Symbol, Values) 
 
 
-kbl(data_list, booktabs = TRUE, escape = FALSE, 
-    caption = "Parameter symbols and values")
+kableExtra::kbl(data_list, booktabs = TRUE, escape = FALSE, 
+    caption = "Parameter symbols and values") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 
@@ -113,7 +115,7 @@ births <- rbind(c('beta0 * S * I0 / (S + I0 + I1 + I2)', '0', '0'),
                 c('beta1 * S * I1 / (S + I0 + I1 + I2)', '0', '0'),
                 c('beta2 * S * I2 / (S + I0 + I1 + I2)', '0', '0'))
 
-rownames(births)=colnames(births)<- INFECTEDNAMES
+rownames(births) = colnames(births) <- INFECTEDNAMES
 ```
 
 Each element of the matrix is a string that will be parsed as C++ code and
@@ -203,7 +205,7 @@ If FALSE, the equations are treated as ODEs and solved using the deSolve package
 Now we can simulate the demographic process using
 
 ```{r}
- ## demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod='adams')
+ # demo.model(theta, x0, t0, t1, res = 1e3, integrationMethod = 'adams')
 ```
 
 * theta is a named vector of all parameters
@@ -293,8 +295,10 @@ The return value is a "DatedTree" object, which is derived from "ape::phylo".
 Consequently, all of the convenience functions for "ape::phylo" also work:
 
 ```{r fig.asp = 0.8, fig.width = 6}
+# Plot the phylogenetic tree
 plot.phylo(tree)
 
+# Plot lineages through time from a phylogenetic tree
 ltt.plot(tree)
 ```
 

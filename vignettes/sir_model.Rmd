@@ -20,14 +20,14 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-library(kableExtra)
 library(magrittr)
-library(ggplot2)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+options(kableExtra.html.bsTable = T)
 ```
 
 # Introduction
@@ -38,14 +38,17 @@ in [@Volz2012] to estimate transmission rate parameters given a pathogen genealo
 # Basic requirements
 This vignette assumes that you have the following packages already installed:
 
-* rjason: Converts R objects into JSON objects and vice-versa.
+* rjson: Converts R objects into JSON objects and vice-versa.
 * [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the coalescent simulation and likelihood function for phylodynamics analysis
+* [ggplot2](https://ggplot2.tidyverse.org/): functions to plot the demographic 
+  process.
 
 ## Load the necessary packages:
 ```{r message = FALSE}
   library(phydynR)
   library(rjson)
   library(bbmle)
+  library(ggplot2)
 ```
 
 
@@ -66,7 +69,7 @@ tree <- read.tree(system.file("extdata/sirModel0.nwk", package = "phydynR"))
 And, the epidemic trajectory information can be loaded by
 
 ```{r}
-epidata <- fromJSON(file=system.file("extdata/sirModel0.json", package = "phydynR"))
+epidata <- rjson::fromJSON(file=system.file("extdata/sirModel0.json", package = "phydynR"))
 ```
 
 The true parameter values are given in table 1. The file used to simulate the data
@@ -95,8 +98,9 @@ Values = c("1",
 data_list = data.frame(Parameter, Symbol, Values) 
 
 
-kbl(data_list, booktabs = TRUE, escape = FALSE, 
-    caption = "Parameter symbols and values")
+kableExtra::kbl(data_list, booktabs = TRUE, escape = FALSE, 
+    caption = "Parameter symbols and values") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```
 
@@ -104,6 +108,7 @@ kbl(data_list, booktabs = TRUE, escape = FALSE,
 We will fit a simple ordinary differential equation (ODE) model to the genealogy:
 
 $\dot{S} = -\beta SI$
+
 $\dot{I} = \beta SI -\gamma I$
 
 Relevant parameters of the system are the transmission rate $\beta$, 

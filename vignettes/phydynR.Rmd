@@ -27,6 +27,7 @@ This tutorial assumes you have the following R packages already installed in
 your computer.
 
 * [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses.
+* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation
 
 
 ## Load the R packages
@@ -62,7 +63,7 @@ Now build the demographic process like so:
 ```{r message = FALSE}
 dm <- build.demographic.process(births = births,
                                 deaths = deaths,
-                                parameterNames=c('beta', 'gamma'),
+                                parameterNames = c('beta', 'gamma'),
                                 rcpp = FALSE,
                                 sde = TRUE)
 ```
@@ -77,7 +78,7 @@ we used R code in this case.
 Once the model is specified, we can simulate and visualize trajectories: 
 
 ```{r fig.asp = 0.8, fig.width = 6, echo = TRUE}
-show.demographic.process( dm,
+show.demographic.process( demo.model = dm,
                           theta = list( beta = 1.5, gamma = 1 ),
                           x0  = c( I = 1 ),
                           t0 = 0,
@@ -121,12 +122,12 @@ Note that when we use C code, the `parms` keyword is not used.
 
 Now let's simulate a coalescent tree conditioning on this demographic process: 
 ```{r}
-tre <- sim.co.tree(   list( beta = 1.5, gamma = 1 ),
-                      dm.det,
-                      x0  = c(I = 1 ),
-                      t0 = 0,
-                      sampleTimes = seq(10, 15, length.out = 50),
-                      res = 1000) 
+tre <- sim.co.tree( theta = list( beta = 1.5, gamma = 1 ),
+                    demographic.process.model = dm.det,
+                    x0  = c(I = 1 ),
+                    t0 = 0,
+                    sampleTimes = seq(10, 15, length.out = 50),
+                    res = 1000) 
 ```
 
 This is self-explanatory except for the `sampleTimes` argument, which is required. 
@@ -150,9 +151,9 @@ Note that this returns the log likelihood.
 
 Here is an example invocation of the likelihood function using the simulated tree as data: 
 ```{r}
-colik(tre,
-      list( beta = 1.5, gamma = 1),
-      dm.det,
+colik(tree = tre,
+      theta = list( beta = 1.5, gamma = 1),
+      demographic.process.model = dm.det,
       x0 = c( I = 1 ),
       t0 = -1,
       res = 1e3,

@@ -2,6 +2,14 @@ template:
   bootstrap: 5
   light-switch: true
   math-rendering: katex
+authors:
+  Erik Volz:
+    href: "https://profiles.imperial.ac.uk/e.volz"
+  Fabricia F. Nascimento:
+    href: "https://thednainus.wordpress.com/me/"
+  footer:
+    roles: [ctb]
+    text: "Website developed by"
 navbar:
   structure:
     left:
@@ -16,7 +24,7 @@ navbar:
     - lightswitch
   components:
     reference:
-      text: Pkg Functions
+      text: Functions
       href: reference/index.html
     intro:
       text: Get started
@@ -34,7 +42,7 @@ navbar:
         href: articles/SenegalHIVmodel.html
 
 reference:
-- title: All functions
+- title: Functions included in phydynR
   contents:
   - DatedTree
   - build.demographic.process
@@ -42,5 +50,4 @@ reference:
   - colik
   - colik.pik.fgy
   - sim.co.tree
-  - .phylostructure2newick
 url: http://emvolz-phylodynamics.github.io/phydynR/

@@ -579,29 +579,47 @@ deaths.attr("names") = rcnames;
 }
 
 
-
-
-##################################################################################
-##################################################################################
 #' DatedTree function 
 #' 
 #' Create a DatedTree class object; it includes heights for each node and other 
 #'   helper variables
 #'
-#' @param phylo A phylogenetic tree of class ape::phylo
+#' @param phylo A phylogenetic tree of class ape::phylo. Note that this tree
+#'    should be a timetree. 
 #' @inheritParams sim.co.tree
 #' @param sampleStatesAnnotations Vector of possible discrete character states 
 #'   for taxa. If inferring taxon state from label, this provides the possible 
 #'   matches for taxon annotations.
-#' @param tol to do
-#' @param minEdgeLength to do 
+#' @param tol Numeric to set the amount of error allowed in the edge length of 
+#'    the phylogenetic tree.
+#' @param minEdgeLength Numeric and it is the minimum length in the returned
+#'    phylogenetic tree.
+#' 
+#' @details tol and minEdgeLength are necessary because it will adjust the edge
+#'    length of the tree to ensure they are greater than 0 and taking into 
+#'    consideration the sample times.
 #'
-#' @return to do
+#' @return A dated phylogenetic tree with additional metadata to use with 
+#'    phydynR functions.
 #' @author Erik Volz
 #' @export
 #'
-#' @examples to do
-#' #write example
+#' @examples 
+#' # read the tree
+#' #usually this is a tree that the branch lengths are in unit of calendar time
+#' tree <- read.tree(system.file('extdata/hivSimulation.nwk', package='phydynR'))
+#'
+#' # the sample times are the same, because it is a homochronous sample at 50 years
+#' sampleTimes <- rep(50, length(tree$tip.label))
+#' names(sampleTimes) <- tree$tip.label
+#'
+#' # create a tree with dated tips and internal nodes,
+#' # will infer the sample states from tip labels
+#' bdt <- DatedTree(phylo = tree, 
+#'                 sampleTimes = sampleTimes,
+#'                 minEdgeLength = 0.01)
+#' bdt
+#' class(bdt)
 DatedTree <- function( phylo, sampleTimes, sampleStates=NULL, sampleStatesAnnotations=NULL, tol = 1e-6
  , minEdgeLength = 0
  ){
@@ -912,20 +930,20 @@ show.demographic.process <- function(demo.model, theta, x0, t0, t1, res = 1e3, i
 	}
 }
 
-#' Write a newick string for an ape::phylo structure regardless of internal node order
-#' 
-#' Ideally this would be the behavior of ape::write.tree, however that function fails for 
-#' internal node orderings that do not follow an undocumented standard. 
-#' 
-#' @examples 
-#' print( system.time( ( tr0 <- rcoal( 10000 ) )))
-#' st0 <- Sys.time() 
-#' tr <- .phylostructure2newick ( tr0 )
-#' st1 <- Sys.time() 
-#' tr1 <- read.tree(text = tr )
-#' print( st1 - st0 )
-#' ape::ltt.plot( tr0 )
-#' ape::ltt.lines( tr1, col = 'red', lty = 2 )
+# Write a newick string for an ape::phylo structure regardless of internal node order
+# 
+# Ideally this would be the behavior of ape::write.tree, however that function fails for 
+# internal node orderings that do not follow an undocumented standard. 
+# 
+# examples 
+# print( system.time( ( tr0 <- rcoal( 10000 ) )))
+# st0 <- Sys.time() 
+# tr <- .phylostructure2newick ( tr0 )
+# st1 <- Sys.time() 
+# tr1 <- read.tree(text = tr )
+# print( st1 - st0 )
+# ape::ltt.plot( tr0 )
+# ape::ltt.lines( tr1, col = 'red', lty = 2 )
 .phylostructure2newick <- function(o){
 	n <- length( o$tip.label )
 	nnode <- o$Nnode 

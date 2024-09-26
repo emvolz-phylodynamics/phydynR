@@ -19,7 +19,8 @@ colik.pik.fgy(
 \arguments{
 \item{tree}{A DatedTree object}
 
-\item{tfgy}{TO DO}
+\item{tfgy}{class tfgy that corresponds to the time, births, migrations and
+number of infections. See examples for how to construct one.}
 
 \item{timeOfOriginBoundaryCondition}{If TRUE, will return -Inf if the root of
 the tree precedes the time of origin.}
@@ -49,6 +50,31 @@ The coalescent (or structured coalescent) log likelihood (numeric).
 }
 \description{
 Compute a structured coalescent likelihood given a dated genealogy and a demographic history in FGY format
+}
+\examples{
+# A simple exponential growth model with birth rates beta and death rates gamma:
+dm <- build.demographic.process(births = c(I = 'parms$beta * I'),
+                                deaths = c(I = 'parms$gamma * I'),
+                                parameterNames = c('beta', 'gamma'),
+                                rcpp = FALSE,
+                                sde = FALSE)
+
+# simulate a tree based on the model:
+tre <- sim.co.tree(list(beta = 1.5, gamma = 1),
+                        dm,
+                        x0  = c(I = 1),
+                        t0 = 0,
+                        sampleTimes = seq(10, 15, length.out=50),
+                        res = 1000)
+                        
+ #Create the tfgy using the dm function above
+ tfgy <- dm(theta = list(beta = 1.5, gamma = 1),
+            x0 = c(I = 1),
+            t0 = 0,
+            t1 = 15)
+ 
+ # Compute a likelihood
+ colik.pik.fgy(tre, tfgy)
 }
 \author{
 Erik Volz

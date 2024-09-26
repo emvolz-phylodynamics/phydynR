@@ -3,8 +3,17 @@ Type: Package
 Title: Model-based coalescent simulation and likelihood for phylodynamic inference
 Version: 0.2.2
 Date: 2023-07-22
-Author: Erik Volz
-Maintainer: Erik Volz <erik@erikvolz.info>
+Authors@R:
+    c(person(given = "Erik",
+             family = "Volz",
+             role = c("aut", "cre"),
+             email = "erik@erikvolz.info",
+             comment = c(ORCID = "0000-0001-6268-8937")),
+      person(given = "Fabricia",
+             family = "F. Nascimento",
+             email = "thednainus@yahoo.com",
+             role = "ctb",
+             comment = c(ORCID = "0000-0001-9426-6835")))
 Description: This package provides functions for defining infectious disease 
     models or ecological process models in terms of 
     ODEs (ordinary differential equations) or SDEs (stochastic differential equations); 
@@ -17,7 +26,12 @@ LinkingTo:
   Rcpp,
   RcppArmadillo,
   BH
-Depends: ape, deSolve, BH, inline, Rcpp, RcppArmadillo
+Depends: ape,
+    deSolve, 
+    BH, 
+    inline, 
+    Rcpp, 
+    RcppArmadillo
 Suggests: 
     testthat,
     ggplot2,
@@ -27,4 +41,5 @@ Suggests:
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
-URL: http://emvolz-phylodynamics.github.io/phydynR/
+URL: http://emvolz-phylodynamics.github.io/phydynR/, https://github.com/emvolz-phylodynamics/phydynR
+BugReports: https://github.com/emvolz-phylodynamics/phydynR/issues

@@ -21,14 +21,15 @@ vignette: >
 ```{r setup, include = FALSE}
 library(kableExtra)
 library(magrittr)
-library(ggplot2)
 library(tidyr)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-options(knitr.table.format = "latex")
+
+options(kableExtra.html.bsTable = T)
+
 ```
 
 # Introduction
@@ -44,12 +45,15 @@ your computer.
 
 * [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses
 * [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation
-
+* [ggplot2](https://ggplot2.tidyverse.org/): functions to plot the demographic 
+  process.
+  
 ## Load the R packages
 
 ```{r message = FALSE}
   library(phydynR)
   library(bbmle)
+  library(ggplot2)
 ```
 
 # The epidemiological model
@@ -112,8 +116,9 @@ Values = c("1 year",
 data_list = data.frame(Parameter, Symbol, Values) 
 
 
-kbl(data_list, booktabs = TRUE, escape = FALSE, 
-    caption = "Parameter symbols and values")
+kbl(data_list, booktabs = TRUE, 
+    caption = "Parameter symbols and values") %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```
 
@@ -214,7 +219,7 @@ The model can be fitted to a binary tree with dated tips. We will use a
 simulated tree such that we know the true parameter values and population size
 through time. We load this by:
 
-```{r echo = FALSE}
+```{r}
 # read the tree
 tree <- read.tree(system.file('extdata/hivSimulation.nwk', package='phydynR'))
 
@@ -256,10 +261,10 @@ by using the `system.time` function:
 
 ```{r eval = FALSE}
 print(system.time(print(
-  colik(bdt,
+  colik(tree = bdt,
         theta = parms_truth,
-        dm,
-        x0=c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
+        demographic.process.model = dm,
+        x0 = c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
         t0 = 0,
         res = 1000,
         integrationMethod = 'euler')
@@ -290,10 +295,10 @@ obj_fun <- function(lnbeta0, lnbeta1, lnbeta2, t0){
   parms$beta1 <- exp(lnbeta1)
   parms$beta2 <- exp(lnbeta2)
   
-  mll <- -colik(bdt,
+  mll <- -colik(tree = bdt,
                 theta = parms,
-                dm,
-                x0=c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
+                demographic.process.model = dm,
+                x0 = c(I0 = 1, I1 = 0.01, I2 = 0.01, S = parms_truth$S_0),
                 t0 = 0,
                 res = 1000,
                 integrationMethod = 'rk4')

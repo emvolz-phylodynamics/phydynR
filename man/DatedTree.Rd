@@ -14,7 +14,8 @@ DatedTree(
 )
 }
 \arguments{
-\item{phylo}{A phylogenetic tree of class ape::phylo}
+\item{phylo}{A phylogenetic tree of class ape::phylo. Note that this tree
+should be a timetree.}
 
 \item{sampleTimes}{A numeric vector providing the times of samples. If named, 
 taxon labels will be based on names of the corresponding sample times}
@@ -29,20 +30,41 @@ defined which correspond to deme names in the model. Rows should sum to one.}
 for taxa. If inferring taxon state from label, this provides the possible 
 matches for taxon annotations.}
 
-\item{tol}{to do}
+\item{tol}{Numeric to set the amount of error allowed in the edge length of 
+the phylogenetic tree.}
 
-\item{minEdgeLength}{to do}
+\item{minEdgeLength}{Numeric and it is the minimum length in the returned
+phylogenetic tree.}
 }
 \value{
-to do
+A dated phylogenetic tree with additional metadata to use with 
+   phydynR functions.
 }
 \description{
 Create a DatedTree class object; it includes heights for each node and other 
   helper variables
 }
+\details{
+tol and minEdgeLength are necessary because it will adjust the edge
+   length of the tree to ensure they are greater than 0 and taking into 
+   consideration the sample times.
+}
 \examples{
-to do
-#write example
+# read the tree
+#usually this is a tree that the branch lengths are in unit of calendar time
+tree <- read.tree(system.file('extdata/hivSimulation.nwk', package='phydynR'))
+
+# the sample times are the same, because it is a homochronous sample at 50 years
+sampleTimes <- rep(50, length(tree$tip.label))
+names(sampleTimes) <- tree$tip.label
+
+# create a tree with dated tips and internal nodes,
+# will infer the sample states from tip labels
+bdt <- DatedTree(phylo = tree, 
+                sampleTimes = sampleTimes,
+                minEdgeLength = 0.01)
+bdt
+class(bdt)
 }
 \author{
 Erik Volz

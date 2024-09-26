@@ -1,8 +1,16 @@
-# phydynR
+# phydynR: model-based coalescent simulation for phylodynamic inference
 
-phydynR is an R package that provides functions for defining infectious disease models or ecological process models in terms of ordinary differential equations (ODEs) or stochastic differential equations (SDEs).
+phydynR is an [R](https://www.r-project.org/) package based on the coalescent
+theory in which you can
 
-phydynR also provides functions for simulating genealogies conditional on process models and functions for computing likelihoods of trees conditional on a process model.
+* define infectious disease models or ecological process models in terms of 
+ordinary differential equations (ODEs) or stochastic differential equations (SDEs);
+
+* simulate genealogies conditional on a process model;
+
+* compute likelihoods of phylogenetic trees also conditional on a process model.
+
+
 
 ## Installation
 
@@ -14,24 +22,46 @@ install.packages("devtools")
 devtools::install_github("emvolz-phylodynamics/phydynR")
 ```
 
-## How to use it?
 
-* We recommend that you read the [Get started](articles/phydynR.html) link to 
-understand a simple example using phydynR.
+
+## Tutorials
+
+* We recommend that you read the [Get started](articles/phydynR.html) to 
+understand the basic functions in phydynR.
 
 * You can later explore other tutorials:
   
-  - [Estimating transmission rates using the SIR model](articles/sir_model.html)
-  - [Estimating transmission rates using a slightly more complex model for HIV](articles/HIV_epidemics.html)
-  - [Estimating genealogies with an epidemiological coalescent model](articles/simulate_genealogies.html)
-  - You can try a more complex example of using phydynR using this 
-  [tutorial](articles/SenegalHIVmodel.html).
+  - [Estimating transmission rates using the SIR model.](articles/sir_model.html)
+  - [Estimating transmission rates using a slightly more complex model for HIV.](articles/HIV_epidemics.html)
+  - [Estimating genealogies with an epidemiological coalescent model.](articles/simulate_genealogies.html)
+  - [You can try a more complex example of estimating number of infected individuals and transmission rates for HIV in Senegal.](articles/SenegalHIVmodel.html)
 
-## Authors
 
-phydynR has been developed by [Erik M. Volz](https://profiles.imperial.ac.uk/e.volz)
+
+## Author
+
+phydynR has been developed by [Erik Volz](https://profiles.imperial.ac.uk/e.volz)
+
+
+
+## Related softwares
+
+phydynR works on a fixed phylogenetic tree and therefore is *not* a program that 
+will estimate the tree for you.
+
+[PhyDyn](https://github.com/mrc-ide/PhyDyn): If you would like to take into 
+consideration the uncertainty on the tree estimates, check out our other software 
+PhyDyn implemented in [BEAST 2](https://www.beast2.org/). For details on how to use
+it start [here](https://github.com/mrc-ide/PhyDyn/wiki). PhyDyn is substantially 
+slow to run.
+
+[Coalescent.jl](https://emvolz.github.io/Coalescent.jl/dev/intro/): implements
+similar specification of demographic process but it is substantially faster than
+phydynR. Coalescent.jl is based on the [Julia](https://julialang.org/) programming language.
+
+
 
 ## References
 
 If you would like to understand more about the models implemented in phydynR,
-check out this paper [Volz, 2012](http://www.genetics.org/content/190/1/187)
+check out [Volz, 2012](http://www.genetics.org/content/190/1/187)

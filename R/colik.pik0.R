@@ -145,12 +145,37 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
 
 #' Compute a structured coalescent likelihood given a dated genealogy and a demographic history in FGY format
 #' @inheritParams colik
-#' @param tfgy TO DO
+#' @param tfgy class tfgy that corresponds to the time, births, migrations and
+#'    number of infections. See examples for how to construct one.
 #' 
 #' @return The coalescent (or structured coalescent) log likelihood (numeric).
 #' @author Erik Volz
 #'
-#' @export 
+#' @export
+#' @examples
+#' # A simple exponential growth model with birth rates beta and death rates gamma:
+#' dm <- build.demographic.process(births = c(I = 'parms$beta * I'),
+#'                                 deaths = c(I = 'parms$gamma * I'),
+#'                                 parameterNames = c('beta', 'gamma'),
+#'                                 rcpp = FALSE,
+#'                                 sde = FALSE)
+#'
+#' # simulate a tree based on the model:
+#' tre <- sim.co.tree(list(beta = 1.5, gamma = 1),
+#'                         dm,
+#'                         x0  = c(I = 1),
+#'                         t0 = 0,
+#'                         sampleTimes = seq(10, 15, length.out=50),
+#'                         res = 1000)
+#'                         
+#'  #Create the tfgy using the dm function above
+#'  tfgy <- dm(theta = list(beta = 1.5, gamma = 1),
+#'             x0 = c(I = 1),
+#'             t0 = 0,
+#'             t1 = 15)
+#'  
+#'  # Compute a likelihood
+#'  colik.pik.fgy(tre, tfgy)
 colik.pik.fgy <- function(tree
   , tfgy
   , timeOfOriginBoundaryCondition = TRUE

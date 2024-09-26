@@ -1,7 +1,6 @@
 # This version breaks problem in to pieces to facilitate unit testing, but won't be as fast as pure cpp version
 # used for direct comparison of old rcolgem methods and new phydynr methods
 
-
 ##############################################################
 
 .solve.Q.A.L.boost <- function(h0, h1, A0, L0, tree, tfgy)
