@@ -1,4 +1,4 @@
-# phydynR: model-based coalescent simulation for phylodynamic inference
+# phydynR
 
 phydynR is an [R](https://www.r-project.org/) package based on the coalescent
 theory in which you can

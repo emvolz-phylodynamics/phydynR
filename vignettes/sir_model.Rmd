@@ -9,9 +9,9 @@ output:
     toc: TRUE
     fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: TRUE
-    latex_engine: xelatextex
 bibliography: bib/tutorials.bib
+pkgdown:
+  as_is: true
 fontsize: 12pt
 vignette: >
   %\VignetteIndexEntry{Estimating transmission rate using the SIR model}
@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-options(kableExtra.html.bsTable = T)
+options(kableExtra.html.bsTable = TRUE)
 ```
 
 # Introduction
@@ -95,8 +95,7 @@ Values = c("1",
            "9999",
            "1",
            "12") 
-data_list = data.frame(Parameter, Symbol, Values) 
-
+data_list = data.frame(Parameter, Symbol, Values)
 
 kableExtra::kbl(data_list, booktabs = TRUE, escape = FALSE, 
     caption = "Parameter symbols and values") %>%

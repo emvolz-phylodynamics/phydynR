@@ -6,9 +6,9 @@ output:
     toc: TRUE
     fig_caption: TRUE
     citation_package: biblatex
-    keep_tex: TRUE
-    latex_engine: xelatex
 bibliography: bib/tutorials.bib
+pkgdown:
+  as_is: true
 fontsize: 12pt
 vignette: >
   %\VignetteIndexEntry{Simulate genealogies using exponential growth}
