@@ -48,6 +48,7 @@ already installed:
 likelihood by the phydynR package);
 * [BayesianTools]("https://github.com/florianhartig/BayesianTools"): package for 
 Bayesian inference;
+* CODA: is a series of tools to analze the output of Markov chain Monte Carlo;
 * devtools: useful for installing packages directly from github repository;
 * [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the 
 coalescent simulation and likelihood function for phylodynamic analysis;
@@ -61,9 +62,11 @@ a phylogenetic tree.
   library(ape)
   library(akima)
   library(BayesianTools)
+  library(coda)
   library(phydynR)
   library(treedater)
   library(senegalHIVmodel)
+  library(ggplot2)
 ```
 
 # The Model
@@ -177,35 +180,33 @@ that the majority of parameter values in this list will be estimated.
 In R, this list of parameter values can be created as below:
 
 ```{r}
-THETA <- list(gpsp0 = 6/10,
-              gpsp1 = 4/10,
-              gpsp2 = 1/10,
-              gpsploc = 1987,
-              msmsp0 = 4/10,
-              msmsp1 = 4/10,
-              msmsp2 = 2/10,
-              msmsploc = 1995,
-              maleX = 1.02,
-              import = 1/20,
-              srcNe = 1/10,
-              gpspline = function(t, parms){
-                if (t < T0) return(parms$gpsp0)
-                if (t > T1) return (parms$gpsp2)
-                with(parms, aspline(x = c(T0, gpsploc, T1), 
-                                    y=c(gpsp0, gpsp1, gpsp2), 
-                                    xout = t)$y)
-              },
-              msmspline  = function(t, parms){
-                if (t < T0) return(parms$msmsp0)
-                if (t > T1) return (parms$msmsp2)
-                with(parms, aspline(x = c(T0, msmsploc, T1), 
-                                    y=c(msmsp0, msmsp1, msmsp2), 
-                                    xout = t)$y)
-              },
-             pmsm2msm = 0.85,
-             pgpf2gpm = 0.85,
-             initmsm = 1,
-             initgp = 1)
+THETA <- list(
+  gpsp0 = 6/10,
+  gpsp1 = 4/10,
+  gpsp2 = 1/10,
+  gpsploc = 1987,
+  msmsp0 = 4/10,
+  msmsp1 = 4/10,
+  msmsp2 = 2/10,
+  msmsploc = 1995,
+  maleX = 1.02,
+  import = 1/20,
+  srcNe = 20,
+  gpspline = function( t, parms ){
+    if (t < T0 ) return( parms$gpsp0 )
+    if (t > T1) return (parms$gpsp2)
+    with(parms, pmax(0.025, approx( x = c(T0, gpsploc, T1), y=c(gpsp0, gpsp1, gpsp2) , xout = t, rule = 2)$y) )
+  },
+  msmspline  = function( t, parms){
+    if (t < T0 ) return( parms$msmsp0 )
+    if (t > T1) return ( parms$msmsp2 )
+    with(parms, pmax(0.025, approx( x = c(T0, msmsploc, T1), y=c(msmsp0, msmsp1, msmsp2) , xout = t, rule = 2)$y) )
+  },
+  pmsm2msm = 0.85, 
+  pgpf2gpm = 0.85,
+  initmsm = 1,
+  initgp = 1
+)
 ```
 
 Note that parameters $gpsp0$, $gpsp1$, $gpsp2$, and $gpsploc$ are necessary to 
@@ -704,7 +705,7 @@ We are now ready to estimate the parameter values using MCMC. We chose the
 DEzs sampler. DEzs stands for Differential-Evolution MCMC zs and this is beyond 
 what will cover in this vignette. However, if you can check Ter Braak and Vrugt [-@TerBraak2008] for more information.
 
-First, we run a MCMC as below for ca. 10,000 iterations. After checking the traces and decided they are _ok_, we can use this initial run to provided a z-matrix as explained [here]("https://github.com/florianhartig/BayesianTools/issues/79").
+First, we run a MCMC as below for ca. 10,000 iterations. After checking the traces and decided they are _ok_, we can use this initial run to provided a z-matrix as explained [here](https://github.com/florianhartig/BayesianTools/issues/79).
 
 Note that it beyond the scope of this vignette to explain about Markov chain
 Monte Carlo (MCMC), but you can read more in this other [tutorial](https://thednainus.wordpress.com/2017/03/08/part1-introduction/).
@@ -783,21 +784,116 @@ outZ <- readRDS(system.file("data/MCMC_example/outZ_results.RDS",
 
 We can plot the traces:
 
-```{r out.width = "100%"}
+```{r fig.asp = 0.8, fig.width = 6.5}
 
 #par("mar")
-par(mar=c(4.5,4,1,1))
+par(mar=c(1,5,5,1))
 
 #here we will plot just the 4 initial parameters for the linear function
 #representing the transmission rates for the general population
 #save than upload figure
 plot(outZ, whichParameters = c(1:4))
 
+```
 
+We can remove the first initial 5,000 iter as burnin and get the ESS (effective
+sample size). You can see that ESS values a greater than 200 for all parameters.
+
+```{r}
+
+out_sample <- BayesianTools::getSample(outZ, start = 5000, coda = TRUE)
+
+# ESS value for all parameters
+coda::effectiveSize(out_sample)
 
 ```
 
-Now we will load the run
+## Estimating effective number of infections
+
+We can now estimate and plot the effective number of infections through time for 
+$gpf$, $gpm$ and $msm$.
+For that, we will sample 100 combination of parameter values from the 
+posterior distribution. For the paper we published, we sampled 1000 combination
+of parameter values.
+Then for each combination of parameter values from the posterior distributions, 
+we will solve the demographic process _dm_ function that we created in
+the beginning to this tutorial.
+We will use the function _post_traj_mx_ from the R package `senegalHIVmodel`. If
+you have a look at this function, you will see that we are solving dm for
+each combination of parameter value from the posterior distribution.
+
+
+```{r eval = FALSE}
+  out_sample <- BayesianTools::getSample(outZ, start = 5000, coda = FALSE)
+
+  # sample n combination of parameters from the posterior
+  # here we will use only a size = 10 samples to make it faster to run
+  # in the paper, we used size = 1,000 samples from the posterior probability
+  run.n <- out_sample[sample(nrow(out_sample), size = 10, replace = FALSE), ]
+  
+  # solve the demographic model for 100 combination of parameter values
+  # that was sampled from the posterior probability
+  run_o.n <- do.call("cbind", apply(run.n, 1, senegalHIVmodel::post_traj_mx, THETA))
+```
+
+We can now load the solved demographic process for 1,000 samples for the
+posterior distribution.
+
+```{r}
+run_o.n <- readRDS(system.file("data/solved_dm.RDS", package = "senegalHIVmodel"))
+```
+
+Now, we can solve the demographic process function for the maximum a posteriori
+(MAP).
+
+```{r}
+
+  #then we will fo the same for the MAP (maximum a posteriori value)
+  run_map <- BayesianTools::MAP(outZ, start = 5000)$parametersMAP
+  
+  # solve the demographic model for MAP 
+  run_map_o <- senegalHIVmodel::post_traj_mx(parameters = run_map, THETA = THETA)
+
+```
+
+After solving the demographic model for each combination of parameter value,
+we can use the function _df_sizes_prop_ to get the proportion of $gpm$, $gpf$ 
+and $msm$ for the effective population size, which is the 4th element from the 
+solved demographic process.
+
+
+```{r fig.asp = 0.8, fig.width = 7}
+# Note that the element 4 in the sizes in the solved demographic function
+eff_sizes <- senegalHIVmodel::df_sizes_prop(sizes.p = run_o.n[4,],
+                                            sizes.map = run_map_o[4],
+                                            times = run_o.n[[1]],
+                                            Nrep = 1000, 
+                                            Ntime = 1000)
+
+teste=subset(eff_sizes, group == "msm")
+
+max(teste$map2)
+
+ggplot(data = eff_sizes, aes(x = times))  +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), alpha = 0.70) +
+  geom_line(aes(y = median, colour = group, linetype = "solid")) +
+  geom_line(aes(y = MAP, colour = group, linetype = "dashed")) +
+  facet_wrap( ~ group) +
+  ggtitle("All subtypes") +
+  ylab("Effective number of infections (proportion)") +
+  xlab("Time (years)") +
+  scale_fill_brewer() + scale_colour_brewer() + theme_bw() +
+  theme(legend.position="bottom", text = element_text(size = 14))
+```
+
+Now we can plot the proportion of $gpf$, $gpm$ and $msm$
+
+## Estimating the reproductive number ($R_0$)
+
+TO DO!
+We can now estimate the reproductive number $(R_0)$.
+Add the scripts to plot effective number of infections for gpm, gpf and msm
+Check the scripts I used in the paper.
 
 
 
