@@ -26,15 +26,15 @@ devtools::install_github("emvolz-phylodynamics/phydynR")
 
 ## Tutorials
 
-* We recommend that you read the [Get started](articles/phydynR.html) to 
+* We recommend that you read the [Get started](http://emvolz-phylodynamics.github.io/phydynR/articles/phydynR.html) to 
 understand the basic functions in phydynR.
 
 * You can later explore other tutorials:
   
-  - [Estimating transmission rates using the SIR model.](articles/sir_model.html)
-  - [Estimating transmission rates using a slightly more complex model for HIV.](articles/HIV_epidemics.html)
-  - [Estimating genealogies with an epidemiological coalescent model.](articles/simulate_genealogies.html)
-  - [You can try a more complex example of estimating number of infected individuals and transmission rates for HIV in Senegal.](articles/SenegalHIVmodel.html)
+  - [Estimating transmission rates using the SIR model.](http://emvolz-phylodynamics.github.io/phydynR/articles/sir_model.html)
+  - [Estimating transmission rates using a slightly more complex model for HIV.](http://emvolz-phylodynamics.github.io/phydynR/articles/HIV_epidemics.html)
+  - [Estimating genealogies with an epidemiological coalescent model.](http://emvolz-phylodynamics.github.io/phydynR/articles/simulate_genealogies.html)
+  - [You can try a more complex example of estimating number of infected individuals and transmission rates for HIV in Senegal.](http://emvolz-phylodynamics.github.io/phydynR/articles/SenegalHIVmodel.html)
 
 
 
