@@ -8,5 +8,4 @@ src/*.so
 src/*.dll
 inst/doc
 test_scripts/
-docs
 older/
