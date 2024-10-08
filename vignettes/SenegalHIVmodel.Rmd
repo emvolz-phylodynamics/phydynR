@@ -416,7 +416,7 @@ specific case, we estimated a maximum likelihood trees using
 HIV-1 subtypes B, C and 02_AG.
 
 Each tree had a relaxed clock fitted using the R package [treedater](https://github.com/emvolz/treedater). After that, the trees were merged 
-into a single tree using the R script [_merge_trees.R_] (https://github.com/thednainus/senegalHIVmodel/blob/master/analyses/scripts/R-scripts/Processing/merge_trees.R). The final tree did not contain sequences from children, 
+into a single tree using the R script [_merge_trees.R_](https://github.com/thednainus/senegalHIVmodel/blob/master/analyses/scripts/R-scripts/Processing/merge_trees.R). The final tree did not contain sequences from children, 
 and from which risk group or sex was NA (not available). 
 
 We load the binary dated tree in R using the following:
