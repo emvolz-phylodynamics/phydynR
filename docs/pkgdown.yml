@@ -7,7 +7,7 @@ articles:
   SenegalHIVmodel: SenegalHIVmodel.html
   simulate_genealogies: simulate_genealogies.html
   sir_model: sir_model.html
-last_built: 2024-10-08T14:49Z
+last_built: 2024-10-08T14:57Z
 urls:
   reference: http://emvolz-phylodynamics.github.io/phydynR/reference
   article: http://emvolz-phylodynamics.github.io/phydynR/articles

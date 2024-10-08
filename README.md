@@ -34,7 +34,7 @@ understand the basic functions in phydynR.
   - [Estimating transmission rates using the SIR model.](http://emvolz-phylodynamics.github.io/phydynR/articles/sir_model.html)
   - [Estimating transmission rates using a slightly more complex model for HIV.](http://emvolz-phylodynamics.github.io/phydynR/articles/HIV_epidemics.html)
   - [Estimating genealogies with an epidemiological coalescent model.](http://emvolz-phylodynamics.github.io/phydynR/articles/simulate_genealogies.html)
-  - [You can try a more complex example of estimating the effective number of infections and the reproduction number for HIV in Senegal.](http://emvolz-phylodynamics.github.io/phydynR/articles/SenegalHIVmodel.html)
+  - [You can try a more complex example of estimating the effective number of infections and the basic reproduction number for HIV in Senegal.](http://emvolz-phylodynamics.github.io/phydynR/articles/SenegalHIVmodel.html)
 
 
 
