@@ -1,5 +1,7 @@
 ---
 title: "Simulate genealogies using exponential growth"
+author: "Erik Volz"
+date: "`r Sys.Date()`"
 output:
   bookdown::html_vignette2:
   #bookdown::pdf_book:
@@ -27,7 +29,7 @@ This tutorial assumes you have the following R packages already installed in
 your computer.
 
 * [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses.
-* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation
+* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation.
 
 
 ## Load the R packages
@@ -181,7 +183,7 @@ $I$. We will assume prior knowledge the death rate $\gamma$.
 
 First, create the objective function to be minimized:
 
-```{r echo = FALSE}
+```{r}
 obj_fun <- function(lnbeta, lniniI){
   
   beta <- exp(lnbeta)

@@ -1,4 +1,4 @@
-# phydynR <img src="man/figures/phydynr.png" align="right" width="215"/>
+# phydynR <img src="man/figures/phydynr.png" align="right" width="200"/>
 
 phydynR is an [R](https://www.r-project.org/) package based on the coalescent
 theory in which you can

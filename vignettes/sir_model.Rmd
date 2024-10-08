@@ -73,7 +73,7 @@ epidata <- rjson::fromJSON(file=system.file("extdata/sirModel0.json", package = 
 ```
 
 The true parameter values are given in table 1. The file used to simulate the data
-can be viewed by 
+with MASTER can be viewed by or directly openning the xml file.
 
 ```{r}
 file.show( system.file("extdata/sirModel0.xml", package = "phydynR")) 
@@ -248,7 +248,7 @@ Note that this uses log-transformation for variables that must be positive (like
 rates and population sizes).
 We can then fit the model by running
 
-```{r. eval = FALSE}
+```{r eval = FALSE}
 fit <- mle2(obj_fun,
             start = list(lnbeta = log(parms_truth$beta * 0.75), lnI0 = log(1)),
             method = "Nelder-Mead",

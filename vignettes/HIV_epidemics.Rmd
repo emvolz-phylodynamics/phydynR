@@ -43,8 +43,8 @@ trait information about sampled individuals.
 This tutorial assumes you have the following R packages already installed in
 your computer.
 
-* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses
-* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation
+* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses.
+* [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation.
 * [ggplot2](https://ggplot2.tidyverse.org/): functions to plot the demographic 
   process.
   
@@ -278,7 +278,7 @@ the tree) and _res_ (set to a smaller value) options can dramatically
 speed up the calculation at the cost of some accuracy.
 We can fit the model by using the `bbmle` or `stats4` package.
 
-# Fitting the model using maximum likelihood
+# Fitting the model
 
 We will focus on estimating the three transmission rates of the system along with
 a nuisance parameter that controls initial conditions, $t_0$, which is the time of
