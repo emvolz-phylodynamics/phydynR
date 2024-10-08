@@ -18,8 +18,7 @@ colik(
   AgtY_penalty = 1,
   returnTree = FALSE,
   step_size_res = 10,
-  likelihood = c("PL2", "PL1", "QL"),
-  PL2 = FALSE
+  likelihood = "PL2"
 )
 }
 \arguments{
@@ -66,8 +65,8 @@ interval}
 
 \item{likelihood}{Toggle likelihood approximation to be used 
 (QL fast/approximate, PL1 faster better approximation, PL2 slow/good 
-approximation. See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018} 
-for details.}
+approximation. See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018}
+for details. Default is set to PL2.}
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric).

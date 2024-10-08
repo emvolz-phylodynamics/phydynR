@@ -159,47 +159,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// updateWCpp
-NumericMatrix updateWCpp(NumericMatrix W, NumericVector psi_a, IntegerVector utips, IntegerVector vtips, IntegerVector utips_Wcoords, IntegerVector vtips_Wcoords);
-RcppExport SEXP _phydynR_updateWCpp(SEXP WSEXP, SEXP psi_aSEXP, SEXP utipsSEXP, SEXP vtipsSEXP, SEXP utips_WcoordsSEXP, SEXP vtips_WcoordsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type W(WSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type psi_a(psi_aSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type utips(utipsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type vtips(vtipsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type utips_Wcoords(utips_WcoordsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type vtips_Wcoords(vtips_WcoordsSEXP);
-    rcpp_result_gen = Rcpp::wrap(updateWCpp(W, psi_a, utips, vtips, utips_Wcoords, vtips_Wcoords));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sourceAttribMultiDemeCpp2
-List sourceAttribMultiDemeCpp2(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const arma::mat sampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition, const double maxHeight, const int step_size_res);
-RcppExport SEXP _phydynR_sourceAttribMultiDemeCpp2(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP, SEXP maxHeightSEXP, SEXP step_size_resSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector >::type heights(heightsSEXP);
-    Rcpp::traits::input_parameter< const List >::type Fs(FsSEXP);
-    Rcpp::traits::input_parameter< const List >::type Gs(GsSEXP);
-    Rcpp::traits::input_parameter< const List >::type Ys(YsSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicator(eventIndicatorSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector >::type eventIndicatorNode(eventIndicatorNodeSEXP);
-    Rcpp::traits::input_parameter< const NumericVector >::type eventHeights(eventHeightsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat >::type sampleStates(sampleStatesSEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix >::type daughters(daughtersSEXP);
-    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const int >::type Nnode(NnodeSEXP);
-    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
-    Rcpp::traits::input_parameter< double >::type AgtYboundaryCondition(AgtYboundaryConditionSEXP);
-    Rcpp::traits::input_parameter< const double >::type maxHeight(maxHeightSEXP);
-    Rcpp::traits::input_parameter< const int >::type step_size_res(step_size_resSEXP);
-    rcpp_result_gen = Rcpp::wrap(sourceAttribMultiDemeCpp2(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sourceAttribMultiDemeCpp
 List sourceAttribMultiDemeCpp(const NumericVector heights, const List Fs, const List Gs, const List Ys, const IntegerVector eventIndicator, const IntegerVector eventIndicatorNode, const NumericVector eventHeights, const arma::mat sampleStates, const IntegerMatrix daughters, const int n, const int Nnode, const int m, double AgtYboundaryCondition, const double maxHeight);
 RcppExport SEXP _phydynR_sourceAttribMultiDemeCpp(SEXP heightsSEXP, SEXP FsSEXP, SEXP GsSEXP, SEXP YsSEXP, SEXP eventIndicatorSEXP, SEXP eventIndicatorNodeSEXP, SEXP eventHeightsSEXP, SEXP sampleStatesSEXP, SEXP daughtersSEXP, SEXP nSEXP, SEXP NnodeSEXP, SEXP mSEXP, SEXP AgtYboundaryConditionSEXP, SEXP maxHeightSEXP) {
@@ -315,8 +274,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phydynR_solvePikL1", (DL_FUNC) &_phydynR_solvePikL1, 8},
     {"_phydynR_dQL", (DL_FUNC) &_phydynR_dQL, 5},
     {"_phydynR_solveQfwd0", (DL_FUNC) &_phydynR_solveQfwd0, 8},
-    {"_phydynR_updateWCpp", (DL_FUNC) &_phydynR_updateWCpp, 6},
-    {"_phydynR_sourceAttribMultiDemeCpp2", (DL_FUNC) &_phydynR_sourceAttribMultiDemeCpp2, 15},
     {"_phydynR_sourceAttribMultiDemeCpp", (DL_FUNC) &_phydynR_sourceAttribMultiDemeCpp, 14},
     {"_phydynR_solveQALboost0", (DL_FUNC) &_phydynR_solveQALboost0, 8},
     {"_phydynR_solveQALboost1", (DL_FUNC) &_phydynR_solveQALboost1, 8},

@@ -41,14 +41,6 @@ solveQfwd0 <- function(times, Fs, Gs, Ys, deaths, m, h1, h0) {
     .Call('_phydynR_solveQfwd0', PACKAGE = 'phydynR', times, Fs, Gs, Ys, deaths, m, h1, h0)
 }
 
-updateWCpp <- function(W, psi_a, utips, vtips, utips_Wcoords, vtips_Wcoords) {
-    .Call('_phydynR_updateWCpp', PACKAGE = 'phydynR', W, psi_a, utips, vtips, utips_Wcoords, vtips_Wcoords)
-}
-
-sourceAttribMultiDemeCpp2 <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res) {
-    .Call('_phydynR_sourceAttribMultiDemeCpp2', PACKAGE = 'phydynR', heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight, step_size_res)
-}
-
 sourceAttribMultiDemeCpp <- function(heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight) {
     .Call('_phydynR_sourceAttribMultiDemeCpp', PACKAGE = 'phydynR', heights, Fs, Gs, Ys, eventIndicator, eventIndicatorNode, eventHeights, sampleStates, daughters, n, Nnode, m, AgtYboundaryCondition, maxHeight)
 }

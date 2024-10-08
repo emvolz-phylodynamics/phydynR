@@ -44,6 +44,12 @@ the inferred states of lineages and likelihood terms at each internal node.}
 \item{step_size_res}{Parameter for the ODE solver; it is the default number 
 of timesteps to use when solving coalescent equations in each internode 
 interval}
+
+\item{PL2}{Toggle likelihood approximation to be used. If TRUE, the likelihood
+   PL2 will be used. If PL2 = FALSE, the likelihood PL1 will be used.
+  (PL1 faster better approximation, PL2 slow/good 
+  approximation). See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018}
+for details.}
 }
 \value{
 The coalescent (or structured coalescent) log likelihood (numeric).

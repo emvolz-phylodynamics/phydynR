@@ -53,8 +53,8 @@
 #'   interval
 #' @param likelihood Toggle likelihood approximation to be used 
 #'   (QL fast/approximate, PL1 faster better approximation, PL2 slow/good 
-#'   approximation. See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018} 
-#'   for details.
+#'   approximation. See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018}
+#'   for details. Default is set to PL2.
 #'   
 #'
 #' @return The coalescent (or structured coalescent) log likelihood (numeric).
@@ -90,11 +90,10 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
-  , AgtY_penalty = 1 # penalises likelihood if A > Y
+  , AgtY_penalty = 1 # penalizes likelihood if A > Y
   , returnTree = FALSE
   , step_size_res = 10 # for adaptive ode solver, set to value < 1
-  , likelihood = c( 'PL2', 'PL1', 'QL' )
-  , PL2 = FALSE
+  , likelihood = 'PL2'
 ) {
  
 	if ( tree$maxHeight >  (tree$maxSampleTime- t0) ){
@@ -147,6 +146,11 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
 #' @inheritParams colik
 #' @param tfgy class tfgy that corresponds to the time, births, migrations and
 #'    number of infections. See examples for how to construct one.
+#' @param PL2 Toggle likelihood approximation to be used. If TRUE, the likelihood
+#'    PL2 will be used. If PL2 = FALSE, the likelihood PL1 will be used.
+#'   (PL1 faster better approximation, PL2 slow/good 
+#'   approximation). See \href{https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006546}{Volz & Siveroni 2018}
+#' for details.
 #' 
 #' @return The coalescent (or structured coalescent) log likelihood (numeric).
 #' @author Erik Volz

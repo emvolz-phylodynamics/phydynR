@@ -836,7 +836,8 @@ each combination of parameter value from the posterior distribution.
   run_o.n <- do.call("cbind", apply(run.n, 1, senegalHIVmodel::post_traj_mx, THETA))
 ```
 
-We can now load the solved demographic process for 1,000 samples for the
+We can now load the solved demographic process for 100 samples for the
+posterior distribution. Note that in the paper, we used 1,000 samples from the 
 posterior distribution.
 
 ```{r}
@@ -857,9 +858,10 @@ Now, we can solve the demographic process function for the maximum a posteriori
 ```
 
 After solving the demographic model for each combination of parameter value,
-we can use the function _df_sizes_prop_ to get the proportion of $gpm$, $gpf$ 
-and $msm$ for the effective population size, which is the 4th element from the 
-solved demographic process.
+we can use the function _senegalHIVmodel::df_sizes_prop_ to get the proportion 
+of $gpm$, $gpf$ and $msm$ for the effective population size, which is the 4th 
+element from the solved demographic process.
+And then we can plot the proportion of $gpf$, $gpm$ and $msm$.
 
 
 ```{r fig.asp = 0.8, fig.width = 7}
@@ -867,12 +869,8 @@ solved demographic process.
 eff_sizes <- senegalHIVmodel::df_sizes_prop(sizes.p = run_o.n[4,],
                                             sizes.map = run_map_o[4],
                                             times = run_o.n[[1]],
-                                            Nrep = 1000, 
+                                            Nrep = 100, 
                                             Ntime = 1000)
-
-teste=subset(eff_sizes, group == "msm")
-
-max(teste$map2)
 
 ggplot(data = eff_sizes, aes(x = times))  +
   geom_ribbon(aes(ymin = lower, ymax = upper, fill = group), alpha = 0.70) +
@@ -883,18 +881,63 @@ ggplot(data = eff_sizes, aes(x = times))  +
   ylab("Effective number of infections (proportion)") +
   xlab("Time (years)") +
   scale_fill_brewer() + scale_colour_brewer() + theme_bw() +
-  theme(legend.position="bottom", text = element_text(size = 14))
+  theme(legend.position="bottom", text = element_text(size = 14)) +
+  scale_linetype_manual(labels = c('MAP', "Median"), values = c("dashed", "solid"))
 ```
 
-Now we can plot the proportion of $gpf$, $gpm$ and $msm$
-
-## Estimating the reproductive number ($R_0$)
-
-TO DO!
-We can now estimate the reproductive number $(R_0)$.
-Add the scripts to plot effective number of infections for gpm, gpf and msm
-Check the scripts I used in the paper.
 
 
+## Estimating the reproduction number ($R_0$)
+
+
+We can calculate the $(R_0)$ for this model using the equations $\mu(t)/\gamma$ 
+for $gp$ and $\lambda(t)/\gamma$ for $msm$. 
+Note that $\mu(t)$ and $\lambda(t)$ are the transmission rates through time
+for $gp$ and $msm$, respectively, and were estimated with MCMC.
+
+We can then use the function `senegalHIVmodel::df_r0`. This function will
+basically estimate transmission rate for each group ($gp$ or $msm$) by solving
+the function $\mu(t)$ and $\lambda(t)$ as described in THETA (above).
+Then it estimate the $(R_0)$ as described above.
+
+```{r}
+# These are the values used for the simulations
+# Initial time for simulations
+T0 <- 1978
+# Final time for simulations
+T1 <- 2014
+# Duration of infection. In our model we assumed 1 stage of infection
+GAMMA <- 1/10
+
+times <- seq(1978, 2014, length.out = 1000)
+
+all_subtypes <- df_r0(run = outZ,
+                      burnin = 5000,
+                      par_names = c("gpsp0", "gpsp1", "gpsp2", "gpsploc",
+                                    "msmsp0", "msmsp1", "msmsp2", "msmsploc",
+                                    "maleX", "import", "srcNe",
+                                    "pmsm2msm", "pgpf2gpm",
+                                    "initmsm", "initgp"),
+                      times = times,
+                      T0 = T0,
+                      T1 = T1,
+                      GAMMA = GAMMA)
+
+```
+
+We can then look at the median and credible interval for the $R_0$ for $gp$ and
+$msm$ in 2014.
+
+```{r}
+
+#for gp
+all_subtypes[1000,]
+
+#for msm
+all_subtypes[2000,]
+```
+
+Note that the values obtained here might not match exactly as described in the
+paper. This is because we tested many different models and run the MCMC for longer.
 
 # References
