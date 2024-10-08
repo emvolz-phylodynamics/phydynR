@@ -1,15 +1,15 @@
 template:
   bootstrap: 5
-  light-switch: true
+  light-switch: yes
   math-rendering: mathjax
 authors:
   Erik Volz:
-    href: "https://profiles.imperial.ac.uk/e.volz"
+    href: https://profiles.imperial.ac.uk/e.volz
   Fabricia F. Nascimento:
-    href: "https://thednainus.wordpress.com/me/"
+    href: https://thednainus.wordpress.com/me/
   footer:
-    roles: [ctb]
-    text: "Website developed by"
+    roles: ctb
+    text: Website developed by
 navbar:
   structure:
     left:
@@ -40,7 +40,6 @@ navbar:
         href: articles/simulate_genealogies.html
       - text: HIV Senegal Model
         href: articles/SenegalHIVmodel.html
-
 reference:
 - title: Functions included in phydynR
   contents:
@@ -51,3 +50,4 @@ reference:
   - colik.pik.fgy
   - sim.co.tree
 url: http://emvolz-phylodynamics.github.io/phydynR/
+
