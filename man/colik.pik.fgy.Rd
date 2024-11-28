@@ -10,7 +10,7 @@ colik.pik.fgy(
   timeOfOriginBoundaryCondition = TRUE,
   maxHeight = Inf,
   forgiveAgtY = 1,
-  AgtY_penalty = 1,
+  AgtY_penalty = 0,
   returnTree = FALSE,
   step_size_res = 10,
   PL2 = FALSE
@@ -30,7 +30,7 @@ occur after maxHeight years before present. Useful for large trees and when
 you do not want to model the entire demographic history.}
 
 \item{forgiveAgtY}{If number of extant lineages exceeds simulated population
-size, return -Inf if this value is zero, or forgive the discrepancy if zero.
+size, return -Inf if this value is one, or forgive the discrepancy if zero.
 If between zero and one, only forgive the discrepancy if this proportion of
 lineages is less than the given value.}
 

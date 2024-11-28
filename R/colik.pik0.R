@@ -40,7 +40,7 @@
 #'   occur after maxHeight years before present. Useful for large trees and when
 #'   you do not want to model the entire demographic history.
 #' @param forgiveAgtY If number of extant lineages exceeds simulated population
-#'   size, return -Inf if this value is zero, or forgive the discrepancy if zero.
+#'   size, return -Inf if this value is one, or forgive the discrepancy if zero.
 #'   If between zero and one, only forgive the discrepancy if this proportion of
 #'   lineages is less than the given value.
 #' @param AgtY_penalty If number of extant lineages exceeds simulated population
@@ -90,7 +90,7 @@ colik = colik.pik <- function(tree, theta, demographic.process.model, x0, t0, re
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
-  , AgtY_penalty = 1 # penalizes likelihood if A > Y
+  , AgtY_penalty = 0 # AgtY_penalty = 1 penalizes likelihood if A > Y
   , returnTree = FALSE
   , step_size_res = 10 # for adaptive ode solver, set to value < 1
   , likelihood = 'PL2'
@@ -185,7 +185,7 @@ colik.pik.fgy <- function(tree
   , timeOfOriginBoundaryCondition = TRUE
   , maxHeight = Inf 
   , forgiveAgtY = 1 #can be NA; if 0 returns -Inf if A > Y; if 1, allows A>Y everywhere
-  , AgtY_penalty = 1 # penalises likelihood if A > Y
+  , AgtY_penalty = 0 # AgtY_penalty = 1 penalises likelihood if A > Y
   , returnTree = FALSE
   , step_size_res = 10
   , PL2 = FALSE
