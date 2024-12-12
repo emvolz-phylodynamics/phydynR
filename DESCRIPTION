@@ -1,8 +1,8 @@
 Package: phydynR
 Type: Package
 Title: Model-based coalescent simulation and likelihood for phylodynamic inference
-Version: 0.2.3
-Date: 2023-07-22
+Version: 0.2.4
+Date: 2024-12-12
 Authors@R:
     c(person(given = "Erik",
              family = "Volz",

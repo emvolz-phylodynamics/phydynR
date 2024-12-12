@@ -35,7 +35,10 @@
 	.dQL <-  function( t, y, parms, ...){
 		# t : h
 		ih <- min( length(tfgy[[1]]), 1+floor( length(tfgy[[1]]) * t / (tree$maxSampleTime- tail(tfgy[[1]],1))  ) )
-		list( as.vector( dQLcpp( y, tfgy[[2]][[ih]]
+		list( as.vector( 
+				#dQLcpp( 
+				dQL( 
+					y, tfgy[[2]][[ih]]
 		 , tfgy[[3]][[ih]]
 		 , tfgy[[4]][[ih]]
 		 , A0 )))
