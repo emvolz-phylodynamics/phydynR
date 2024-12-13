@@ -242,6 +242,9 @@ colik.pik.fgy <- function(tree
 	
 	if (is.null( tree$n ) ) tree$n <- length( tree$sampleTimes)
 	if (is.null(tree$m)) tree$m <- length( tfgy[[4]][[1]] )
+	if ( ncol(tree$sampleStates)==1 & ( names( tfgy$sizes[[1]] )[2] != 'V2' ) ){
+		stop('Structured model requires sample states to be defined in DatedTree.') 
+	}
 	if (ncol(tree$sampleStates)==1 & tree$m == 2){ # make exception for unstructured models
 		tree$sampleStates <- cbind( tree$sampleStates, rep( 0 , tree$n) )
 	}
