@@ -42,7 +42,13 @@ Suggests:
     magrittr,
     tidyr,
     bbmle,
-    rjson
+    rjson,
+    akima,
+    BayesianTools,
+    coda,
+    treedater,
+Remotes:
+    github::thednainus/senegalHIVmodel
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
