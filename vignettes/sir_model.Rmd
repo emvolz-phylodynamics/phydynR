@@ -2,7 +2,6 @@
 title: "Estimating transmission rate using the SIR model"
 author: "Erik Volz"
 date: "`r Sys.Date()`"
-description: "What does this tutorial do?"
 output:
   bookdown::html_vignette2:
   #bookdown::pdf_book:
@@ -39,7 +38,8 @@ in [@Volz2012] to estimate transmission rate parameters given a pathogen genealo
 This vignette assumes that you have the following packages already installed:
 
 * rjson: Converts R objects into JSON objects and vice-versa.
-* [phydynR]("https://github.com/emvolz-phylodynamics/phydynR"): implements the coalescent simulation and likelihood function for phylodynamics analysis
+* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the 
+coalescent simulation and likelihood function for phylodynamics analysis
 * [ggplot2](https://ggplot2.tidyverse.org/): functions to plot the demographic 
   process.
 

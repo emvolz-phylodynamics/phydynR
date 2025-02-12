@@ -43,7 +43,8 @@ trait information about sampled individuals.
 This tutorial assumes you have the following R packages already installed in
 your computer.
 
-* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the coalescent simulation and likelihood function for phylodynamic analyses.
+* [phydynR](https://github.com/emvolz-phylodynamics/phydynR): implements the 
+coalescent simulation and likelihood function for phylodynamic analyses.
 * [bbmle](https://github.com/bbolker/bbmle): tools for general likelihood estimation.
 * [ggplot2](https://ggplot2.tidyverse.org/): functions to plot the demographic 
   process.
