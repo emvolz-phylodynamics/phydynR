@@ -48,7 +48,7 @@ Suggests:
     coda,
     treedater,
     lubridate,
-    phytools
+    phytools,
     senegalHIVmodel
 Remotes:
     thednainus/senegalHIVmodel
