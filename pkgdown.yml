@@ -1,0 +1,13 @@
+pandoc: '3.4'
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  HIV_epidemics: HIV_epidemics.html
+  phydynR: phydynR.html
+  SenegalHIVmodel: SenegalHIVmodel.html
+  simulate_genealogies: simulate_genealogies.html
+  sir_model: sir_model.html
+last_built: 2025-02-12T14:32Z
+urls:
+  reference: http://emvolz-phylodynamics.github.io/phydynR/reference
+  article: http://emvolz-phylodynamics.github.io/phydynR/articles
