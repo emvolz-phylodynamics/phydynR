@@ -9,3 +9,4 @@ src/*.dll
 inst/doc
 test_scripts/
 older/
+docs/
