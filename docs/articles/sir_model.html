@@ -11,8 +11,6 @@
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Estimating transmission rate using the SIR model">
-<meta name="description" content="What does this tutorial do?">
-<meta property="og:description" content="What does this tutorial do?">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">phydynR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +68,7 @@
       <h1>Estimating transmission rate using the SIR model</h1>
                         <h4 data-toc-skip class="author">Erik Volz</h4>
             
-            <h4 data-toc-skip class="date">2024-11-28</h4>
+            <h4 data-toc-skip class="date">2025-02-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/HEAD/vignettes/sir_model.Rmd" class="external-link"><code>vignettes/sir_model.Rmd</code></a></small>
       <div class="d-none name"><code>sir_model.Rmd</code></div>
@@ -91,7 +89,8 @@ in <span class="citation">(Volz 2012)</span> to estimate transmission rate param
 <ul>
 <li>rjson: Converts R objects into JSON objects and vice-versa.</li>
 <li>
-<a href="%22https://github.com/emvolz-phylodynamics/phydynR%22" class="external-link">phydynR</a>: implements the coalescent simulation and likelihood function for phylodynamics analysis</li>
+<a href="https://github.com/emvolz-phylodynamics/phydynR" class="external-link">phydynR</a>: implements the
+coalescent simulation and likelihood function for phylodynamics analysis</li>
 <li>
 <a href="https://ggplot2.tidyverse.org/" class="external-link">ggplot2</a>: functions to plot the demographic
 process.</li>
@@ -226,7 +225,7 @@ is also possible.</p>
 <span><span class="co">#&gt; Tip labels:</span></span>
 <span><span class="co">#&gt;   24, 7, 36, 75, 52, 38, ...</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Rooted; includes branch lengths.</span></span></code></pre></div>
+<span><span class="co">#&gt; Rooted; includes branch length(s).</span></span></code></pre></div>
 <p>Note that the vector of sample times must have names corresponding to the
 taxon labels in tree.</p>
 <p>In order to fit this model, we need to express the equations in a canonical
@@ -271,8 +270,8 @@ calculation of the likelihood.</p>
 <span>                                parameterNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">parms_truth</span><span class="op">)</span>,</span>
 <span>                                rcpp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                sde <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Thu Nov 28 15:08:11 2024 Compiling model..."</span></span>
-<span><span class="co">#&gt; [1] "Thu Nov 28 15:08:16 2024 Model complete"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Wed Feb 12 12:47:43 2025 Compiling model..."</span></span>
+<span><span class="co">#&gt; [1] "Wed Feb 12 12:47:48 2025 Model complete"</span></span></code></pre></div>
 <p>Now we can calculate the likelihood of the tree and assess how long it takes:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">phydynR</span><span class="fu">::</span><span class="fu"><a href="../reference/colik.html">colik</a></span><span class="op">(</span>tree <span class="op">=</span> <span class="va">bdt</span>,</span>
@@ -285,7 +284,7 @@ calculation of the likelihood.</p>
 <span>                        <span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] -378.142</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.329   0.009   0.338</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.329   0.010   0.339</span></span></code></pre></div>
 <p>Note that changing the <em>integrationMethod</em> (choose “euler”), <em>maxHeight</em>
 (only fit to part of the tree) and <em>res</em> (set to a smaller value) options
 can dramatically speed up the calculation at the cost of some accuracy.</p>

@@ -38,7 +38,9 @@ Suggests:
     knitr,
     rmarkdown,
     kableExtra,
-    bookdown
+    bookdown,
+    magrittr,
+    tidyr
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

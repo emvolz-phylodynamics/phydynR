@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">phydynR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
       <h1>Simulating genealogies with an epidemiological coalescent model</h1>
                         <h4 data-toc-skip class="author">Erik Volz</h4>
             
-            <h4 data-toc-skip class="date">2024-11-28</h4>
+            <h4 data-toc-skip class="date">2025-02-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/HEAD/vignettes/simulate_genealogies.Rmd" class="external-link"><code>vignettes/simulate_genealogies.Rmd</code></a></small>
       <div class="d-none name"><code>simulate_genealogies.Rmd</code></div>
@@ -304,8 +304,8 @@ Now we can construct the demographic process:</p>
 <span>                                                           <span class="st">'mu'</span><span class="op">)</span>,</span>
 <span>                                        rcpp <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                                        sde <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Thu Nov 28 15:08:04 2024 Compiling model..."</span></span>
-<span><span class="co">#&gt; [1] "Thu Nov 28 15:08:09 2024 Model complete"</span></span>
+<span><span class="co">#&gt; [1] "Wed Feb 12 12:47:36 2025 Compiling model..."</span></span>
+<span><span class="co">#&gt; [1] "Wed Feb 12 12:47:41 2025 Model complete"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">demo.model</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "demographic.process" "function"</span></span></code></pre></div>
 <p>This creates the model (“demo.model”) by parsing the equations provided in
@@ -417,7 +417,7 @@ most samples have chronic infection, and a few are sampled in the first stage:</
 <span><span class="co">#&gt; Tip labels:</span></span>
 <span><span class="co">#&gt;   simt_4, simt_71, simt_6, simt_63, simt_74, simt_61, ...</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Rooted; includes branch lengths.</span></span></code></pre></div>
+<span><span class="co">#&gt; Rooted; includes branch length(s).</span></span></code></pre></div>
 <p>The return value is a <code>DatedTree</code> object, which is derived from <code><a href="https://rdrr.io/pkg/ape/man/read.tree.html" class="external-link">ape::phylo</a></code>.
 Consequently, all of the convenience functions for <code><a href="https://rdrr.io/pkg/ape/man/read.tree.html" class="external-link">ape::phylo</a></code> also work:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">

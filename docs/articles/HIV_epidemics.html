@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">phydynR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
       <h1>Estimating HIV transmission rates</h1>
                         <h4 data-toc-skip class="author">Erik Volz</h4>
             
-            <h4 data-toc-skip class="date">2024-11-28</h4>
+            <h4 data-toc-skip class="date">2025-02-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/HEAD/vignettes/HIV_epidemics.Rmd" class="external-link"><code>vignettes/HIV_epidemics.Rmd</code></a></small>
       <div class="d-none name"><code>HIV_epidemics.Rmd</code></div>
@@ -90,7 +90,8 @@ trait information about sampled individuals.</p>
 your computer.</p>
 <ul>
 <li>
-<a href="https://github.com/emvolz-phylodynamics/phydynR" class="external-link">phydynR</a>: implements the coalescent simulation and likelihood function for phylodynamic analyses.</li>
+<a href="https://github.com/emvolz-phylodynamics/phydynR" class="external-link">phydynR</a>: implements the
+coalescent simulation and likelihood function for phylodynamic analyses.</li>
 <li>
 <a href="https://github.com/bbolker/bbmle" class="external-link">bbmle</a>: tools for general likelihood estimation.</li>
 <li>
@@ -336,7 +337,7 @@ through time. We load this by:</p>
 <span><span class="co">#&gt; Tip labels:</span></span>
 <span><span class="co">#&gt;   89_I1, 349_I2, 339_I1, 64_I1, 203_I1, 30_I0, ...</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Rooted; includes branch lengths.</span></span></code></pre></div>
+<span><span class="co">#&gt; Rooted; includes branch length(s).</span></span></code></pre></div>
 <p>Note well that the vector of sample times must have the names of each taxon.
 If the state of each taxon (the stage of infection of each sample unit) is encoded
 at the end of taxon name, it can be loaded automatically by passing the argument
