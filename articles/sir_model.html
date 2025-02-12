@@ -8,8 +8,8 @@
 <title>Estimating transmission rate using the SIR model • phydynR</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Estimating transmission rate using the SIR model">
 </head>
 <body>
@@ -31,7 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/phydynR.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Functions</a></li>
-<li class="nav-item dropdown">
+<li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="../articles/sir_model.html">Estimating transmission rate using the SIR model</a></li>
@@ -70,7 +70,7 @@
             
             <h4 data-toc-skip class="date">2025-02-12</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/HEAD/vignettes/sir_model.Rmd" class="external-link"><code>vignettes/sir_model.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/master/vignettes/sir_model.Rmd" class="external-link"><code>vignettes/sir_model.Rmd</code></a></small>
       <div class="d-none name"><code>sir_model.Rmd</code></div>
     </div>
 
@@ -270,8 +270,8 @@ calculation of the likelihood.</p>
 <span>                                parameterNames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">parms_truth</span><span class="op">)</span>,</span>
 <span>                                rcpp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                sde <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Wed Feb 12 14:33:44 2025 Compiling model..."</span></span>
-<span><span class="co">#&gt; [1] "Wed Feb 12 14:33:49 2025 Model complete"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Wed Feb 12 14:45:27 2025 Compiling model..."</span></span>
+<span><span class="co">#&gt; [1] "Wed Feb 12 14:45:36 2025 Model complete"</span></span></code></pre></div>
 <p>Now we can calculate the likelihood of the tree and assess how long it takes:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">phydynR</span><span class="fu">::</span><span class="fu"><a href="../reference/colik.html">colik</a></span><span class="op">(</span>tree <span class="op">=</span> <span class="va">bdt</span>,</span>
@@ -284,7 +284,7 @@ calculation of the likelihood.</p>
 <span>                        <span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] -378.142</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.326   0.009   0.335</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.518   0.044   0.565</span></span></code></pre></div>
 <p>Note that changing the <em>integrationMethod</em> (choose “euler”), <em>maxHeight</em>
 (only fit to part of the tree) and <em>res</em> (set to a smaller value) options
 can dramatically speed up the calculation at the cost of some accuracy.</p>
