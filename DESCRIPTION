@@ -40,7 +40,9 @@ Suggests:
     kableExtra,
     bookdown,
     magrittr,
-    tidyr
+    tidyr,
+    bbmle,
+    rjson
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
