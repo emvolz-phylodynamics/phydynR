@@ -6,11 +6,17 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Simulate genealogies using exponential growth • phydynR</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulate genealogies using exponential growth">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulate genealogies using exponential growth">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -68,7 +74,7 @@
       <h1>Simulate genealogies using exponential growth</h1>
                         <h4 data-toc-skip class="author">Erik Volz</h4>
             
-            <h4 data-toc-skip class="date">2025-02-12</h4>
+            <h4 data-toc-skip class="date">2025-05-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/emvolz-phylodynamics/phydynR/blob/master/vignettes/phydynR.Rmd" class="external-link"><code>vignettes/phydynR.Rmd</code></a></small>
       <div class="d-none name"><code>phydynR.Rmd</code></div>
@@ -165,8 +171,8 @@ Let’s compile a deterministic version of the model:</p>
 <span>                                    parameterNames<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'beta'</span>, <span class="st">'gamma'</span><span class="op">)</span>,</span>
 <span>                                    rcpp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                                    sde <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "Wed Feb 12 15:06:43 2025 Compiling model..."</span></span>
-<span><span class="co">## [1] "Wed Feb 12 15:06:50 2025 Model complete"</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "Thu May 15 14:32:40 2025 Compiling model..."</span></span>
+<span><span class="co">## [1] "Thu May 15 14:32:47 2025 Model complete"</span></span></code></pre>
 <p>Note that when we use C code, the <code>parms</code> keyword is not used.</p>
 <p>Now let’s simulate a coalescent tree conditioning on this demographic process:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -298,7 +304,7 @@ estimate;</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>
