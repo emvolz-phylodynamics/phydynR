@@ -232,7 +232,7 @@ obj_fun <- function(lnbeta, lnI0){
   x0 <- c(I = unname(I0), S = unname(parms$S0) )
   
   mll <- -phydynR::colik(tree = bdt,
-                         theta = parms_truth,
+                         theta = parms,
                          demographic.process.model = dm,
                          x0 = x0,
                          t0 = t0,
